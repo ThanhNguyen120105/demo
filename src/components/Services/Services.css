@@ -1,0 +1,222 @@
+/* Page Header */
+.page-header {
+  background-color: #183661;
+  padding: 80px 0;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #183661;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+.page-header-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.page-header h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.page-header p {
+  font-size: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+  opacity: 0.9;
+}
+
+/* Service Cards */
+.service-card {
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.service-icon {
+  font-size: 50px;
+  color: #1e88e5;
+  margin-bottom: 20px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-card .card-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #183661;
+}
+
+.service-card .card-text {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.service-card .btn {
+  padding: 8px 20px;
+  border-radius: 5px;
+}
+
+/* Care Approach */
+.care-approach-image img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.care-approach-content {
+  padding: 20px 0 20px 30px;
+}
+
+.care-approach-content p {
+  margin-bottom: 20px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.care-list {
+  padding-left: 20px;
+  margin-bottom: 30px;
+}
+
+.care-list li {
+  margin-bottom: 12px;
+  color: #666;
+  position: relative;
+  padding-left: 15px;
+}
+
+.care-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #1e88e5;
+}
+
+/* Insurance & Payment */
+.insurance-box, .payment-box {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 30px;
+  height: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.insurance-box h3, .payment-box h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #183661;
+  margin-bottom: 20px;
+}
+
+.insurance-box h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 20px 0 15px;
+}
+
+.insurance-box ul, .payment-box ul {
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+.insurance-box ul li, .payment-box ul li {
+  margin-bottom: 8px;
+  color: #666;
+}
+
+/* Appointment CTA */
+.appointment-cta {
+  background-color: #1e88e5;
+  padding: 80px 0;
+  color: #fff;
+}
+
+.cta-content h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.cta-content p {
+  font-size: 18px;
+  max-width: 800px;
+  margin: 0 auto 30px;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.cta-buttons .btn {
+  padding: 12px 30px;
+  font-weight: 600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+  .page-header {
+    padding: 60px 0;
+  }
+  
+  .page-header h1 {
+    font-size: 36px;
+  }
+  
+  .page-header p {
+    font-size: 18px;
+  }
+  
+  .care-approach-content {
+    padding: 30px 0 0;
+    text-align: center;
+  }
+  
+  .care-list li {
+    list-style-position: inside;
+  }
+  
+  .section-title.text-start {
+    text-align: center !important;
+  }
+  
+  .insurance-box, .payment-box {
+    margin-bottom: 30px;
+  }
+  
+  .cta-content h2 {
+    font-size: 30px;
+  }
+} 

@@ -1,0 +1,374 @@
+/* Hero Section */
+.hero-section {
+  padding: 100px 0;
+  background-color: #f5f9ff;
+  overflow: hidden;
+}
+
+.hero-content h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #183661;
+  line-height: 1.2;
+}
+
+.hero-content p {
+  font-size: 18px;
+  margin-bottom: 30px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.hero-image {
+  position: relative;
+  text-align: center;
+}
+
+.hero-image img {
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* About Section */
+.about-image img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.about-content {
+  padding: 20px 0 20px 30px;
+}
+
+.about-content p {
+  margin-bottom: 20px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.about-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 30px;
+}
+
+.about-list li {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.list-icon {
+  color: #1e88e5;
+  font-size: 20px;
+  margin-right: 15px;
+}
+
+/* Service Card */
+.service-card {
+  padding: 30px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  border-radius: 10px;
+  height: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  font-size: 50px;
+  color: #1e88e5;
+  margin-bottom: 20px;
+}
+
+.service-card .card-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #183661;
+}
+
+.card-link {
+  display: inline-block;
+  color: #1e88e5;
+  font-weight: 600;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.card-link:hover {
+  color: #1565c0;
+  transform: translateX(5px);
+}
+
+/* Feature Box */
+.feature-box {
+  text-align: center;
+  padding: 40px 20px;
+  margin-bottom: 30px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.feature-box:hover {
+  transform: translateY(-10px);
+}
+
+.feature-icon {
+  font-size: 40px;
+  color: #1e88e5;
+  margin-bottom: 20px;
+  height: 80px;
+  width: 80px;
+  line-height: 80px;
+  border-radius: 50%;
+  background-color: #e3f2fd;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.feature-box:hover .feature-icon {
+  background-color: #1e88e5;
+  color: #fff;
+}
+
+.feature-box h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #183661;
+}
+
+.feature-box p {
+  color: #666;
+  margin-bottom: 0;
+}
+
+/* Doctor Card */
+.doctor-card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.doctor-card:hover {
+  transform: translateY(-10px);
+}
+
+.doctor-card .card-img {
+  height: 250px;
+  overflow: hidden;
+}
+
+.doctor-card .card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.doctor-card:hover .card-img img {
+  transform: scale(1.1);
+}
+
+.doctor-card .card-body {
+  padding: 20px;
+}
+
+.doctor-card .card-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #183661;
+}
+
+.doctor-specialty {
+  color: #1e88e5;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+/* News Card */
+.news-card {
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.news-card:hover {
+  transform: translateY(-10px);
+}
+
+.news-card .card-img {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.news-card .card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.news-card:hover .card-img img {
+  transform: scale(1.1);
+}
+
+.news-date {
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  background-color: #1e88e5;
+  color: #fff;
+  border-radius: 5px 5px 0 0;
+  padding: 10px 15px;
+  text-align: center;
+  line-height: 1;
+}
+
+.news-date .day {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.news-date .month {
+  display: block;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.news-card .card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #183661;
+}
+
+/* Appointment Section */
+.appointment-section {
+  background-color: #1e88e5;
+  color: #fff;
+  padding: 80px 0;
+}
+
+.appointment-content h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.appointment-content p {
+  font-size: 18px;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+.appointment-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.appointment-phone {
+  display: flex;
+  align-items: center;
+}
+
+.phone-icon {
+  font-size: 24px;
+  margin-right: 15px;
+  height: 50px;
+  width: 50px;
+  line-height: 50px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.appointment-phone div {
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-phone span {
+  font-size: 14px;
+}
+
+.appointment-phone .phone-number {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.appointment-image img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+  .hero-section {
+    padding: 80px 0;
+  }
+  
+  .hero-content {
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  
+  .hero-content h1 {
+    font-size: 36px;
+  }
+  
+  .hero-buttons {
+    justify-content: center;
+  }
+  
+  .about-content {
+    padding: 30px 0 0;
+    text-align: center;
+  }
+  
+  .about-list li {
+    justify-content: center;
+  }
+  
+  .section-title.text-start {
+    text-align: center !important;
+  }
+  
+  .appointment-content {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .appointment-buttons {
+    justify-content: center;
+  }
+} 
