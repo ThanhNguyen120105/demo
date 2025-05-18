@@ -29,8 +29,10 @@ const Header = () => {
                 <span>FAQ</span>
               </div>
               <div className="action-item appointment-btn">
-                <FontAwesomeIcon icon={faCalendarAlt} />
-                <span>Book Appointment</span>
+                <Link to="/appointment" className="top-bar-appointment-link">
+                  <FontAwesomeIcon icon={faCalendarAlt} />
+                  <span>Book Appointment</span>
+                </Link>
               </div>
             </div>
           </div>
@@ -71,7 +73,13 @@ const Header = () => {
               <Button variant="outline-primary" className="search-btn">
                 <FontAwesomeIcon icon={faSearch} />
               </Button>
-              <Button variant="primary" className="appointment-btn">
+              <Button 
+                variant="primary" 
+                className="appointment-btn"
+                as={Link}
+                to="/appointment"
+                onClick={() => setExpanded(false)}
+              >
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
                 Book Appointment
               </Button>

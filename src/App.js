@@ -10,6 +10,7 @@ import Home from './components/Home/Home';
 import Services from './components/Services/Services';
 import About from './components/About/About';
 import Contact from './components/Contact/Contact';
+import AppointmentPage from './components/Appointment/AppointmentPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/appointment" element={<AppointmentPage />} />
         </Routes>
         <Footer />
       </div>

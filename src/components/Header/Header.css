@@ -47,6 +47,12 @@
   color: #e3f2fd;
 }
 
+.top-bar-appointment-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
 .main-navbar {
   padding: 15px 0;
   background-color: #fff;

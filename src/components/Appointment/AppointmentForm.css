@@ -1,0 +1,89 @@
+.simple-form-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  background-color: #ffffff;
+}
+
+.simple-form-title {
+  background-color: #1a4ba1;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  color: #32a9ff;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.radio-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-option {
+  margin-left: 5px;
+}
+
+.button-group {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+
+.time-button, .type-button {
+  flex: 1;
+  text-align: center;
+  padding: 10px 15px;
+  border-radius: 0;
+}
+
+.form-select, .form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.form-submit {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.submit-button {
+  padding: 10px 30px;
+  font-weight: 600;
+}
+
+/* Styling radio buttons similar to the image */
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+/* Make text inputs match the style in the image */
+.form-control::placeholder, .form-select::placeholder {
+  color: #adb5bd;
+}
+
+/* Date input with calendar icon */
+.date-input-wrapper {
+  position: relative;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: #6c757d;
+} 

@@ -28,7 +28,7 @@ const Home = () => {
                 </p>
                 <div className="hero-buttons">
                   <Button variant="primary" className="me-3">Our Services</Button>
-                  <Button variant="outline-primary">Make an Appointment</Button>
+                  <Button variant="outline-primary" as={Link} to="/appointment">Make an Appointment</Button>
                 </div>
               </div>
             </Col>
@@ -286,7 +286,7 @@ const Home = () => {
                   Schedule an appointment online or call us directly.
                 </p>
                 <div className="appointment-buttons">
-                  <Button variant="light" className="me-3">Book Online</Button>
+                  <Button variant="light" className="me-3" as={Link} to="/appointment">Book Online</Button>
                   <div className="appointment-phone">
                     <FontAwesomeIcon icon={faPhone} className="phone-icon" />
                     <div>
