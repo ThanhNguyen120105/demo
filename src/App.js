@@ -11,6 +11,7 @@ import Services from './components/Services/Services';
 import About from './components/About/About';
 import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
+import AppointmentHistory from './components/Appointment/AppointmentHistory';
 import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
@@ -26,6 +27,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/appointment" element={<AppointmentPage />} />
+          <Route path="/appointment-history" element={<AppointmentHistory />} />
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

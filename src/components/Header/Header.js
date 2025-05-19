@@ -119,6 +119,10 @@ const Header = () => {
                   <Dropdown.Item as={Link} to="/services/counseling" onClick={() => setExpanded(false)}>
                     <FontAwesomeIcon icon={faUser} className="dropdown-icon" /> Counseling
                   </Dropdown.Item>
+                  <Dropdown.Divider />
+                  <Dropdown.Item as={Link} to="/appointment-history" onClick={() => setExpanded(false)}>
+                    <FontAwesomeIcon icon={faCalendarAlt} className="dropdown-icon" /> Appointment History
+                  </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
               
@@ -126,6 +130,13 @@ const Header = () => {
                 <div className="nav-icon-container">
                   <FontAwesomeIcon icon={faUserMd} className="nav-icon" />
                   <span>Our Specialists</span>
+                </div>
+              </Nav.Link>
+              
+              <Nav.Link as={Link} to="/appointment-history" onClick={() => setExpanded(false)}>
+                <div className="nav-icon-container">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="nav-icon" />
+                  <span>Appointments</span>
                 </div>
               </Nav.Link>
               
