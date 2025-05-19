@@ -16,6 +16,11 @@ import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
 
+// Doctor Components
+import DoctorDashboard from './components/Doctor/DoctorDashboard';
+import DoctorAppointments from './components/Doctor/DoctorAppointments';
+import ARVSelectionTool from './components/Doctor/ARVSelectionTool';
+
 function App() {
   return (
     <Router>
@@ -31,6 +36,12 @@ function App() {
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          
+          {/* Doctor Routes */}
+          <Route path="/doctor" element={<DoctorDashboard />} />
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+          <Route path="/doctor/arv-tool" element={<ARVSelectionTool />} />
         </Routes>
         <Footer />
       </div>

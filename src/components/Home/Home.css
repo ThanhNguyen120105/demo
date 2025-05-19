@@ -1,4 +1,6 @@
 /* Hero Section */
+
+/* Hero Section */
 .hero-section {
   padding: 100px 0;
   background-color: #f5f9ff;
@@ -59,12 +61,36 @@
 .counter-section {
   background-color: #1e88e5;
   padding: 50px 0;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.counter-section .container {
+  max-width: 100%;
+  margin: 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.counter-section .row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
 }
 
 .counter-box {
   transition: transform 0.5s ease, box-shadow 0.3s ease;
   text-align: center;
   padding: 20px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin: 0 10px;
+  height: 100%;
 }
 
 .counter-box:hover {
@@ -72,9 +98,27 @@
   box-shadow: 0 10px 25px rgba(30, 136, 229, 0.2);
 }
 
+.counter-icon {
+  font-size: 36px;
+  color: #ffffff;
+  margin-bottom: 15px;
+  height: 70px;
+  width: 70px;
+  line-height: 70px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.counter-box:hover .counter-icon {
+  transform: rotateY(180deg);
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
 .counter-number {
   display: inline-block;
-  font-size: 48px;
+  font-size: 40px;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 10px;
@@ -82,7 +126,7 @@
 }
 
 .counter-text {
-  font-size: 18px;
+  font-size: 16px;
   color: #ffffff;
   font-weight: 600;
 }
@@ -519,4 +563,20 @@
 
 .btn-primary:hover:after, .btn-outline-primary:hover:after, .btn-light:hover:after {
   height: 100%;
+}
+
+/* Section sizing constraints */
+.section-padding, 
+.hero-section, 
+.appointment-section {
+  width: 100%;
+  overflow: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-left: 15px;
+  padding-right: 15px;
 } 

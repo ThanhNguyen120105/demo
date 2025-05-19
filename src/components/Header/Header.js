@@ -57,6 +57,12 @@ const Header = () => {
                 <span>Services</span>
               </div>
               <div className="action-item">
+                <Link to="/doctor/dashboard" className="action-link">
+                  <FontAwesomeIcon icon={faUserMd} />
+                  <span>Doctor</span>
+                </Link>
+              </div>
+              <div className="action-item">
                 <FontAwesomeIcon icon={faQuestionCircle} />
                 <span>FAQ</span>
               </div>
@@ -75,7 +81,7 @@ const Header = () => {
         </Container>
       </div>
 
-      <Navbar expanded={expanded} expand="lg" className="main-navbar">
+      <Navbar expand="lg" className="main-navbar" expanded={expanded}>
         <Container>
           <Navbar.Brand as={Link} to="/" className="brand-container">
             <div className="brand-logo">
@@ -164,45 +170,43 @@ const Header = () => {
 
             <div className="header-action-buttons">
               {showSearch ? (
-                <div className="search-container animated fadeIn">
-                  <Form className="d-flex">
-                    <div className="search-input-wrapper">
-                      <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                      <Form.Control
-                        type="search"
-                        placeholder="Search..."
-                        className="search-input"
-                        aria-label="Search"
-                        autoFocus
-                      />
-                      <Button 
-                        variant="link" 
-                        className="search-close-btn" 
-                        onClick={() => setShowSearch(false)}
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  </Form>
+                <div className="search-container">
+                  <div className="search-input-wrapper">
+                    <FontAwesomeIcon icon={faSearch} className="search-icon" />
+                    <Form.Control 
+                      type="text" 
+                      placeholder="Search..." 
+                      className="search-input" 
+                      autoFocus 
+                    />
+                    <button 
+                      className="search-close-btn" 
+                      onClick={() => setShowSearch(false)}
+                      aria-label="Close search"
+                    >
+                      &times;
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <Button 
-                  variant="outline-primary" 
-                  className="search-btn"
-                  onClick={() => {setShowSearch(true); setExpanded(false);}}
+                  variant="outline-secondary" 
+                  className="search-btn" 
+                  onClick={() => setShowSearch(true)}
+                  aria-label="Search"
                 >
                   <FontAwesomeIcon icon={faSearch} />
                 </Button>
               )}
+              
               <Button 
                 variant="primary" 
-                className="appointment-btn"
+                className="appointment-btn pulse-hover" 
                 as={Link}
                 to="/appointment"
-                onClick={() => setExpanded(false)}
               >
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                Book Appointment
+                Make an Appointment
               </Button>
             </div>
           </Navbar.Collapse>

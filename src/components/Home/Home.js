@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faStethoscope, faUsers, faHeartbeat, faBriefcaseMedical, 
   faMicroscope, faHandHoldingMedical, faCalendarCheck, faUserMd,
-  faImage, faPhone
+  faImage, faPhone, faHistory, faTrophy, faStar, faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
@@ -53,6 +53,14 @@ const AnimatedSection = ({ children, className }) => {
     </motion.section>
   );
 };
+
+// Counter icons mapping
+const counterIcons = [
+  { icon: faHistory },   // Years of Experience
+  { icon: faUsers },     // Patients Treated
+  { icon: faUserMd },    // Specialist Doctors
+  { icon: faTrophy }     // Treatment Success Rate
+];
 
 const Home = () => {
   return (
@@ -106,6 +114,9 @@ const Home = () => {
                     className="counter-box"
                     variants={fadeIn}
                   >
+                    <div className="counter-icon">
+                      <FontAwesomeIcon icon={counterIcons[index].icon} />
+                    </div>
                     <div className="counter-number">{stat.value}</div>
                     <div className="counter-text">{stat.label}</div>
                   </motion.div>

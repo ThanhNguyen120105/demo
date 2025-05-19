@@ -19,6 +19,7 @@
 
 .top-bar .container {
   max-width: 100%;
+  margin: 0;
   padding: 0 15px;
 }
 
@@ -61,7 +62,18 @@
   cursor: pointer;
 }
 
-.top-bar a:hover, .action-item:hover, .contact-item:hover {
+.action-link {
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.action-link svg {
+  margin-right: 6px;
+}
+
+.top-bar a:hover, .action-item:hover, .contact-item:hover, .action-link:hover {
   color: #e3f2fd;
   transform: translateY(-1px);
 }
@@ -135,9 +147,19 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.main-navbar .container {
+  padding-left: 15px;
+  max-width: 100%;
+  margin: 0;
+}
+
 .brand-container {
   padding: 0;
   margin-right: 40px;
+}
+
+.navbar-brand {
+  padding-left: 0;
 }
 
 .brand-logo {
@@ -174,11 +196,10 @@
 /* Navigation Links */
 .main-nav {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
   align-items: center;
   padding: 0;
-  gap: 10px;
 }
 
 .nav-icon-container {
@@ -205,7 +226,7 @@
 .navbar-nav .nav-link {
   color: #333;
   font-weight: 600;
-  margin: 0 12px;
+  margin: 0 15px;
   position: relative;
   transition: all 0.3s ease;
   font-size: 13px;
@@ -283,7 +304,7 @@
 .header-action-buttons {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 }
 
 /* Search styling */
@@ -383,55 +404,21 @@
   box-shadow: 0 6px 8px rgba(30, 136, 229, 0.2);
 }
 
-.auth-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.login-btn, .signup-btn {
-  padding: 8px 15px;
-  border-radius: 6px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.login-btn {
-  border-color: #e0e0e0;
-  color: #5f6368;
-}
-
-.login-btn:hover {
-  background-color: #f5f9ff;
-  border-color: #1e88e5;
-  color: #1e88e5;
-  transform: translateY(-2px);
-}
-
-.signup-btn {
-  border-color: #4caf50;
-  color: #4caf50;
-}
-
-.signup-btn:hover {
-  background-color: #e8f5e9;
-  transform: translateY(-2px);
-}
-
 /* Responsive adjustment */
 @media (max-width: 1200px) and (min-width: 992px) {
   .navbar-nav .nav-link {
-    margin: 0 8px;
-    padding: 8px 6px;
+    margin: 0 10px;
+    padding: 8px 5px;
+    font-size: 12px;
   }
   
   .header-action-buttons {
-    gap: 12px;
-    margin-left: 10px;
+    gap: 10px;
+  }
+  
+  .appointment-btn {
+    padding: 8px 12px;
+    font-size: 13px;
   }
 }
 
