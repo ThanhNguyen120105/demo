@@ -37,6 +37,56 @@
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
+/* Animation transitions */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animation delays */
+.staggered-animation > *:nth-child(1) { transition-delay: 0.1s; }
+.staggered-animation > *:nth-child(2) { transition-delay: 0.2s; }
+.staggered-animation > *:nth-child(3) { transition-delay: 0.3s; }
+.staggered-animation > *:nth-child(4) { transition-delay: 0.4s; }
+
+/* Counter section animations */
+.counter-section {
+  background-color: #1e88e5;
+  padding: 50px 0;
+}
+
+.counter-box {
+  transition: transform 0.5s ease, box-shadow 0.3s ease;
+  text-align: center;
+  padding: 20px;
+}
+
+.counter-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(30, 136, 229, 0.2);
+}
+
+.counter-number {
+  display: inline-block;
+  font-size: 48px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 10px;
+  transition: color 0.3s ease;
+}
+
+.counter-text {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
 /* About Section */
 .about-image img {
   width: 100%;
@@ -64,6 +114,11 @@
   margin-bottom: 15px;
   display: flex;
   align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.about-list li:hover {
+  transform: translateX(5px);
 }
 
 .list-icon {
@@ -91,6 +146,11 @@
   font-size: 50px;
   color: #1e88e5;
   margin-bottom: 20px;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .card-icon {
+  transform: scale(1.1);
 }
 
 .service-card .card-title {
@@ -121,11 +181,12 @@
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .feature-box:hover {
   transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
@@ -144,6 +205,7 @@
 .feature-box:hover .feature-icon {
   background-color: #1e88e5;
   color: #fff;
+  transform: rotateY(180deg);
 }
 
 .feature-box h3 {
@@ -166,16 +228,18 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
   height: 100%;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .doctor-card:hover {
   transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .doctor-card .card-img {
   height: 250px;
   overflow: hidden;
+  position: relative;
 }
 
 .doctor-card .card-img img {
@@ -191,6 +255,13 @@
 
 .doctor-card .card-body {
   padding: 20px;
+  position: relative;
+  z-index: 1;
+  transition: background-color 0.3s ease;
+}
+
+.doctor-card:hover .card-body {
+  background-color: #f5f9ff;
 }
 
 .doctor-card .card-title {
@@ -214,11 +285,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
   height: 100%;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .news-card:hover {
   transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .news-card .card-img {
@@ -238,42 +310,64 @@
   transform: scale(1.1);
 }
 
-.news-date {
-  position: absolute;
-  bottom: 0;
-  left: 20px;
-  background-color: #1e88e5;
-  color: #fff;
-  border-radius: 5px 5px 0 0;
-  padding: 10px 15px;
+/* Section title animation */
+.section-title {
+  position: relative;
   text-align: center;
-  line-height: 1;
+  margin-bottom: 60px;
 }
 
-.news-date .day {
-  display: block;
-  font-size: 20px;
+.section-title h2 {
+  font-size: 36px;
   font-weight: 700;
-}
-
-.news-date .month {
-  display: block;
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-.news-card .card-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 10px;
   color: #183661;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.section-title h2:before {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 3px;
+  background-color: #1e88e5;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+.section-title:hover h2:before {
+  width: 100px;
+}
+
+/* Section padding enhancement */
+.section-padding {
+  padding: 100px 0;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Appointment Section */
 .appointment-section {
-  background-color: #1e88e5;
-  color: #fff;
+  background: linear-gradient(135deg, #1976d2, #1e88e5);
   padding: 80px 0;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.appointment-section:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,.1)' fill-rule='evenodd'/%3E%3C/svg%3E");
+  opacity: 0.3;
 }
 
 .appointment-content h2 {
@@ -290,25 +384,39 @@
 
 .appointment-buttons {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
+  align-items: center;
   gap: 20px;
 }
 
 .appointment-phone {
   display: flex;
   align-items: center;
+  gap: 15px;
 }
 
 .phone-icon {
   font-size: 24px;
-  margin-right: 15px;
-  height: 50px;
-  width: 50px;
-  line-height: 50px;
-  text-align: center;
   background-color: rgba(255, 255, 255, 0.2);
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 
 .appointment-phone div {
@@ -318,6 +426,7 @@
 
 .appointment-phone span {
   font-size: 14px;
+  opacity: 0.9;
 }
 
 .appointment-phone .phone-number {
@@ -331,44 +440,83 @@
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile Responsive */
+/* Responsive styles */
 @media (max-width: 991px) {
   .hero-section {
-    padding: 80px 0;
+    padding: 60px 0;
   }
-  
+
   .hero-content {
-    margin-bottom: 40px;
     text-align: center;
+    margin-bottom: 40px;
   }
-  
+
   .hero-content h1 {
     font-size: 36px;
   }
-  
+
   .hero-buttons {
     justify-content: center;
   }
-  
+
   .about-content {
-    padding: 30px 0 0;
-    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
   }
-  
+
   .about-list li {
-    justify-content: center;
+    margin-bottom: 10px;
   }
-  
+
   .section-title.text-start {
     text-align: center !important;
   }
-  
+
   .appointment-content {
     text-align: center;
     margin-bottom: 40px;
   }
-  
+
   .appointment-buttons {
     justify-content: center;
   }
+}
+
+/* Animation for counter numbers */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.counter-box .counter-number {
+  animation: countUp 1s ease forwards;
+}
+
+/* Button hover effects */
+.btn-primary, .btn-outline-primary, .btn-light {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-primary:after, .btn-outline-primary:after, .btn-light:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background: rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.btn-primary:hover:after, .btn-outline-primary:hover:after, .btn-light:hover:after {
+  height: 100%;
 } 
