@@ -4,6 +4,7 @@ import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faCalendarAlt, faUser, faQuestionCircle, faSearch } from '@fortawesome/free-solid-svg-icons';
 import './Header.css';
+import logo from '../../assets/images/logo.png';
 
 const Header = () => {
   const [expanded, setExpanded] = useState(false);
@@ -42,7 +43,7 @@ const Header = () => {
       <Navbar expanded={expanded} expand="lg" className="main-navbar">
         <Container>
           <Navbar.Brand as={Link} to="/">
-            <img src="/logo.png" alt="HIV Treatment Center" className="logo" />
+            <img src={logo} alt="HIV Treatment Center" className="logo" />
           </Navbar.Brand>
           <Navbar.Toggle 
             aria-controls="basic-navbar-nav" 

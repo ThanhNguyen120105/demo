@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Form, Button, Row, Col } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faUser } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
@@ -12,7 +12,15 @@ const AppointmentForm = () => {
     serviceType: 'regular',
     doctor: '',
     date: '',
-    healthIssues: ''
+    healthIssues: '',
+    customerId: ''
+  });
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const [firstTimeInfo, setFirstTimeInfo] = useState({
+    phone: '',
+    name: '',
+    dob: '',
+    customerId: ''
   });
 
   const handleInputChange = (e) => {
@@ -23,9 +31,27 @@ const AppointmentForm = () => {
     });
   };
 
+  const handleFirstTimeInputChange = (e) => {
+    const { name, value } = e.target;
+    setFirstTimeInfo({
+      ...firstTimeInfo,
+      [name]: value
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    if (!formData.customerId) {
+      setShowFirstTimeModal(true);
+    } else {
+      console.log('Form submitted:', formData);
+    }
+  };
+
+  const handleFirstTimeSubmit = (e) => {
+    e.preventDefault();
+    console.log('First time registration info:', firstTimeInfo);
+    setShowFirstTimeModal(false);
   };
 
   return (
@@ -189,13 +215,74 @@ const AppointmentForm = () => {
             />
           </div>
 
+      
+
           <div className="form-submit">
             <Button variant="primary" type="submit" className="submit-button">
-              Book an appointment
+              Next
             </Button>
           </div>
         </Form>
       </div>
+      <Modal show={showFirstTimeModal} onHide={() => setShowFirstTimeModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Đăng ký thông tin lần đầu</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleFirstTimeSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Số điện thoại *</Form.Label>
+              <Form.Control
+                type="text"
+                name="phone"
+                value={firstTimeInfo.phone}
+                onChange={handleFirstTimeInputChange}
+                required
+                placeholder="Nhập số điện thoại"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Ngày sinh *</Form.Label>
+              <Form.Control
+                type="date"
+                name="dob"
+                value={firstTimeInfo.dob}
+                onChange={handleFirstTimeInputChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Họ và tên *</Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                value={firstTimeInfo.name}
+                onChange={handleFirstTimeInputChange}
+                required
+                placeholder="Nhập họ và tên"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mã khách hàng (nếu có)</Form.Label>
+              <Form.Control
+                type="text"
+                name="customerId"
+                value={firstTimeInfo.customerId}
+                onChange={handleFirstTimeInputChange}
+                placeholder="Nhập mã khách hàng (nếu có)"
+              />
+            </Form.Group>
+            <div className="d-flex justify-content-end">
+              <Button variant="secondary" onClick={() => setShowFirstTimeModal(false)} className="me-2">
+                Quay lại
+              </Button>
+              <Button variant="primary" type="submit">
+                Kiểm tra thông tin
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 };
