@@ -1,89 +1,331 @@
 .simple-form-container {
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto 30px;
+  padding: 30px;
+  max-width: 700px;
+  margin: 40px auto;
   background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-icon {
+  width: 70px;
+  height: 70px;
+  background-color: #e3f2fd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 28px;
+  color: #1e88e5;
 }
 
 .simple-form-title {
-  background-color: #1a4ba1;
-  color: white;
-  font-weight: bold;
-  text-align: center;
-  padding: 15px;
-  margin-bottom: 20px;
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 10px;
+  font-size: 1.75rem;
 }
 
+.form-subtitle {
+  color: #7f8c8d;
+  margin-bottom: 30px;
+}
+
+.form-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-number {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #757575;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background-color: #1e88e5;
+  color: white;
+}
+
+.step-label {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #757575;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-label {
+  color: #1e88e5;
+  font-weight: 600;
+}
+
+.progress-connector {
+  height: 3px;
+  width: 100px;
+  background-color: #e0e0e0;
+  margin: 0 15px;
+  position: relative;
+  top: -16px;
+  z-index: 0;
+}
+
+/* Form elements */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .form-label {
-  color: #32a9ff;
+  color: #424242;
   font-weight: 600;
-  display: block;
+  display: flex;
+  align-items: center;
   margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.label-icon {
+  margin-right: 8px;
+  color: #1e88e5;
 }
 
 .radio-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .radio-option {
   margin-left: 5px;
+  transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+  transform: translateX(3px);
 }
 
 .button-group {
   display: flex;
-  gap: 5px;
+  gap: 10px;
   width: 100%;
 }
 
 .time-button, .type-button {
   flex: 1;
   text-align: center;
-  padding: 10px 15px;
-  border-radius: 0;
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.button-icon {
+  margin-right: 8px;
+}
+
+.time-button:hover, .type-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-select, .form-control {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 12px 15px;
+  border: 1px solid #dde2e5;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.form-submit {
-  margin-top: 30px;
-  text-align: center;
+.form-select:focus, .form-control:focus {
+  border-color: #1e88e5;
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.2);
 }
 
-.submit-button {
-  padding: 10px 30px;
+.date-input {
+  padding-right: 40px;
+}
+
+/* Form navigation */
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+.back-button, .next-button, .submit-button {
+  padding: 12px 24px;
+  border-radius: 8px;
   font-weight: 600;
+  transition: all 0.3s ease;
 }
 
-/* Styling radio buttons similar to the image */
-.form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+.next-button, .submit-button {
+  background-color: #1e88e5;
+  border-color: #1e88e5;
+  margin-left: auto;
 }
 
-/* Make text inputs match the style in the image */
-.form-control::placeholder, .form-select::placeholder {
-  color: #adb5bd;
+.back-button {
+  border-color: #e0e0e0;
+  color: #424242;
 }
 
-/* Date input with calendar icon */
-.date-input-wrapper {
-  position: relative;
+.next-button:hover, .submit-button:hover {
+  background-color: #1565c0;
+  border-color: #1565c0;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
 }
 
-.calendar-icon {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  color: #6c757d;
+.back-button:hover {
+  background-color: #f5f5f5;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.next-button:disabled, .submit-button:disabled {
+  background-color: #90caf9;
+  border-color: #90caf9;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Success container */
+.success-container {
+  text-align: center;
+  padding: 40px;
+}
+
+.success-icon {
+  font-size: 60px;
+  color: #4caf50;
+  margin-bottom: 20px;
+}
+
+.success-title {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.success-message {
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.appointment-details {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #424242;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-icon {
+  margin-right: 15px;
+  color: #1e88e5;
+  font-size: 18px;
+  width: 20px;
+}
+
+.back-home-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  background-color: #1e88e5;
+  border-color: #1e88e5;
+  transition: all 0.3s ease;
+}
+
+.back-home-btn:hover {
+  background-color: #1565c0;
+  border-color: #1565c0;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
+}
+
+/* Animation classes */
+.animated {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+.fadeIn {
+  animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 767px) {
+  .simple-form-container {
+    padding: 20px;
+    margin: 20px auto;
+  }
+  
+  .progress-connector {
+    width: 60px;
+  }
+  
+  .form-navigation {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .back-button, .next-button, .submit-button {
+    width: 100%;
+  }
+  
+  .back-button {
+    order: 2;
+  }
 } 
