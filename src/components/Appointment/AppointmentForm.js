@@ -17,20 +17,18 @@ import {
 import './AppointmentForm.css';
 
 const AppointmentForm = () => {
+  const [formStep, setFormStep] = useState(1);
   const [formData, setFormData] = useState({
     serviceTime: 'inHours',
     doctor: '',
     date: '',
     healthIssues: '',
-    customerId: ''
-  });
-  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
-  const [firstTimeInfo, setFirstTimeInfo] = useState({
+    customerId: '',
     phone: '',
-    name: '',
     dob: '',
-    customerId: ''
+    name: ''
   });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,27 +38,14 @@ const AppointmentForm = () => {
     });
   };
 
-  const handleFirstTimeInputChange = (e) => {
-    const { name, value } = e.target;
-    setFirstTimeInfo({
-      ...firstTimeInfo,
-      [name]: value
-    });
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.customerId) {
-      setShowFirstTimeModal(true);
-    } else {
+    if (formStep === 1) {
+      setFormStep(2);
+    } else if (formStep === 2) {
+      setShowSuccessModal(true);
       console.log('Form submitted:', formData);
     }
-  };
-
-  const handleFirstTimeSubmit = (e) => {
-    e.preventDefault();
-    console.log('First time registration info:', firstTimeInfo);
-    setShowFirstTimeModal(false);
   };
 
   return (
@@ -150,86 +135,123 @@ const AppointmentForm = () => {
                 </div>
               </div>
 
-          <div className="form-group">
-            <label className="form-label">Enter your health issues</label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Enter your health issues, questions for the doctor and health issues you need to check"
-              name="healthIssues"
-              value={formData.healthIssues}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
+              <div className="form-group">
+                <label className="form-label">Enter your health issues</label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Enter your health issues, questions for the doctor and health issues you need to check"
+                  name="healthIssues"
+                  value={formData.healthIssues}
+                  onChange={handleInputChange}
+                  className="form-control"
+                />
+              </div>
 
-      
+              <div className="form-submit">
+                <Button variant="primary" type="submit" className="submit-button">
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
 
-          <div className="form-submit">
-            <Button variant="primary" type="submit" className="submit-button">
-              Next
-            </Button>
-          </div>
+          {formStep === 2 && (
+            <div className="form-step-container animated fadeIn">
+              <div className="form-group">
+                <Form.Label>Phone Number *</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div className="form-group">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <Form.Label>Full Name *</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter full name"
+                />
+              </div>
+
+              <div className="form-group">
+                <Form.Label>Customer ID (if any)</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="customerId"
+                  value={formData.customerId}
+                  onChange={handleInputChange}
+                  placeholder="Enter customer ID (if any)"
+                />
+              </div>
+
+              <div className="form-submit">
+                <Button variant="primary" type="submit">
+                  Complete
+                </Button>
+              </div>
+            </div>
+          )}
         </Form>
       </div>
-      <Modal show={showFirstTimeModal} onHide={() => setShowFirstTimeModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Đăng ký thông tin lần đầu</Modal.Title>
+
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="text-center w-100">
+            <FontAwesomeIcon 
+              icon={faCheckCircle} 
+              className="text-success me-2"
+              size="2x"
+            />
+            Registration Successful
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleFirstTimeSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Số điện thoại *</Form.Label>
-              <Form.Control
-                type="text"
-                name="phone"
-                value={firstTimeInfo.phone}
-                onChange={handleFirstTimeInputChange}
-                required
-                placeholder="Nhập số điện thoại"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Ngày sinh *</Form.Label>
-              <Form.Control
-                type="date"
-                name="dob"
-                value={firstTimeInfo.dob}
-                onChange={handleFirstTimeInputChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Họ và tên *</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={firstTimeInfo.name}
-                onChange={handleFirstTimeInputChange}
-                required
-                placeholder="Nhập họ và tên"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Mã khách hàng (nếu có)</Form.Label>
-              <Form.Control
-                type="text"
-                name="customerId"
-                value={firstTimeInfo.customerId}
-                onChange={handleFirstTimeInputChange}
-                placeholder="Nhập mã khách hàng (nếu có)"
-              />
-            </Form.Group>
-            <div className="d-flex justify-content-end">
-              <Button variant="secondary" onClick={() => setShowFirstTimeModal(false)} className="me-2">
-                Quay lại
-              </Button>
-              <Button variant="primary" type="submit">
-                Kiểm tra thông tin
-              </Button>
-            </div>
-          </Form>
+        <Modal.Body className="text-center">
+          <p>Thank you for your registration.</p>
+          <p>
+            Please check your{' '}
+            <a 
+              href="/appointment-history" 
+              className="text-primary fw-bold"
+              onClick={(e) => {
+                e.preventDefault();
+                // Add navigation logic here if using React Router
+                window.location.href = '/appointment-history';
+              }}
+            >
+              Appointment History
+            </a>{' '}
+             to confirm the status.
+          </p>
         </Modal.Body>
+        <Modal.Footer className="border-0 justify-content-center">
+          <Button 
+            variant="primary" 
+            onClick={() => setShowSuccessModal(false)}
+            className="px-4"
+          >
+            OK
+          </Button>
+        </Modal.Footer>
       </Modal>
     </Container>
   );

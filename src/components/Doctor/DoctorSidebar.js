@@ -5,10 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserMd,
   faClipboardList, faCog, faSignOutAlt, faFileAlt,
-  faPrescriptionBottleAlt
+  faPrescriptionBottleAlt, faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
 
-const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0 }) => {
+const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unansweredCount = 5 }) => {
   const location = useLocation();
   
   return (
@@ -41,6 +41,18 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0 }) => {
           Appointments
           {appointmentsCount > 0 && (
             <Badge bg="primary" className="ms-auto">{appointmentsCount}</Badge>
+          )}
+        </ListGroup.Item>
+        <ListGroup.Item 
+          action 
+          active={activeTab === 'unanswered-questions'} 
+          onClick={() => setActiveTab('unanswered-questions')}
+          as={Link} to="/doctor/unanswered-questions"
+        >
+          <FontAwesomeIcon icon={faQuestionCircle} className="menu-icon" />
+          Unanswered Questions
+          {unansweredCount > 0 && (
+            <Badge bg="danger" className="ms-auto">{unansweredCount}</Badge>
           )}
         </ListGroup.Item>
         <ListGroup.Item 

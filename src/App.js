@@ -15,11 +15,13 @@ import AppointmentHistory from './components/Appointment/AppointmentHistory';
 import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
+import QnA from './components/QA/QnA';
 
 // Doctor Components
 import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import DoctorAppointments from './components/Doctor/DoctorAppointments';
 import ARVSelectionTool from './components/Doctor/ARVSelectionTool';
+import UnansweredQuestions from './components/Doctor/UnansweredQuestions';
 
 function App() {
   return (
@@ -34,6 +36,7 @@ function App() {
           <Route path="/appointment" element={<AppointmentPage />} />
           <Route path="/appointment-history" element={<AppointmentHistory />} />
           <Route path="/doctors" element={<Doctors />} />
+          <Route path="/qna" element={<QnA />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
@@ -42,6 +45,7 @@ function App() {
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
           <Route path="/doctor/appointments" element={<DoctorAppointments />} />
           <Route path="/doctor/arv-tool" element={<ARVSelectionTool />} />
+          <Route path="/doctor/unanswered-questions" element={<UnansweredQuestions />} />
         </Routes>
         <Footer />
       </div>

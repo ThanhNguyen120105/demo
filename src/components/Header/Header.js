@@ -63,8 +63,10 @@ const Header = () => {
                 </Link>
               </div>
               <div className="action-item">
-                <FontAwesomeIcon icon={faQuestionCircle} />
-                <span>FAQ</span>
+                <Link to="/qna" className="action-link">
+                  <FontAwesomeIcon icon={faQuestionCircle} />
+                  <span>Q&A</span>
+                </Link>
               </div>
               <div className="top-auth-buttons">
                 <Link to="/login" className="top-auth-link login-link">
@@ -157,6 +159,13 @@ const Header = () => {
                 <div className="nav-icon-container">
                   <FontAwesomeIcon icon={faNewspaper} className="nav-icon" />
                   <span>News & Research</span>
+                </div>
+              </Nav.Link>
+              
+              <Nav.Link as={Link} to="/qna" onClick={() => setExpanded(false)}>
+                <div className="nav-icon-container">
+                  <FontAwesomeIcon icon={faQuestionCircle} className="nav-icon" />
+                  <span>Q&A</span>
                 </div>
               </Nav.Link>
               
