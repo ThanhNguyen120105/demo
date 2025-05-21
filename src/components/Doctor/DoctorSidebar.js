@@ -17,8 +17,8 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
         <div className="doctor-avatar">
           <FontAwesomeIcon icon={faUserMd} className="avatar-icon" />
         </div>
-        <h4 className="doctor-name">Dr. John Doe</h4>
-        <p className="doctor-specialty">Infectious Disease Specialist</p>
+        <h4 className="doctor-name">BS. Nguyễn Văn A</h4>
+        <p className="doctor-specialty">Chuyên Gia Bệnh Truyền Nhiễm</p>
       </div>
       
       <ListGroup className="sidebar-menu">
@@ -29,7 +29,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/dashboard"
         >
           <FontAwesomeIcon icon={faChartLine} className="menu-icon" />
-          Dashboard
+          Tổng Quan
         </ListGroup.Item>
         <ListGroup.Item 
           action 
@@ -38,7 +38,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/appointments"
         >
           <FontAwesomeIcon icon={faCalendarCheck} className="menu-icon" />
-          Appointments
+          Lịch Hẹn
           {appointmentsCount > 0 && (
             <Badge bg="primary" className="ms-auto">{appointmentsCount}</Badge>
           )}
@@ -50,7 +50,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/unanswered-questions"
         >
           <FontAwesomeIcon icon={faQuestionCircle} className="menu-icon" />
-          Unanswered Questions
+          Câu Hỏi Chưa Trả Lời
           {unansweredCount > 0 && (
             <Badge bg="danger" className="ms-auto">{unansweredCount}</Badge>
           )}
@@ -62,7 +62,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/arv-tool"
         >
           <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="menu-icon" />
-          ARV Selection Tool
+          Công Cụ Chọn ARV
         </ListGroup.Item>
         <ListGroup.Item 
           action 
@@ -71,7 +71,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/medical-records"
         >
           <FontAwesomeIcon icon={faFileAlt} className="menu-icon" />
-          Medical Records
+          Hồ Sơ Y Tế
         </ListGroup.Item>
         <ListGroup.Item 
           action 
@@ -80,14 +80,14 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/settings"
         >
           <FontAwesomeIcon icon={faCog} className="menu-icon" />
-          Settings
+          Cài Đặt
         </ListGroup.Item>
       </ListGroup>
       
       <div className="sidebar-footer">
         <Button variant="outline-danger" className="logout-btn">
           <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
-          Log Out
+          Đăng Xuất
         </Button>
       </div>
     </Col>

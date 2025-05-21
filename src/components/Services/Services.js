@@ -15,8 +15,8 @@ const Services = () => {
       <section className="page-header">
         <Container>
           <div className="page-header-content">
-            <h1>HIV Treatment Services</h1>
-            <p>Comprehensive care for prevention, treatment, and support</p>
+            <h1>Dịch Vụ Điều Trị HIV</h1>
+            <p>Chăm sóc toàn diện cho phòng ngừa, điều trị và hỗ trợ</p>
           </div>
         </Container>
       </section>
@@ -25,8 +25,8 @@ const Services = () => {
       <section className="section-padding">
         <Container>
           <div className="section-title">
-            <h2>Our Comprehensive Services</h2>
-            <p>Personalized care programs designed to support all aspects of living with HIV</p>
+            <h2>Dịch Vụ Toàn Diện Của Chúng Tôi</h2>
+            <p>Các chương trình chăm sóc cá nhân hóa được thiết kế để hỗ trợ mọi khía cạnh của việc sống chung với HIV</p>
           </div>
           <Row>
             {services.map((service) => (
@@ -39,7 +39,7 @@ const Services = () => {
                     <Card.Title>{service.title}</Card.Title>
                     <Card.Text>{service.description}</Card.Text>
                     <Link to={`/services/${service.slug}`} className="btn btn-outline-primary">
-                      Learn More
+                      Tìm Hiểu Thêm
                     </Link>
                   </Card.Body>
                 </Card>
@@ -63,20 +63,20 @@ const Services = () => {
             <Col lg={6} md={12}>
               <div className="care-approach-content">
                 <div className="section-title text-start">
-                  <h2>Our Patient-Centered Approach</h2>
+                  <h2>Phương Pháp Tiếp Cận Lấy Bệnh Nhân Làm Trung Tâm</h2>
                 </div>
                 <p>
-                  At our HIV Treatment Center, we believe in a comprehensive approach to care that considers 
-                  the whole person – not just the virus. Our patient-centered model includes:
+                  Tại Trung tâm Điều trị HIV của chúng tôi, chúng tôi tin vào phương pháp tiếp cận chăm sóc toàn diện 
+                  xem xét toàn bộ con người – không chỉ riêng vi-rút. Mô hình lấy bệnh nhân làm trung tâm của chúng tôi bao gồm:
                 </p>
                 <ul className="care-list">
-                  <li>Personalized treatment plans tailored to your specific health needs</li>
-                  <li>Multidisciplinary care teams that collaborate on your behalf</li>
-                  <li>Integration of medical care with mental health and social support</li>
-                  <li>Education and empowerment to help you actively participate in your care</li>
-                  <li>Continuous monitoring and adjustment of your treatment plan</li>
+                  <li>Kế hoạch điều trị cá nhân hóa phù hợp với nhu cầu sức khỏe cụ thể của bạn</li>
+                  <li>Đội ngũ chăm sóc đa ngành cùng phối hợp vì lợi ích của bạn</li>
+                  <li>Tích hợp chăm sóc y tế với sức khỏe tâm thần và hỗ trợ xã hội</li>
+                  <li>Giáo dục và trao quyền để giúp bạn tích cực tham gia vào quá trình chăm sóc</li>
+                  <li>Theo dõi liên tục và điều chỉnh kế hoạch điều trị của bạn</li>
                 </ul>
-                <Button variant="primary">Schedule a Consultation</Button>
+                <Button variant="primary">Đặt Lịch Tư Vấn</Button>
               </div>
             </Col>
           </Row>
@@ -87,45 +87,45 @@ const Services = () => {
       <section className="section-padding">
         <Container>
           <div className="section-title">
-            <h2>Insurance & Payment Options</h2>
-            <p>Accessible care for all individuals regardless of financial circumstances</p>
+            <h2>Bảo Hiểm & Các Tùy Chọn Thanh Toán</h2>
+            <p>Chăm sóc dễ tiếp cận cho tất cả mọi người bất kể điều kiện tài chính</p>
           </div>
           <Row>
             <Col lg={6} md={12}>
               <div className="insurance-box">
-                <h3>Insurance Coverage</h3>
+                <h3>Bảo Hiểm</h3>
                 <p>
-                  We accept most major insurance plans, Medicare, and Medicaid. Our staff will work with 
-                  you to verify your coverage for the services you need.
+                  Chúng tôi chấp nhận hầu hết các gói bảo hiểm lớn, Medicare và Medicaid. Nhân viên của chúng tôi sẽ làm việc với 
+                  bạn để xác minh phạm vi bảo hiểm cho các dịch vụ bạn cần.
                 </p>
-                <h4>Accepted Insurance Plans:</h4>
+                <h4>Các Gói Bảo Hiểm Được Chấp Nhận:</h4>
                 <ul>
-                  <li>Medicare and Medicaid</li>
+                  <li>Medicare và Medicaid</li>
                   <li>Blue Cross Blue Shield</li>
                   <li>Aetna</li>
                   <li>Cigna</li>
                   <li>UnitedHealthcare</li>
                   <li>Humana</li>
-                  <li>And many others</li>
+                  <li>Và nhiều gói khác</li>
                 </ul>
               </div>
             </Col>
             <Col lg={6} md={12}>
               <div className="payment-box">
-                <h3>Financial Assistance</h3>
+                <h3>Hỗ Trợ Tài Chính</h3>
                 <p>
-                  We believe that everyone deserves access to quality HIV care. If you're uninsured or 
-                  concerned about costs, we offer:
+                  Chúng tôi tin rằng mọi người đều xứng đáng được tiếp cận với dịch vụ chăm sóc HIV chất lượng. Nếu bạn không có bảo hiểm hoặc 
+                  lo lắng về chi phí, chúng tôi cung cấp:
                 </p>
                 <ul>
-                  <li>Sliding scale fees based on income</li>
-                  <li>Assistance with enrollment in medication assistance programs</li>
-                  <li>Support navigating the Ryan White HIV/AIDS Program</li>
-                  <li>Help applying for insurance coverage</li>
-                  <li>Information about clinical trial participation options</li>
+                  <li>Phí theo thang trượt dựa trên thu nhập</li>
+                  <li>Hỗ trợ đăng ký vào các chương trình hỗ trợ thuốc</li>
+                  <li>Hỗ trợ định hướng Chương trình Ryan White HIV/AIDS</li>
+                  <li>Giúp đỡ đăng ký bảo hiểm</li>
+                  <li>Thông tin về các tùy chọn tham gia thử nghiệm lâm sàng</li>
                 </ul>
-                <p>Our financial counselors are available to discuss your options and find solutions that work for you.</p>
-                <Button variant="outline-primary">Contact Financial Services</Button>
+                <p>Các nhân viên tư vấn tài chính của chúng tôi luôn sẵn sàng thảo luận về các tùy chọn của bạn và tìm giải pháp phù hợp.</p>
+                <Button variant="outline-primary">Liên Hệ Dịch Vụ Tài Chính</Button>
               </div>
             </Col>
           </Row>
@@ -136,14 +136,14 @@ const Services = () => {
       <section className="appointment-cta">
         <Container>
           <div className="cta-content text-center">
-            <h2>Ready to Start Your Care Journey?</h2>
+            <h2>Sẵn Sàng Bắt Đầu Hành Trình Chăm Sóc Của Bạn?</h2>
             <p>
-              Schedule an appointment with our specialists today. New patients are welcome, and urgent 
-              appointments are available when needed.
+              Đặt lịch hẹn với các chuyên gia của chúng tôi ngay hôm nay. Chúng tôi chào đón bệnh nhân mới, và có 
+              các cuộc hẹn khẩn cấp khi cần thiết.
             </p>
             <div className="cta-buttons">
-              <Button variant="light" className="me-3">Book Online</Button>
-              <Button variant="outline-light">Call (800) 123-4567</Button>
+              <Button variant="light" className="me-3">Đặt Lịch Trực Tuyến</Button>
+              <Button variant="outline-light">Gọi (800) 123-4567</Button>
             </div>
           </div>
         </Container>

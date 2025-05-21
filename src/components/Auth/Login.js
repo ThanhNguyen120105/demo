@@ -37,13 +37,13 @@ const Login = () => {
                   <div className="auth-icon-wrapper">
                     <FontAwesomeIcon icon={faUser} className="auth-icon" />
                   </div>
-                  <h2 className="auth-title">Welcome Back</h2>
-                  <p className="auth-subtitle">Log in to your account to continue</p>
+                  <h2 className="auth-title">Chào Mừng Trở Lại</h2>
+                  <p className="auth-subtitle">Đăng nhập để tiếp tục</p>
                 </div>
                 
                 <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-4">
-                    <Form.Label>Email address</Form.Label>
+                    <Form.Label>Địa chỉ Email</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faEnvelope} />
@@ -53,7 +53,7 @@ const Login = () => {
                         name="email"
                         value={email}
                         onChange={handleChange}
-                        placeholder="Enter your email"
+                        placeholder="Nhập địa chỉ email của bạn"
                         className="auth-input"
                         required
                       />
@@ -61,7 +61,7 @@ const Login = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-4">
-                    <Form.Label>Password</Form.Label>
+                    <Form.Label>Mật khẩu</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faLock} />
@@ -71,7 +71,7 @@ const Login = () => {
                         name="password"
                         value={password}
                         onChange={handleChange}
-                        placeholder="Enter your password"
+                        placeholder="Nhập mật khẩu của bạn"
                         className="auth-input"
                         required
                       />
@@ -82,11 +82,11 @@ const Login = () => {
                     <Form.Check 
                       type="checkbox" 
                       id="rememberMe" 
-                      label="Remember me" 
+                      label="Ghi nhớ đăng nhập" 
                       className="auth-checkbox"
                     />
                     <Link to="/forgot-password" className="auth-link forgot-link">
-                      Forgot Password?
+                      Quên mật khẩu?
                     </Link>
                   </div>
 
@@ -96,15 +96,15 @@ const Login = () => {
                     className="auth-button w-100"
                   >
                     <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
-                    Login
+                    Đăng Nhập
                   </Button>
                 </Form>
 
                 <div className="text-center mt-4">
                   <p className="auth-switch-text">
-                    Don't have an account?{' '}
+                    Bạn chưa có tài khoản?{' '}
                     <Link to="/signup" className="auth-link">
-                      Sign up
+                      Đăng ký
                     </Link>
                   </p>
                 </div>

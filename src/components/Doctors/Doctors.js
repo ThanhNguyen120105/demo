@@ -5,45 +5,45 @@ import './Doctors.css';
 const doctorsData = [
   {
     id: 1,
-    name: "PROF.DR. NGUYEN VAN AN",
-    position: "Director of Cardiovascular Center",
-    hospital: "Tam Anh General Hospital, Ho Chi Minh City",
-    description: "Prof.Dr. Nguyen Van An is one of the leading experts in the field of Cardiovascular Medicine in Vietnam. With over 30 years of experience in the medical field, he has successfully performed thousands of complex cardiac surgeries."
+    name: "PROF.DR. NGUYỄN VĂN AN",
+    position: "Giám đốc Trung tâm Tim mạch",
+    hospital: "Bệnh viện Đa khoa Tâm Anh, Thành phố Hồ Chí Minh",
+    description: "GS.TS Nguyễn Văn An là một trong những chuyên gia hàng đầu trong lĩnh vực Y học Tim mạch tại Việt Nam. Với hơn 30 năm kinh nghiệm trong lĩnh vực y tế, ông đã thực hiện thành công hàng nghìn ca phẫu thuật tim phức tạp."
   },
   {
     id: 2,
-    name: "ASSOC.PROF.DR. TRAN THI MINH",
-    position: "Head of Obstetrics and Gynecology Department",
-    hospital: "Tam Anh General Hospital, Hanoi",
-    description: "Assoc.Prof.Dr. Tran Thi Minh is a leading expert in the field of Obstetrics and Gynecology with over 25 years of experience. She has successfully performed many complex surgeries and has many valuable scientific research works."
+    name: "PGS.TS. TRẦN THỊ MINH",
+    position: "Trưởng khoa Sản phụ khoa",
+    hospital: "Bệnh viện Đa khoa Tâm Anh, Hà Nội",
+    description: "PGS.TS Trần Thị Minh là chuyên gia hàng đầu trong lĩnh vực Sản phụ khoa với hơn 25 năm kinh nghiệm. Bà đã thực hiện thành công nhiều ca phẫu thuật phức tạp và có nhiều công trình nghiên cứu khoa học giá trị."
   },
   {
     id: 3,
-    name: "DR. LE VAN PHUC",
-    position: "Director of Endoscopy and Gastrointestinal Endoscopic Surgery Center",
-    hospital: "Tam Anh General Hospital, Ho Chi Minh City",
-    description: "Dr. Le Van Phuc is a leading expert in the field of Endoscopy and Gastrointestinal Endoscopic Surgery. With over 20 years of experience, he has successfully performed thousands of complex endoscopic surgeries."
+    name: "TS. LÊ VĂN PHÚC",
+    position: "Giám đốc Trung tâm Nội soi và Phẫu thuật Nội soi Tiêu hóa",
+    hospital: "Bệnh viện Đa khoa Tâm Anh, Thành phố Hồ Chí Minh",
+    description: "TS. Lê Văn Phúc là chuyên gia hàng đầu trong lĩnh vực Nội soi và Phẫu thuật Nội soi Tiêu hóa. Với hơn 20 năm kinh nghiệm, ông đã thực hiện thành công hàng nghìn ca phẫu thuật nội soi phức tạp."
   },
   {
     id: 4,
-    name: "DR. NGUYEN THI HA",
-    position: "Head of Pediatrics Department",
-    hospital: "Tam Anh General Hospital, Hanoi",
-    description: "Dr. Nguyen Thi Ha is an expert with many years of experience in the field of Pediatrics. She has successfully treated many complex cases and has made many contributions to improving the quality of child care."
+    name: "BS. NGUYỄN THỊ HÀ",
+    position: "Trưởng khoa Nhi",
+    hospital: "Bệnh viện Đa khoa Tâm Anh, Hà Nội",
+    description: "BS. Nguyễn Thị Hà là chuyên gia có nhiều năm kinh nghiệm trong lĩnh vực Nhi khoa. Bà đã điều trị thành công nhiều ca bệnh phức tạp và có nhiều đóng góp trong việc nâng cao chất lượng chăm sóc trẻ em."
   },
   {
     id: 5,
-    name: "PROF.DR. PHAM VAN THANH",
-    position: "Director of Neurology Center",
-    hospital: "Tam Anh General Hospital, Ho Chi Minh City",
-    description: "Prof.Dr. Pham Van Thanh is a leading expert in the field of Neurology. With over 25 years of experience, he has successfully performed many complex neurological surgeries and has many scientific research works."
+    name: "GS.TS. PHẠM VĂN THANH",
+    position: "Giám đốc Trung tâm Thần kinh",
+    hospital: "Bệnh viện Đa khoa Tâm Anh, Thành phố Hồ Chí Minh",
+    description: "GS.TS Phạm Văn Thanh là chuyên gia hàng đầu trong lĩnh vực Thần kinh. Với hơn 25 năm kinh nghiệm, ông đã thực hiện thành công nhiều ca phẫu thuật thần kinh phức tạp và có nhiều công trình nghiên cứu khoa học."
   },
   {
     id: 6,
-    name: "DR. TRAN VAN MINH",
-    position: "Head of Traumatology and Orthopedics Department",
-    hospital: "Tam Anh General Hospital, Hanoi",
-    description: "Dr. Tran Van Minh is an expert with extensive experience in the field of Traumatology and Orthopedics. He has successfully performed many complex surgeries and has made many contributions to the development of new techniques."
+    name: "BS. TRẦN VĂN MINH",
+    position: "Trưởng khoa Chấn thương Chỉnh hình",
+    hospital: "Bệnh viện Đa khoa Tâm Anh, Hà Nội",
+    description: "BS. Trần Văn Minh là chuyên gia có nhiều kinh nghiệm trong lĩnh vực Chấn thương Chỉnh hình. Ông đã thực hiện thành công nhiều ca phẫu thuật phức tạp và có nhiều đóng góp trong việc phát triển các kỹ thuật mới."
   }
 ];
 
@@ -51,7 +51,7 @@ const Doctors = () => {
   return (
     <div className="doctors-page">
       <Container>
-        <h1 className="text-center my-5">Our Medical Experts</h1>
+        <h1 className="text-center my-5">Đội Ngũ Chuyên Gia Y Tế</h1>
         <Row>
           {doctorsData.map((doctor) => (
             <Col key={doctor.id} md={6} lg={4} className="mb-4">
@@ -62,8 +62,8 @@ const Doctors = () => {
                   <Card.Text className="hospital-name">{doctor.hospital}</Card.Text>
                   <Card.Text className="doctor-description">{doctor.description}</Card.Text>
                   <div className="d-flex justify-content-between mt-3">
-                    <button className="btn btn-primary">Book Appointment</button>
-                    <button className="btn btn-outline-primary">View Details</button>
+                    <button className="btn btn-primary">Đặt Lịch Hẹn</button>
+                    <button className="btn btn-outline-primary">Xem Chi Tiết</button>
                   </div>
                 </Card.Body>
               </Card>

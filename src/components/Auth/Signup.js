@@ -44,13 +44,13 @@ const Signup = () => {
                   <div className="auth-icon-wrapper">
                     <FontAwesomeIcon icon={faUserPlus} className="auth-icon" />
                   </div>
-                  <h2 className="auth-title">Create Account</h2>
-                  <p className="auth-subtitle">Join our healthcare community</p>
+                  <h2 className="auth-title">Tạo Tài Khoản</h2>
+                  <p className="auth-subtitle">Tham gia cộng đồng y tế của chúng tôi</p>
                 </div>
                 
                 <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Email address</Form.Label>
+                    <Form.Label>Địa chỉ Email</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faEnvelope} />
@@ -60,7 +60,7 @@ const Signup = () => {
                         name="email"
                         value={email}
                         onChange={handleChange}
-                        placeholder="Enter your email"
+                        placeholder="Nhập địa chỉ email của bạn"
                         className="auth-input"
                         required
                       />
@@ -68,7 +68,7 @@ const Signup = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>Full Name</Form.Label>
+                    <Form.Label>Họ và Tên</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faUser} />
@@ -78,7 +78,7 @@ const Signup = () => {
                         name="name"
                         value={name}
                         onChange={handleChange}
-                        placeholder="Enter your full name"
+                        placeholder="Nhập họ và tên đầy đủ của bạn"
                         className="auth-input"
                         required
                       />
@@ -86,7 +86,7 @@ const Signup = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>Phone Number</Form.Label>
+                    <Form.Label>Số Điện Thoại</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faPhone} />
@@ -96,7 +96,7 @@ const Signup = () => {
                         name="phone"
                         value={phone}
                         onChange={handleChange}
-                        placeholder="Enter your phone number"
+                        placeholder="Nhập số điện thoại của bạn"
                         className="auth-input"
                         required
                       />
@@ -104,7 +104,7 @@ const Signup = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>Password</Form.Label>
+                    <Form.Label>Mật Khẩu</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faLock} />
@@ -114,7 +114,7 @@ const Signup = () => {
                         name="password"
                         value={password}
                         onChange={handleChange}
-                        placeholder="Create a password"
+                        placeholder="Tạo mật khẩu"
                         className="auth-input"
                         required
                       />
@@ -122,7 +122,7 @@ const Signup = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-4">
-                    <Form.Label>Confirm Password</Form.Label>
+                    <Form.Label>Xác Nhận Mật Khẩu</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="auth-input-icon">
                         <FontAwesomeIcon icon={faLock} />
@@ -132,7 +132,7 @@ const Signup = () => {
                         name="confirmPassword"
                         value={confirmPassword}
                         onChange={handleChange}
-                        placeholder="Confirm your password"
+                        placeholder="Xác nhận mật khẩu của bạn"
                         className="auth-input"
                         required
                       />
@@ -143,7 +143,7 @@ const Signup = () => {
                     <Form.Check
                       type="checkbox"
                       id="terms"
-                      label="I agree to the Terms and Privacy Policy"
+                      label="Tôi đồng ý với Điều khoản và Chính sách Bảo mật"
                       className="auth-checkbox"
                       required
                     />
@@ -155,15 +155,15 @@ const Signup = () => {
                     className="auth-button w-100"
                   >
                     <FontAwesomeIcon icon={faUserPlus} className="me-2" />
-                    Create Account
+                    Tạo Tài Khoản
                   </Button>
                 </Form>
 
                 <div className="text-center mt-4">
                   <p className="auth-switch-text">
-                    Already have an account?{' '}
+                    Bạn đã có tài khoản?{' '}
                     <Link to="/login" className="auth-link">
-                      Login
+                      Đăng nhập
                     </Link>
                   </p>
                 </div>

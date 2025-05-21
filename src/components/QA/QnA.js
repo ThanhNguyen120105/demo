@@ -11,55 +11,55 @@ import QuestionModal from './QuestionModal';
 const qaData = [
   {
     id: 1,
-    question: 'Is umbilical cord infection dangerous?',
-    content: 'Hello doctor, my baby is 5 days old, and the umbilical cord area is showing signs of redness and slight inflammation. When I took my baby for a check-up, the doctor said the baby has a mild umbilical cord infection, prescribed medication, and provided instructions on cord care. Doctor, I would like to ask if umbilical cord infection is dangerous?',
-    date: '06/20/2024',
+    question: 'Nhiễm trùng rốn ở trẻ sơ sinh có nguy hiểm không?',
+    content: 'Kính chào bác sĩ, con tôi 5 ngày tuổi, khu vực rốn đang có dấu hiệu đỏ và hơi sưng viêm. Khi tôi đưa con đi khám, bác sĩ nói bé bị nhiễm trùng rốn nhẹ, kê thuốc và hướng dẫn cách chăm sóc rốn. Bác sĩ cho hỏi nhiễm trùng rốn có nguy hiểm không ạ?',
+    date: '20/06/2024',
     views: 352,
     likes: 24,
     answers: [
       {
         id: 101,
         doctor: {
-          name: 'DR. TRINH THANH LAN',
-          title: 'Doctor',
-          department: 'Neonatal Center',
-          hospital: 'Tam Anh General Hospital, HCMC',
+          name: 'BS. TRỊNH THANH LAN',
+          title: 'Bác sĩ',
+          department: 'Trung tâm Sơ sinh',
+          hospital: 'Bệnh viện Đa khoa Tâm Anh, TP.HCM',
           avatar: 'https://tamanhhospital.vn/wp-content/uploads/2022/03/bs-trinh-thanh-lan.jpg'
         },
-        content: 'Neonatal umbilical cord infection is a condition where the baby\'s umbilical cord becomes infected due to bacterial invasion during the neonatal period (the first 30 days after birth). Staphylococcus aureus is the most common pathogen; additionally, there are several gram-negative and anaerobic bacteria. So, is umbilical cord infection dangerous? Neonatal umbilical cord infection is a dangerous health condition that requires early detection and prompt treatment. The main causes are improper hygiene or the use of non-sterile instruments when cutting the umbilical cord. Signs of umbilical cord infection to watch for include: redness, pus, foul odor, and abnormal discharge. If not treated promptly, the infection can spread and cause serious complications such as peritonitis, sepsis, and liver abscess.',
-        date: '06/21/2024',
+        content: 'Nhiễm trùng rốn ở trẻ sơ sinh là tình trạng cuống rốn của bé bị nhiễm khuẩn do vi khuẩn xâm nhập trong giai đoạn sơ sinh (30 ngày đầu sau sinh). Tụ cầu vàng là tác nhân gây bệnh phổ biến nhất; ngoài ra còn có một số vi khuẩn gram âm và kỵ khí. Vậy nhiễm trùng rốn có nguy hiểm không? Nhiễm trùng rốn ở trẻ sơ sinh là tình trạng sức khỏe nguy hiểm cần được phát hiện sớm và điều trị kịp thời. Nguyên nhân chủ yếu là do vệ sinh không đúng cách hoặc sử dụng dụng cụ không vô trùng khi cắt rốn. Các dấu hiệu nhiễm trùng rốn cần quan tâm gồm: đỏ, có mủ, mùi hôi, và chất tiết bất thường. Nếu không được điều trị kịp thời, nhiễm trùng có thể lan rộng và gây ra các biến chứng nghiêm trọng như viêm phúc mạc, nhiễm trùng huyết, và áp xe gan.',
+        date: '21/06/2024',
         likes: 18
       }
     ]
   },
   {
     id: 2,
-    question: 'Symptoms and treatment of sinusitis in children?',
-    content: 'My 7-year-old son frequently experiences runny nose, nasal congestion, and headaches. We\'ve tried common medications but haven\'t seen much improvement. I suspect he might have sinusitis. Could you please explain the symptoms of sinusitis in children and effective treatment methods? Thank you, doctor.',
-    date: '06/18/2024',
+    question: 'Triệu chứng và cách điều trị viêm xoang ở trẻ em?',
+    content: 'Con trai tôi 7 tuổi thường xuyên bị chảy nước mũi, nghẹt mũi và đau đầu. Chúng tôi đã thử các loại thuốc thông thường nhưng không thấy cải thiện nhiều. Tôi nghi ngờ bé có thể bị viêm xoang. Bác sĩ có thể giải thích về các triệu chứng viêm xoang ở trẻ em và phương pháp điều trị hiệu quả không? Xin cảm ơn bác sĩ.',
+    date: '18/06/2024',
     views: 286,
     likes: 19,
     answers: [
       {
         id: 201,
         doctor: {
-          name: 'ASSOC. PROF. LE MINH KHANH',
-          title: 'Associate Professor, PhD',
-          department: 'ENT Department',
-          hospital: 'Tam Anh General Hospital, Hanoi',
+          name: 'PGS.TS. LÊ MINH KHÁNH',
+          title: 'Phó Giáo sư, Tiến sĩ',
+          department: 'Khoa Tai Mũi Họng',
+          hospital: 'Bệnh viện Đa khoa Tâm Anh, Hà Nội',
           avatar: 'https://tamanhhospital.vn/wp-content/uploads/2023/11/bs-le-minh-khanh.jpg'
         },
-        content: 'Sinusitis in children presents with main symptoms including: prolonged cough especially at night, thick yellow or green nasal discharge, nasal congestion, headaches (in older children), bad breath, and mild fever. Children may also experience facial pain, fatigue, and poor appetite. Causes usually include viral, bacterial infections, or allergies. Treatment for sinusitis in children includes: antibiotics if caused by bacteria, pain relievers, saline nasal spray, using a humidifier, and ensuring the child drinks plenty of fluids. Prevention involves teaching children frequent handwashing, avoiding secondhand smoke, and keeping vaccinations up to date. If symptoms persist or recur frequently, the child should be taken to an ENT specialist for a thorough examination and more specialized treatment.',
-        date: '06/19/2024',
+        content: 'Viêm xoang ở trẻ em có các triệu chứng chính bao gồm: ho kéo dài đặc biệt là vào ban đêm, chảy mũi đặc màu vàng hoặc xanh, nghẹt mũi, đau đầu (ở trẻ lớn), hơi thở có mùi hôi, và sốt nhẹ. Trẻ cũng có thể bị đau mặt, mệt mỏi và biếng ăn. Nguyên nhân thường do nhiễm virus, vi khuẩn, hoặc dị ứng. Điều trị viêm xoang ở trẻ em bao gồm: kháng sinh nếu do vi khuẩn, thuốc giảm đau, xịt mũi nước muối, sử dụng máy tạo độ ẩm, và đảm bảo trẻ uống nhiều nước. Phòng ngừa bao gồm dạy trẻ rửa tay thường xuyên, tránh khói thuốc lá, và tiêm phòng đầy đủ. Nếu triệu chứng kéo dài hoặc tái phát thường xuyên, nên đưa trẻ đến bác sĩ chuyên khoa Tai Mũi Họng để được khám kỹ lưỡng và điều trị chuyên sâu hơn.',
+        date: '19/06/2024',
         likes: 14
       }
     ]
   },
   {
     id: 3,
-    question: 'Back pain during 8th month of pregnancy, what should I do?',
-    content: 'I\'m in my 8th month of pregnancy and have been experiencing significant back pain recently, especially in the evening and when sitting for long periods. I\'ve tried changing sleeping positions and light walking but haven\'t seen improvement. Doctor, could you advise on safe ways to relieve back pain at this stage? Should I see a doctor, or is this a normal condition?',
-    date: '06/15/2024',
+    question: 'Đau lưng trong tháng thứ 8 của thai kỳ, tôi nên làm gì?',
+    content: 'Tôi đang ở tháng thứ 8 của thai kỳ và gần đây đã bị đau lưng đáng kể, đặc biệt là vào buổi tối và khi ngồi trong thời gian dài. Tôi đã thử thay đổi tư thế ngủ và đi bộ nhẹ nhàng nhưng không thấy cải thiện. Bác sĩ có thể tư vấn về các cách giảm đau lưng an toàn ở giai đoạn này không? Tôi có nên đi khám bác sĩ, hay đây là tình trạng bình thường?',
+    date: '15/06/2024',
     views: 412,
     likes: 31,
     answers: []
@@ -98,9 +98,9 @@ const QnA = () => {
 
   return (
     <Container className="py-5 qa-container">
-      <h1 className="text-center mb-4">Medical Q&A</h1>
+      <h1 className="text-center mb-4">Hỏi Đáp Y Khoa</h1>
       <p className="text-center lead mb-5">
-        Ask questions and receive answers from top medical specialists
+        Đặt câu hỏi và nhận câu trả lời từ các chuyên gia y tế hàng đầu
       </p>
       
       {/* Search Bar */}
@@ -109,7 +109,7 @@ const QnA = () => {
           <div className="search-box">
             <Form.Control
               type="text"
-              placeholder="Search questions..."
+              placeholder="Tìm kiếm câu hỏi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -131,10 +131,10 @@ const QnA = () => {
             onClick={handleOpenModal}
           >
             <FontAwesomeIcon icon={faComment} className="me-2" />
-            Ask a New Question
+            Đặt Câu Hỏi Mới
           </Button>
           <p className="mt-2 text-muted small">
-            Your question will be posted anonymously
+            Câu hỏi của bạn sẽ được đăng ẩn danh
           </p>
         </Col>
       </Row>
@@ -151,7 +151,7 @@ const QnA = () => {
                     <div className="d-flex justify-content-between align-items-start">
                       <div>
                         <div className="d-flex align-items-center mb-2">
-                          <span className="anonymous-user">Anonymous User</span>
+                          <span className="anonymous-user">Người dùng ẩn danh</span>
                           <span className="dot-separator">•</span>
                           <span className="question-date">{qa.date}</span>
                         </div>
@@ -175,15 +175,15 @@ const QnA = () => {
                     <div className="question-stats mt-3">
                       <span className="stat-item">
                         <FontAwesomeIcon icon={faEye} className="me-1" />
-                        {qa.views} views
+                        {qa.views} lượt xem
                       </span>
                       <span className="stat-item">
                         <FontAwesomeIcon icon={faThumbsUp} className="me-1" />
-                        {qa.likes} likes
+                        {qa.likes} lượt thích
                       </span>
                       <span className="stat-item">
                         <FontAwesomeIcon icon={faComment} className="me-1" />
-                        {qa.answers.length} answers
+                        {qa.answers.length} câu trả lời
                       </span>
                     </div>
                   </div>
@@ -191,7 +191,7 @@ const QnA = () => {
                   {/* Answers */}
                   {qa.answers.length > 0 && (
                     <div className="answers-section mt-4 pt-4">
-                      <h5 className="answers-title mb-4">Expert Answers</h5>
+                      <h5 className="answers-title mb-4">Câu Trả Lời Từ Chuyên Gia</h5>
                       
                       {qa.answers.map(answer => (
                         <div key={answer.id} className="answer-item">
@@ -225,7 +225,7 @@ const QnA = () => {
                             <div className="answer-date">{answer.date}</div>
                             <Button variant="outline-primary" size="sm" className="like-btn">
                               <FontAwesomeIcon icon={faThumbsUp} className="me-1" />
-                              Helpful ({answer.likes})
+                              Hữu ích ({answer.likes})
                             </Button>
                           </div>
                         </div>
@@ -239,9 +239,9 @@ const QnA = () => {
                       <div className="waiting-icon mb-3">
                         <FontAwesomeIcon icon={faUserMd} size="2x" />
                       </div>
-                      <h5 className="waiting-title">Waiting for doctor's answer</h5>
+                      <h5 className="waiting-title">Đang chờ câu trả lời từ bác sĩ</h5>
                       <p className="waiting-desc text-muted">
-                        This question is waiting for a specialist's response
+                        Câu hỏi này đang đợi phản hồi từ chuyên gia
                       </p>
                     </div>
                   )}
@@ -250,34 +250,17 @@ const QnA = () => {
             ))
           ) : (
             <div className="no-results text-center py-5">
-              <div className="no-results-icon mb-3">
-                <FontAwesomeIcon icon={faSearch} size="3x" opacity="0.2" />
-              </div>
-              <h4>No results found</h4>
-              <p className="text-muted">
-                No questions match the keyword "{searchTerm}"
-              </p>
-              <Button variant="primary" onClick={() => setSearchTerm('')}>
-                View all questions
-              </Button>
+              <h4>Không tìm thấy câu hỏi nào</h4>
+              <p className="text-muted">Vui lòng thử tìm kiếm với từ khóa khác</p>
             </div>
           )}
         </Col>
       </Row>
       
-      {/* More Questions Button */}
-      {filteredQuestions.length > 0 && (
-        <Row className="justify-content-center mt-4">
-          <Col md={6} className="text-center">
-            <Button variant="outline-primary" className="load-more-btn">
-              Load more questions
-            </Button>
-          </Col>
-        </Row>
-      )}
-      
-      {/* Question Modal */}
-      <QuestionModal show={showModal} handleClose={handleCloseModal} />
+      <QuestionModal 
+        show={showModal} 
+        handleClose={handleCloseModal} 
+      />
     </Container>
   );
 };

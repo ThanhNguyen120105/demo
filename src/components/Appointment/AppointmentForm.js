@@ -55,19 +55,19 @@ const AppointmentForm = () => {
           <div className="form-icon">
             <FontAwesomeIcon icon={faHeartbeat} />
           </div>
-          <h2 className="simple-form-title">Book Your Appointment</h2>
-          <p className="form-subtitle">Schedule a visit with our medical specialists</p>
+          <h2 className="simple-form-title">Đặt Lịch Hẹn Khám</h2>
+          <p className="form-subtitle">Lên lịch hẹn với các chuyên gia y tế của chúng tôi</p>
         </div>
         
         <div className="form-progress">
           <div className={`progress-step ${formStep >= 1 ? 'active' : ''}`}>
             <div className="step-number">1</div>
-            <div className="step-label">Basic Info</div>
+            <div className="step-label">Thông Tin Cơ Bản</div>
           </div>
           <div className="progress-connector"></div>
           <div className={`progress-step ${formStep >= 2 ? 'active' : ''}`}>
             <div className="step-number">2</div>
-            <div className="step-label">Personal Details</div>
+            <div className="step-label">Thông Tin Cá Nhân</div>
           </div>
         </div>
         
@@ -77,7 +77,7 @@ const AppointmentForm = () => {
               <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faClock} className="label-icon" />
-                  Choose a service time
+                  Chọn thời gian dịch vụ
                 </label>
                 <Row>
                   <Col xs={12}>
@@ -87,14 +87,14 @@ const AppointmentForm = () => {
                         className="time-button"
                         onClick={() => setFormData({...formData, serviceTime: 'inHours'})}
                       >
-                       <FontAwesomeIcon icon={faClock} className="button-icon" /> In Hours
+                       <FontAwesomeIcon icon={faClock} className="button-icon" /> Trong Giờ
                       </Button>
                       <Button
                         variant={formData.serviceTime === 'outHours' ? 'primary' : 'outline-primary'}
                         className="time-button"
                         onClick={() => setFormData({...formData, serviceTime: 'outHours'})}
                       >
-                        <FontAwesomeIcon icon={faClock} className="button-icon" /> Out Hours
+                        <FontAwesomeIcon icon={faClock} className="button-icon" /> Ngoài Giờ
                       </Button>
                     </div>
                   </Col>
@@ -104,7 +104,7 @@ const AppointmentForm = () => {
               <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faUserMd} className="label-icon" />
-                  Choose a doctor
+                  Chọn bác sĩ
                 </label>
                 <Form.Select
                   name="doctor"
@@ -112,17 +112,17 @@ const AppointmentForm = () => {
                   onChange={handleInputChange}
                   className="form-select"
                 >
-                  <option value="">Select your preferred doctor</option>
-                  <option value="dr1">Doctor A - Infectious Disease Specialist</option>
-                  <option value="dr2">Doctor B - HIV Treatment Specialist</option>
-                  <option value="dr3">Doctor C - General Practitioner</option>
+                  <option value="">Chọn bác sĩ bạn ưa thích</option>
+                  <option value="dr1">Bác sĩ A - Chuyên Gia Bệnh Truyền Nhiễm</option>
+                  <option value="dr2">Bác sĩ B - Chuyên Gia Điều Trị HIV</option>
+                  <option value="dr3">Bác sĩ C - Bác Sĩ Đa Khoa</option>
                 </Form.Select>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faCalendarAlt} className="label-icon" />
-                  Choose a date and time
+                  Chọn ngày và giờ
                 </label>
                 <div className="date-input-wrapper">
                   <Form.Control
@@ -136,11 +136,11 @@ const AppointmentForm = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Enter your health issues</label>
+                <label className="form-label">Nhập vấn đề sức khỏe của bạn</label>
                 <Form.Control
                   as="textarea"
                   rows={3}
-                  placeholder="Enter your health issues, questions for the doctor and health issues you need to check"
+                  placeholder="Nhập các vấn đề sức khỏe, câu hỏi cho bác sĩ và các vấn đề sức khỏe bạn cần kiểm tra"
                   name="healthIssues"
                   value={formData.healthIssues}
                   onChange={handleInputChange}
@@ -150,7 +150,7 @@ const AppointmentForm = () => {
 
               <div className="form-submit">
                 <Button variant="primary" type="submit" className="submit-button">
-                  Next
+                  Tiếp Theo
                 </Button>
               </div>
             </div>
@@ -159,19 +159,19 @@ const AppointmentForm = () => {
           {formStep === 2 && (
             <div className="form-step-container animated fadeIn">
               <div className="form-group">
-                <Form.Label>Phone Number *</Form.Label>
+                <Form.Label>Số Điện Thoại *</Form.Label>
                 <Form.Control
                   type="text"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   required
-                  placeholder="Enter phone number"
+                  placeholder="Nhập số điện thoại"
                 />
               </div>
 
               <div className="form-group">
-                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Label>Ngày Sinh *</Form.Label>
                 <Form.Control
                   type="date"
                   name="dob"
@@ -182,31 +182,31 @@ const AppointmentForm = () => {
               </div>
 
               <div className="form-group">
-                <Form.Label>Full Name *</Form.Label>
+                <Form.Label>Họ Tên Đầy Đủ *</Form.Label>
                 <Form.Control
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  placeholder="Enter full name"
+                  placeholder="Nhập họ tên đầy đủ"
                 />
               </div>
 
               <div className="form-group">
-                <Form.Label>Customer ID (if any)</Form.Label>
+                <Form.Label>Mã Khách Hàng (nếu có)</Form.Label>
                 <Form.Control
                   type="text"
                   name="customerId"
                   value={formData.customerId}
                   onChange={handleInputChange}
-                  placeholder="Enter customer ID (if any)"
+                  placeholder="Nhập mã khách hàng (nếu có)"
                 />
               </div>
 
               <div className="form-submit">
                 <Button variant="primary" type="submit">
-                  Complete
+                  Hoàn Tất
                 </Button>
               </div>
             </div>
@@ -222,13 +222,13 @@ const AppointmentForm = () => {
               className="text-success me-2"
               size="2x"
             />
-            Registration Successful
+            Đăng Ký Thành Công
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
-          <p>Thank you for your registration.</p>
+          <p>Cảm ơn bạn đã đăng ký.</p>
           <p>
-            Please check your{' '}
+            Vui lòng kiểm tra{' '}
             <a 
               href="/appointment-history" 
               className="text-primary fw-bold"
@@ -238,9 +238,9 @@ const AppointmentForm = () => {
                 window.location.href = '/appointment-history';
               }}
             >
-              Appointment History
+              Lịch Sử Cuộc Hẹn
             </a>{' '}
-             to confirm the status.
+             để xác nhận trạng thái.
           </p>
         </Modal.Body>
         <Modal.Footer className="border-0 justify-content-center">

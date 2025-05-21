@@ -42,63 +42,63 @@ const appointmentData = [
     id: "APT-2023-10-01",
     date: "2023-10-01",
     time: "09:30 AM",
-    doctor: "Dr. Emma Johnson",
-    specialty: "HIV Treatment Specialist",
-    reason: "Regular check-up and medication review",
-    status: "Completed",
-    notes: "Blood test results reviewed. Medication adjusted. Next appointment scheduled in 3 months.",
+    doctor: "BS. Emma Johnson",
+    specialty: "Chuyên Gia Điều Trị HIV",
+    reason: "Khám định kỳ và đánh giá thuốc",
+    status: "Đã hoàn thành",
+    notes: "Kết quả xét nghiệm máu đã được xem xét. Thuốc đã được điều chỉnh. Cuộc hẹn tiếp theo được lên lịch trong 3 tháng.",
     reportId: "MR-2023-10-01-001"
   },
   {
     id: "APT-2023-11-15",
     date: "2023-11-15",
     time: "02:15 PM",
-    doctor: "Dr. Michael Chen",
-    specialty: "Infectious Disease Specialist",
-    reason: "Viral load test and consultation",
-    status: "Completed",
-    notes: "Viral load undetectable. Continue current medication regimen.",
+    doctor: "BS. Michael Chen",
+    specialty: "Chuyên Gia Bệnh Truyền Nhiễm",
+    reason: "Xét nghiệm tải lượng virus và tư vấn",
+    status: "Đã hoàn thành",
+    notes: "Tải lượng virus không phát hiện được. Tiếp tục phác đồ thuốc hiện tại.",
     reportId: "MR-2023-11-15-002"
   },
   {
     id: "APT-2024-01-10",
     date: "2024-01-10",
     time: "11:00 AM",
-    doctor: "Dr. Sarah Williams",
-    specialty: "General Practitioner",
-    reason: "Respiratory symptoms and follow-up",
-    status: "Accepted",
-    notes: "Prescribed antibiotics for bronchitis. Follow-up scheduled."
+    doctor: "BS. Sarah Williams",
+    specialty: "Bác Sĩ Đa Khoa",
+    reason: "Triệu chứng hô hấp và theo dõi",
+    status: "Đã chấp nhận",
+    notes: "Kê đơn kháng sinh cho viêm phế quản. Lịch hẹn theo dõi đã được sắp xếp."
   },
   {
     id: "APT-2024-02-20",
     date: "2024-02-20",
     time: "03:45 PM",
-    doctor: "Dr. Emma Johnson",
-    specialty: "HIV Treatment Specialist",
-    reason: "Quarterly check-up and medication review",
-    status: "Pending",
+    doctor: "BS. Emma Johnson",
+    specialty: "Chuyên Gia Điều Trị HIV",
+    reason: "Khám định kỳ hàng quý và đánh giá thuốc",
+    status: "Đang chờ",
     notes: ""
   },
   {
     id: "APT-2024-03-05",
     date: "2024-03-05",
     time: "10:30 AM",
-    doctor: "Dr. James Parker",
-    specialty: "Psychiatrist",
-    reason: "Mental health assessment",
-    status: "Pending",
+    doctor: "BS. James Parker",
+    specialty: "Bác Sĩ Tâm Thần",
+    reason: "Đánh giá sức khỏe tâm thần",
+    status: "Đang chờ",
     notes: ""
   },
   {
     id: "APT-2023-12-12",
     date: "2023-12-12",
     time: "01:00 PM",
-    doctor: "Dr. Robert Wilson",
-    specialty: "Nutritionist",
-    reason: "Dietary consultation",
-    status: "Denied",
-    notes: "Doctor unavailable due to emergency. Patient notified via email."
+    doctor: "BS. Robert Wilson",
+    specialty: "Chuyên Gia Dinh Dưỡng",
+    reason: "Tư vấn chế độ ăn uống",
+    status: "Đã từ chối",
+    notes: "Bác sĩ không có mặt do trường hợp khẩn cấp. Bệnh nhân đã được thông báo qua email."
   }
 ];
 
@@ -106,9 +106,9 @@ const appointmentData = [
 const medicalReports = {
   "MR-2023-10-01-001": {
     patientInfo: {
-      name: "John Doe",
+      name: "Nguyễn Văn A",
       dob: "1985-06-12",
-      gender: "Male",
+      gender: "Nam",
       patientId: "HIV-PT-10054"
     },
     visitDate: "2023-10-01",
@@ -119,12 +119,12 @@ const medicalReports = {
       temperature: "36.7°C",
       bloodPressure: "124/82 mmHg",
       heartRate: "72 bpm",
-      respiratoryRate: "16 breaths/min"
+      respiratoryRate: "16 nhịp thở/phút"
     },
     labResults: {
-      cd4Count: "650 cells/mm³",
+      cd4Count: "650 tế bào/mm³",
       cd4Percentage: "29%",
-      viralLoad: "< 20 copies/mL (Undetectable)",
+      viralLoad: "< 20 bản sao/mL (Không phát hiện)",
       hematology: {
         hgb: "14.2 g/dL",
         hct: "42%",
@@ -149,38 +149,38 @@ const medicalReports = {
     medications: [
       {
         name: "Biktarvy",
-        dosage: "1 tablet",
-        frequency: "Once daily",
-        status: "Continued"
+        dosage: "1 viên",
+        frequency: "Một lần mỗi ngày",
+        status: "Tiếp tục"
       },
       {
-        name: "Multivitamin",
-        dosage: "1 tablet",
-        frequency: "Once daily",
-        status: "Continued"
+        name: "Vitamin tổng hợp",
+        dosage: "1 viên",
+        frequency: "Một lần mỗi ngày",
+        status: "Tiếp tục"
       }
     ],
-    assessment: "Patient is clinically stable with undetectable viral load. Medication is well-tolerated with no significant side effects reported. CD4 count has improved since last visit.",
-    plan: "Continue current antiretroviral therapy. Monitor kidney function due to slightly elevated creatinine. Follow up in 3 months for routine labs. Advised patient on importance of medication adherence.",
+    assessment: "Bệnh nhân ổn định về mặt lâm sàng với tải lượng virus không phát hiện được. Thuốc được dung nạp tốt không có tác dụng phụ đáng kể nào được báo cáo. Số lượng CD4 đã cải thiện kể từ lần thăm khám trước.",
+    plan: "Tiếp tục liệu pháp kháng retrovirus hiện tại. Theo dõi chức năng thận do creatinine tăng nhẹ. Theo dõi trong 3 tháng để làm xét nghiệm thường xuyên. Tư vấn cho bệnh nhân về tầm quan trọng của việc tuân thủ thuốc.",
     recommendations: [
-      "Maintain good medication adherence",
-      "Regular exercise (30 minutes, 5 days/week)",
-      "Balanced diet with adequate protein intake",
-      "Reduce alcohol consumption",
-      "Schedule dental check-up"
+      "Duy trì tuân thủ thuốc tốt",
+      "Tập thể dục thường xuyên (30 phút, 5 ngày/tuần)",
+      "Chế độ ăn uống cân bằng với đủ lượng protein",
+      "Giảm tiêu thụ rượu bia",
+      "Lên lịch khám nha khoa"
     ],
     doctorInfo: {
-      name: "Dr. Emma Johnson",
-      specialty: "HIV Treatment Specialist",
+      name: "BS. Emma Johnson",
+      specialty: "Chuyên Gia Điều Trị HIV",
       signature: "E. Johnson, MD",
       date: "2023-10-01"
     }
   },
   "MR-2023-11-15-002": {
     patientInfo: {
-      name: "John Doe",
+      name: "Nguyễn Văn A",
       dob: "1985-06-12",
-      gender: "Male",
+      gender: "Nam",
       patientId: "HIV-PT-10054"
     },
     visitDate: "2023-11-15",
@@ -191,12 +191,12 @@ const medicalReports = {
       temperature: "36.5°C",
       bloodPressure: "120/80 mmHg",
       heartRate: "70 bpm",
-      respiratoryRate: "14 breaths/min"
+      respiratoryRate: "14 nhịp thở/phút"
     },
     labResults: {
-      cd4Count: "685 cells/mm³",
+      cd4Count: "685 tế bào/mm³",
       cd4Percentage: "30%",
-      viralLoad: "< 20 copies/mL (Undetectable)",
+      viralLoad: "< 20 bản sao/mL (Không phát hiện)",
       hematology: {
         hgb: "14.5 g/dL",
         hct: "43%",
@@ -221,29 +221,29 @@ const medicalReports = {
     medications: [
       {
         name: "Biktarvy",
-        dosage: "1 tablet",
-        frequency: "Once daily",
-        status: "Continued"
+        dosage: "1 viên",
+        frequency: "Một lần mỗi ngày",
+        status: "Tiếp tục"
       },
       {
-        name: "Multivitamin",
-        dosage: "1 tablet",
-        frequency: "Once daily",
-        status: "Continued"
+        name: "Vitamin tổng hợp",
+        dosage: "1 viên",
+        frequency: "Một lần mỗi ngày",
+        status: "Tiếp tục"
       }
     ],
-    assessment: "Patient continues to do well on current regimen. Viral load remains undetectable. CD4 count has shown further improvement. No reported adverse effects from medication.",
-    plan: "Maintain current antiretroviral therapy. Complete metabolic panel and lipid profile are within normal limits. Continue monitoring every 3-4 months. Discussed importance of vaccination against influenza.",
+    assessment: "Bệnh nhân tiếp tục phản ứng tốt với phác đồ hiện tại. Tải lượng virus vẫn không phát hiện được. Số lượng CD4 đã cho thấy sự cải thiện thêm. Không có báo cáo về tác dụng phụ từ thuốc.",
+    plan: "Duy trì liệu pháp kháng retrovirus hiện tại. Bảng theo dõi chuyển hóa và hồ sơ lipid đều trong giới hạn bình thường. Tiếp tục theo dõi mỗi 3-4 tháng. Đã thảo luận về tầm quan trọng của việc tiêm phòng cúm.",
     recommendations: [
-      "Continue good medication adherence",
-      "Get annual flu vaccination",
-      "Continue regular exercise routine",
-      "Consider smoking cessation program (current: 3-5 cigarettes/day)",
-      "Schedule eye examination"
+      "Tiếp tục tuân thủ thuốc tốt",
+      "Tiêm phòng cúm hàng năm",
+      "Tiếp tục thói quen tập thể dục thường xuyên",
+      "Xem xét chương trình cai thuốc lá (hiện tại: 3-5 điếu/ngày)",
+      "Lên lịch khám mắt"
     ],
     doctorInfo: {
-      name: "Dr. Michael Chen",
-      specialty: "Infectious Disease Specialist",
+      name: "BS. Michael Chen",
+      specialty: "Chuyên Gia Bệnh Truyền Nhiễm",
       signature: "M. Chen, MD",
       date: "2023-11-15"
     }

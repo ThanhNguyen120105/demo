@@ -5,84 +5,84 @@ import {
 
 // Stats 
 export const stats = [
-  { value: '20+', label: 'Years of Experience' },
-  { value: '15,000+', label: 'Patients Treated' },
-  { value: '30+', label: 'Specialist Doctors' },
-  { value: '98%', label: 'Treatment Success Rate' },
+  { value: '20+', label: 'Năm Kinh Nghiệm' },
+  { value: '15,000+', label: 'Bệnh Nhân Đã Điều Trị' },
+  { value: '30+', label: 'Bác Sĩ Chuyên Khoa' },
+  { value: '98%', label: 'Tỷ Lệ Điều Trị Thành Công' },
 ];
 
 // Services
 export const services = [
   {
     id: 1,
-    title: 'HIV Testing & Screening',
+    title: 'Xét Nghiệm & Sàng Lọc HIV',
     slug: 'testing',
     icon: faVirus,
-    description: 'Advanced HIV testing services with rapid results and complete confidentiality.',
-    fullDescription: "Our HIV Testing & Screening services offer the latest in diagnostic technology, providing accurate results with complete confidentiality. We offer multiple testing options including:\n\n• Rapid HIV antibody tests\n• Nucleic acid tests (NAT)\n• Antigen/antibody combination tests\n• Home testing kits\n\nOur knowledgeable staff provides pre and post-test counseling, ensuring you understand your results and next steps.",
+    description: 'Dịch vụ xét nghiệm HIV tiên tiến với kết quả nhanh chóng và bảo mật hoàn toàn.',
+    fullDescription: "Dịch vụ Xét Nghiệm & Sàng Lọc HIV của chúng tôi cung cấp công nghệ chẩn đoán tiên tiến nhất, mang đến kết quả chính xác với sự bảo mật tuyệt đối. Chúng tôi cung cấp nhiều lựa chọn xét nghiệm bao gồm:\n\n• Xét nghiệm kháng thể HIV nhanh\n• Xét nghiệm axit nucleic (NAT)\n• Xét nghiệm kết hợp kháng nguyên/kháng thể\n• Bộ xét nghiệm tại nhà\n\nĐội ngũ nhân viên giàu kinh nghiệm của chúng tôi cung cấp tư vấn trước và sau xét nghiệm, đảm bảo bạn hiểu rõ kết quả và các bước tiếp theo.",
     image: '/images/services/testing.jpg'
   },
   {
     id: 2,
-    title: 'Antiretroviral Therapy',
+    title: 'Liệu Pháp Kháng Retrovirus',
     slug: 'treatment',
     icon: faPills,
-    description: 'Personalized treatment plans using the latest antiretroviral medications and therapies.',
-    fullDescription: "Our Antiretroviral Therapy (ART) program offers personalized treatment plans using the latest medications and therapeutic approaches. Our comprehensive care includes:\n\n• Customized medication regimens\n• Regular monitoring and adjustment\n• Medication adherence support\n• Management of medication side effects\n• Access to clinical trials of new therapies\n\nOur goal is to achieve viral suppression, improve immune function, and enhance your overall quality of life.",
+    description: 'Kế hoạch điều trị cá nhân hóa sử dụng các loại thuốc kháng retrovirus và liệu pháp mới nhất.',
+    fullDescription: "Chương trình Liệu Pháp Kháng Retrovirus (ART) của chúng tôi cung cấp kế hoạch điều trị cá nhân hóa sử dụng các loại thuốc và phương pháp điều trị tiên tiến nhất. Chăm sóc toàn diện của chúng tôi bao gồm:\n\n• Phác đồ thuốc được điều chỉnh riêng cho từng người\n• Theo dõi và điều chỉnh thường xuyên\n• Hỗ trợ tuân thủ dùng thuốc\n• Quản lý tác dụng phụ của thuốc\n• Tiếp cận với các thử nghiệm lâm sàng về liệu pháp mới\n\nMục tiêu của chúng tôi là đạt được sự ức chế virus, cải thiện chức năng miễn dịch và nâng cao chất lượng cuộc sống tổng thể của bạn.",
     image: '/images/services/treatment.jpg'
   },
   {
     id: 3,
-    title: 'PrEP & Prevention',
+    title: 'PrEP & Phòng Ngừa',
     slug: 'prevention',
     icon: faShieldVirus,
-    description: 'Pre-exposure prophylaxis (PrEP) and comprehensive prevention strategies and education.',
-    fullDescription: "Our Prevention services focus on reducing HIV transmission through comprehensive education and medical interventions. We provide:\n\n• Pre-exposure prophylaxis (PrEP) prescriptions and monitoring\n• Post-exposure prophylaxis (PEP) for emergency cases\n• Risk reduction counseling\n• Safe sex education and resources\n• Regular STI screening and treatment\n\nOur prevention specialists work with you to develop strategies that fit your lifestyle and needs.",
+    description: 'Dự phòng trước phơi nhiễm (PrEP) và các chiến lược phòng ngừa toàn diện và giáo dục.',
+    fullDescription: "Dịch vụ Phòng Ngừa của chúng tôi tập trung vào giảm lây truyền HIV thông qua giáo dục toàn diện và can thiệp y tế. Chúng tôi cung cấp:\n\n• Kê đơn và theo dõi dự phòng trước phơi nhiễm (PrEP)\n• Dự phòng sau phơi nhiễm (PEP) cho các trường hợp khẩn cấp\n• Tư vấn giảm thiểu rủi ro\n• Giáo dục và nguồn lực về tình dục an toàn\n• Sàng lọc và điều trị STI thường xuyên\n\nCác chuyên gia phòng ngừa của chúng tôi sẽ làm việc với bạn để phát triển các chiến lược phù hợp với lối sống và nhu cầu của bạn.",
     image: '/images/services/prevention.jpg'
   },
   {
     id: 4,
-    title: 'Counseling Services',
+    title: 'Dịch Vụ Tư Vấn',
     slug: 'counseling',
     icon: faUserDoctor,
-    description: 'Professional mental health support specializing in HIV-related psychological challenges.',
-    fullDescription: "Our Counseling Services address the emotional and psychological aspects of living with HIV. Our licensed mental health professionals specialize in:\n\n• Coping with diagnosis\n• Managing anxiety and depression\n• Relationship and disclosure counseling\n• Substance use disorders\n• Trauma-informed care\n\nWe offer individual, couple, and group counseling sessions in a supportive, confidential environment.",
+    description: 'Hỗ trợ sức khỏe tâm thần chuyên nghiệp chuyên về các thách thức tâm lý liên quan đến HIV.',
+    fullDescription: "Dịch Vụ Tư Vấn của chúng tôi giải quyết các khía cạnh cảm xúc và tâm lý của việc sống chung với HIV. Các chuyên gia sức khỏe tâm thần có giấy phép của chúng tôi chuyên về:\n\n• Đối phó với chẩn đoán\n• Quản lý lo âu và trầm cảm\n• Tư vấn về mối quan hệ và tiết lộ tình trạng\n• Rối loạn sử dụng chất gây nghiện\n• Chăm sóc có hiểu biết về sang chấn\n\nChúng tôi cung cấp các buổi tư vấn cá nhân, cặp đôi và nhóm trong môi trường hỗ trợ, bảo mật.",
     image: '/images/services/counseling.jpg'
   },
   {
     id: 5,
-    title: 'Nutrition & Wellness',
+    title: 'Dinh Dưỡng & Sức Khỏe',
     slug: 'nutrition',
     icon: faHeartbeat,
-    description: 'Specialized nutrition planning and wellness programs to support overall health with HIV.',
-    fullDescription: "Our Nutrition & Wellness programs provide comprehensive support for your physical health. Our registered dietitians and wellness specialists offer:\n\n• Personalized nutrition planning\n• Dietary supplements guidance\n• Management of medication-food interactions\n• Weight management support\n• Exercise and fitness programs\n\nOur holistic approach ensures your body has the optimal support for immune function and overall health.",
+    description: 'Kế hoạch dinh dưỡng chuyên biệt và các chương trình sức khỏe để hỗ trợ sức khỏe tổng thể khi sống với HIV.',
+    fullDescription: "Các chương trình Dinh Dưỡng & Sức Khỏe của chúng tôi cung cấp hỗ trợ toàn diện cho sức khỏe thể chất của bạn. Các chuyên gia dinh dưỡng và sức khỏe của chúng tôi cung cấp:\n\n• Lập kế hoạch dinh dưỡng cá nhân hóa\n• Hướng dẫn về thực phẩm bổ sung\n• Quản lý tương tác giữa thuốc và thực phẩm\n• Hỗ trợ kiểm soát cân nặng\n• Các chương trình tập luyện và thể dục\n\nCách tiếp cận toàn diện của chúng tôi đảm bảo cơ thể bạn được hỗ trợ tối ưu cho chức năng miễn dịch và sức khỏe tổng thể.",
     image: '/images/services/nutrition.jpg'
   },
   {
     id: 6,
-    title: 'Support Groups',
+    title: 'Nhóm Hỗ Trợ',
     slug: 'support',
     icon: faUsers,
-    description: 'Peer support and community connection for individuals living with or affected by HIV.',
-    fullDescription: "Our Support Groups provide vital community connection and peer support. We offer a variety of groups including:\n\n• Newly diagnosed individuals\n• Long-term survivors\n• Young adults living with HIV\n• Women's support group\n• LGBTQ+ focused groups\n• Family and partner support\n\nAll groups are facilitated by trained professionals in a safe, confidential environment where experiences can be shared.",
+    description: 'Hỗ trợ đồng đẳng và kết nối cộng đồng cho các cá nhân sống chung với hoặc bị ảnh hưởng bởi HIV.',
+    fullDescription: "Các Nhóm Hỗ Trợ của chúng tôi cung cấp kết nối cộng đồng thiết yếu và hỗ trợ đồng đẳng. Chúng tôi cung cấp nhiều nhóm khác nhau bao gồm:\n\n• Những người mới được chẩn đoán\n• Những người sống sót lâu dài\n• Thanh niên sống chung với HIV\n• Nhóm hỗ trợ phụ nữ\n• Nhóm tập trung LGBTQ+\n• Hỗ trợ gia đình và bạn đời\n\nTất cả các nhóm đều được hướng dẫn bởi các chuyên gia được đào tạo trong môi trường an toàn, bảo mật nơi mọi người có thể chia sẻ kinh nghiệm.",
     image: '/images/services/support.jpg'
   },
   {
     id: 7,
-    title: 'Research Programs',
+    title: 'Chương Trình Nghiên Cứu',
     slug: 'research',
     icon: faFlask,
-    description: 'Participation opportunities in cutting-edge HIV treatment and prevention research studies.',
-    fullDescription: "Our Research Programs connect patients with opportunities to participate in cutting-edge studies. Our research initiatives include:\n\n• Clinical trials for new medications\n• Treatment optimization studies\n• Long-term outcome research\n• Quality of life improvement studies\n• Vaccine development trials\n\nParticipation is always voluntary, and our research team ensures you're fully informed about any study before enrollment.",
+    description: 'Cơ hội tham gia vào các nghiên cứu điều trị và phòng ngừa HIV tiên tiến.',
+    fullDescription: "Chương Trình Nghiên Cứu của chúng tôi kết nối bệnh nhân với cơ hội tham gia vào các nghiên cứu tiên tiến. Các sáng kiến nghiên cứu của chúng tôi bao gồm:\n\n• Thử nghiệm lâm sàng cho các loại thuốc mới\n• Nghiên cứu tối ưu hóa điều trị\n• Nghiên cứu kết quả dài hạn\n• Nghiên cứu cải thiện chất lượng cuộc sống\n• Thử nghiệm phát triển vắc-xin\n\nViệc tham gia luôn là tự nguyện, và đội ngũ nghiên cứu của chúng tôi đảm bảo bạn được thông tin đầy đủ về bất kỳ nghiên cứu nào trước khi đăng ký.",
     image: '/images/services/research.jpg'
   },
   {
     id: 8,
-    title: 'Case Management',
+    title: 'Quản Lý Trường Hợp',
     slug: 'case-management',
     icon: faHandHoldingMedical,
-    description: 'Comprehensive assistance with healthcare coordination, social services, and practical support.',
-    fullDescription: "Our Case Management services help navigate the complex healthcare and support system. Our case managers assist with:\n\n• Healthcare coordination\n• Insurance and benefits navigation\n• Housing assistance\n• Employment resources\n• Transportation services\n• Legal referrals\n\nYour dedicated case manager works as your advocate, ensuring you have access to all needed resources and support.",
+    description: 'Hỗ trợ toàn diện về điều phối chăm sóc sức khỏe, dịch vụ xã hội và hỗ trợ thực tế.',
+    fullDescription: "Dịch vụ Quản Lý Trường Hợp của chúng tôi giúp điều hướng hệ thống chăm sóc sức khỏe và hỗ trợ phức tạp. Nhân viên quản lý trường hợp của chúng tôi hỗ trợ với:\n\n• Điều phối chăm sóc sức khỏe\n• Hướng dẫn bảo hiểm và phúc lợi\n• Hỗ trợ nhà ở\n• Nguồn lực việc làm\n• Dịch vụ vận chuyển\n• Giới thiệu pháp lý\n\nNhân viên quản lý trường hợp chuyên trách của bạn hoạt động như người bảo vệ quyền lợi, đảm bảo bạn có quyền tiếp cận với tất cả các nguồn lực và hỗ trợ cần thiết.",
     image: '/images/services/case-management.jpg'
   }
 ];
@@ -91,145 +91,145 @@ export const services = [
 export const doctors = [
   {
     id: 1,
-    name: 'Dr. Sarah Johnson',
-    specialty: 'Infectious Disease Specialist',
+    name: 'Bác Sĩ Sarah Johnson',
+    specialty: 'Chuyên Gia Bệnh Truyền Nhiễm',
     image: '/images/doctors/doctor1.jpg',
-    shortBio: 'Board-certified specialist with 15+ years of HIV treatment experience.',
-    fullBio: "Dr. Sarah Johnson is a board-certified Infectious Disease Specialist with over 15 years of experience in HIV medicine. She completed her medical degree at Johns Hopkins University, followed by a residency in Internal Medicine and fellowship in Infectious Diseases at UCSF.\n\nDr. Johnson has published extensively on antiretroviral therapy optimization and has been recognized for her patient-centered approach to care. She serves as the Director of our Antiretroviral Therapy program and is actively involved in clinical research.",
+    shortBio: 'Chuyên gia có chứng nhận với hơn 15 năm kinh nghiệm điều trị HIV.',
+    fullBio: "Bác Sĩ Sarah Johnson là Chuyên Gia Bệnh Truyền Nhiễm có chứng nhận với hơn 15 năm kinh nghiệm trong y học HIV. Bà tốt nghiệp y khoa tại Đại học Johns Hopkins, sau đó hoàn thành chương trình nội trú về Y khoa Nội khoa và học bổng về Bệnh Truyền Nhiễm tại UCSF.\n\nBác Sĩ Johnson đã xuất bản nhiều công trình về tối ưu hóa liệu pháp kháng retrovirus và được công nhận về phương pháp chăm sóc lấy bệnh nhân làm trung tâm. Bà đảm nhiệm vị trí Giám đốc Chương trình Liệu pháp Kháng Retrovirus và tích cực tham gia vào nghiên cứu lâm sàng.",
     education: [
-      'MD, Johns Hopkins University School of Medicine',
-      'Residency in Internal Medicine, UCSF',
-      'Fellowship in Infectious Diseases, UCSF'
+      'Bác sĩ Y khoa, Trường Y Johns Hopkins University',
+      'Nội trú về Y khoa Nội khoa, UCSF',
+      'Học bổng về Bệnh Truyền Nhiễm, UCSF'
     ],
     certifications: [
-      'Board Certified in Infectious Disease',
-      'American Academy of HIV Medicine Specialist',
-      'HIV Medicine Association Certified Provider'
+      'Chứng nhận về Bệnh Truyền Nhiễm',
+      'Chuyên gia của Học viện Y học HIV Hoa Kỳ',
+      'Nhà Cung cấp được Chứng nhận của Hiệp hội Y học HIV'
     ]
   },
   {
     id: 2,
-    name: 'Dr. Michael Chen',
-    specialty: 'HIV Clinical Pharmacist',
+    name: 'Bác Sĩ Michael Chen',
+    specialty: 'Dược sĩ Lâm sàng HIV',
     image: '/images/doctors/doctor2.jpg',
-    shortBio: 'Specialized pharmacist focused on medication management and adherence support.',
-    fullBio: "Dr. Michael Chen is our HIV Clinical Pharmacist with specialized training in antiretroviral medication management. He earned his Doctor of Pharmacy degree from the University of Michigan and completed a specialty residency in HIV Pharmacotherapy at Northwestern Memorial Hospital.\n\nDr. Chen works closely with our medical team to optimize medication regimens, manage drug interactions, and develop adherence strategies. He also leads our medication education programs and support groups for patients starting new treatments.",
+    shortBio: 'Dược sĩ chuyên khoa tập trung vào quản lý thuốc và hỗ trợ tuân thủ.',
+    fullBio: "Bác Sĩ Michael Chen là Dược sĩ Lâm sàng HIV của chúng tôi với đào tạo chuyên biệt về quản lý thuốc kháng retrovirus. Ông có bằng Tiến sĩ Dược từ Đại học Michigan và hoàn thành chương trình nội trú chuyên khoa về Dược lý HIV tại Bệnh viện Northwestern Memorial.\n\nBác Sĩ Chen làm việc chặt chẽ với đội ngũ y tế của chúng tôi để tối ưu hóa phác đồ thuốc, quản lý tương tác thuốc và phát triển chiến lược tuân thủ. Ông cũng dẫn dắt các chương trình giáo dục về thuốc và nhóm hỗ trợ cho bệnh nhân bắt đầu điều trị mới.",
     education: [
-      'PharmD, University of Michigan College of Pharmacy',
-      'HIV Pharmacotherapy Residency, Northwestern Memorial Hospital'
+      'Tiến sĩ Dược, Trường Đại học Dược Michigan',
+      'Nội trú về Dược lý HIV, Bệnh viện Northwestern Memorial'
     ],
     certifications: [
-      'Board Certified Infectious Diseases Pharmacist',
-      'American Academy of HIV Medicine Credentialed Pharmacist',
-      'Certified in HIV Medication Therapy Management'
+      'Chứng nhận Dược sĩ Bệnh Truyền Nhiễm',
+      'Dược sĩ có Chứng chỉ của Học viện Y học HIV Hoa Kỳ',
+      'Chứng nhận về Quản lý Liệu pháp Thuốc HIV'
     ]
   },
   {
     id: 3,
-    name: 'Dr. Amara Okafor',
-    specialty: 'HIV Primary Care Physician',
+    name: 'Bác Sĩ Amara Okafor',
+    specialty: 'Bác Sĩ Chăm Sóc Chính HIV',
     image: '/images/doctors/doctor3.jpg',
-    shortBio: 'Comprehensive primary care with specialization in HIV and preventive health.',
-    fullBio: "Dr. Amara Okafor is our HIV Primary Care Physician, providing comprehensive healthcare for patients living with HIV. She received her medical degree from Howard University College of Medicine and completed her residency in Family Medicine at Emory University.\n\nDr. Okafor specializes in managing the primary healthcare needs of people living with HIV, including preventive care, chronic disease management, and health maintenance. She is known for her holistic approach to patient care and strong emphasis on patient education.",
+    shortBio: 'Chăm sóc chính toàn diện với chuyên môn về HIV và sức khỏe phòng ngừa.',
+    fullBio: "Bác Sĩ Amara Okafor là Bác Sĩ Chăm Sóc Chính HIV của chúng tôi, cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho bệnh nhân sống chung với HIV. Bà nhận bằng y khoa từ Trường Y Howard University và hoàn thành chương trình nội trú về Y học Gia đình tại Đại học Emory.\n\nBác Sĩ Okafor chuyên về quản lý nhu cầu chăm sóc sức khỏe chính của người sống chung với HIV, bao gồm chăm sóc phòng ngừa, quản lý bệnh mãn tính và duy trì sức khỏe. Bà nổi tiếng về cách tiếp cận toàn diện đối với chăm sóc bệnh nhân và nhấn mạnh mạnh mẽ vào việc giáo dục bệnh nhân.",
     education: [
-      'MD, Howard University College of Medicine',
-      'Residency in Family Medicine, Emory University',
-      'HIV Medicine Fellowship, Grady Health System'
+      'Bác sĩ Y khoa, Trường Y Howard University',
+      'Nội trú về Y học Gia đình, Đại học Emory',
+      'Học bổng Y học HIV, Hệ thống Y tế Grady'
     ],
     certifications: [
-      'Board Certified in Family Medicine',
-      'American Academy of HIV Medicine Specialist',
-      'Certified in HIV Primary Care'
+      'Chứng nhận về Y học Gia đình',
+      'Chuyên gia của Học viện Y học HIV Hoa Kỳ',
+      'Chứng nhận về Chăm sóc Chính HIV'
     ]
   },
   {
     id: 4,
-    name: 'Dr. Robert Garcia',
-    specialty: 'Psychiatrist, HIV Mental Health',
+    name: 'Bác Sĩ Robert Garcia',
+    specialty: 'Bác Sĩ Tâm thần, Sức khỏe Tâm thần HIV',
     image: '/images/doctors/doctor4.jpg',
-    shortBio: 'Mental health specialist with expertise in HIV-related psychological challenges.',
-    fullBio: "Dr. Robert Garcia is our HIV Mental Health Psychiatrist with special expertise in the psychological aspects of living with HIV. He earned his medical degree from Stanford University School of Medicine and completed his psychiatry residency at UCLA.\n\nDr. Garcia specializes in treating depression, anxiety, trauma, and adjustment disorders in the context of HIV diagnosis and treatment. He integrates medication management with psychotherapeutic approaches to provide comprehensive mental health care.",
+    shortBio: 'Chuyên gia sức khỏe tâm thần với chuyên môn về các thách thức tâm lý liên quan đến HIV.',
+    fullBio: "Bác Sĩ Robert Garcia là Bác Sĩ Tâm thần Sức khỏe Tâm thần HIV của chúng tôi với chuyên môn đặc biệt về các khía cạnh tâm lý của việc sống chung với HIV. Ông nhận bằng y khoa từ Trường Y Stanford University và hoàn thành chương trình nội trú tâm thần tại UCLA.\n\nBác Sĩ Garcia chuyên điều trị trầm cảm, lo âu, sang chấn và các rối loạn thích ứng trong bối cảnh chẩn đoán và điều trị HIV. Ông kết hợp quản lý thuốc với các phương pháp tâm lý trị liệu để cung cấp dịch vụ chăm sóc sức khỏe tâm thần toàn diện.",
     education: [
-      'MD, Stanford University School of Medicine',
-      'Psychiatry Residency, UCLA Medical Center',
-      'Fellowship in HIV Psychiatry, San Francisco General Hospital'
+      'Bác sĩ Y khoa, Trường Y Stanford University',
+      'Nội trú Tâm thần, Trung tâm Y tế UCLA',
+      'Học bổng về Tâm thần HIV, Bệnh viện Đa khoa San Francisco'
     ],
     certifications: [
-      'Board Certified in Psychiatry',
-      'Certification in HIV Psychiatry',
-      'American Academy of HIV Medicine Member'
+      'Chứng nhận về Tâm thần học',
+      'Chứng nhận về Tâm thần HIV',
+      'Thành viên của Học viện Y học HIV Hoa Kỳ'
     ]
   },
   {
     id: 5,
-    name: 'Dr. Lisa Wong',
-    specialty: 'Research Director, HIV Vaccine Studies',
+    name: 'Bác Sĩ Lisa Wong',
+    specialty: 'Giám đốc Nghiên cứu, Nghiên cứu Vắc-xin HIV',
     image: '/images/doctors/doctor5.jpg',
-    shortBio: 'Leading researcher in HIV vaccine development and immunotherapy approaches.',
-    fullBio: "Dr. Lisa Wong is our Research Director specializing in HIV vaccine development and immunotherapy approaches. She holds an MD and PhD from Yale University and completed her Infectious Disease fellowship at Massachusetts General Hospital.\n\nDr. Wong leads our clinical research department, overseeing trials of new antiretroviral medications, treatment strategies, and preventive vaccines. Her own research focuses on novel immunotherapeutic approaches to HIV treatment and potential curative strategies.",
+    shortBio: 'Nhà nghiên cứu hàng đầu về phát triển vắc-xin HIV và các phương pháp liệu pháp miễn dịch.',
+    fullBio: "Bác Sĩ Lisa Wong là Giám đốc Nghiên cứu chuyên về phát triển vắc-xin HIV và các phương pháp liệu pháp miễn dịch. Bà có bằng Bác sĩ Y khoa và Tiến sĩ từ Đại học Yale và hoàn thành học bổng về Bệnh Truyền Nhiễm tại Bệnh viện Massachusetts General.\n\nBác Sĩ Wong dẫn dắt bộ phận nghiên cứu lâm sàng của chúng tôi, giám sát các thử nghiệm về thuốc kháng retrovirus mới, chiến lược điều trị và vắc-xin phòng ngừa. Nghiên cứu của bà tập trung vào các phương pháp liệu pháp miễn dịch mới để điều trị HIV và các chiến lược chữa bệnh tiềm năng.",
     education: [
-      'MD/PhD, Yale University',
-      'Residency in Internal Medicine, Brigham and Women\'s Hospital',
-      'Fellowship in Infectious Diseases, Massachusetts General Hospital'
+      'Bác sĩ Y khoa/Tiến sĩ, Đại học Yale',
+      'Nội trú về Y khoa Nội khoa, Bệnh viện Brigham and Women\'s',
+      'Học bổng về Bệnh Truyền Nhiễm, Bệnh viện Massachusetts General'
     ],
     certifications: [
-      'Board Certified in Infectious Disease',
-      'Clinical Research Certification',
-      'Good Clinical Practice Certification'
+      'Chứng nhận về Bệnh Truyền Nhiễm',
+      'Chứng nhận Nghiên cứu Lâm sàng',
+      'Chứng nhận Thực hành Lâm sàng Tốt'
     ]
   },
   {
     id: 6,
-    name: 'Dr. James Wilson',
-    specialty: 'Nutritionist, HIV Metabolic Care',
+    name: 'Bác Sĩ James Wilson',
+    specialty: 'Chuyên gia Dinh dưỡng, Chăm sóc Chuyển hóa HIV',
     image: '/images/doctors/doctor6.jpg',
-    shortBio: 'Nutrition expert specializing in metabolic complications of HIV and its treatments.',
-    fullBio: "Dr. James Wilson is our HIV Metabolic Care Nutritionist, specializing in the nutritional and metabolic aspects of HIV and its treatments. He holds a PhD in Nutritional Sciences from Cornell University and completed specialized training in HIV nutrition.\n\nDr. Wilson helps patients manage medication-related metabolic changes, develop optimal nutrition plans, and address weight management concerns. He works closely with our medical team to integrate nutritional care into overall treatment plans.",
+    shortBio: 'Chuyên gia dinh dưỡng chuyên về các biến chứng chuyển hóa của HIV và các phương pháp điều trị.',
+    fullBio: "Bác Sĩ James Wilson là Chuyên gia Dinh dưỡng Chăm sóc Chuyển hóa HIV của chúng tôi, chuyên về các khía cạnh dinh dưỡng và chuyển hóa của HIV và các phương pháp điều trị. Ông có bằng Tiến sĩ Khoa học Dinh dưỡng từ Đại học Cornell và hoàn thành đào tạo chuyên biệt về dinh dưỡng HIV.\n\nBác Sĩ Wilson giúp bệnh nhân quản lý các thay đổi chuyển hóa liên quan đến thuốc, phát triển kế hoạch dinh dưỡng tối ưu và giải quyết các vấn đề về quản lý cân nặng. Ông làm việc chặt chẽ với đội ngũ y tế của chúng tôi để tích hợp chăm sóc dinh dưỡng vào kế hoạch điều trị tổng thể.",
     education: [
-      'PhD in Nutritional Sciences, Cornell University',
-      'MS in Dietetics, University of North Carolina',
-      'Fellowship in HIV Nutrition, San Francisco General Hospital'
+      'Tiến sĩ Khoa học Dinh dưỡng, Đại học Cornell',
+      'Thạc sĩ Dinh dưỡng học, Đại học North Carolina',
+      'Học bổng về Dinh dưỡng HIV, Bệnh viện Đa khoa San Francisco'
     ],
     certifications: [
-      'Registered Dietitian Nutritionist',
-      'Certified Nutrition Support Clinician',
-      'Specialist in HIV Nutrition Therapy'
+      'Chuyên gia Dinh dưỡng Đã đăng ký',
+      'Chuyên gia được Chứng nhận về Hỗ trợ Dinh dưỡng',
+      'Chuyên gia về Liệu pháp Dinh dưỡng HIV'
     ]
   },
   {
     id: 7,
-    name: 'Dr. Emma Rodriguez',
-    specialty: 'PrEP & Prevention Specialist',
+    name: 'Bác Sĩ Emma Rodriguez',
+    specialty: 'Chuyên gia PrEP & Phòng ngừa',
     image: '/images/doctors/doctor7.jpg',
-    shortBio: 'Focused on HIV prevention strategies, PrEP management, and education.',
-    fullBio: "Dr. Emma Rodriguez is our PrEP and Prevention Specialist, focused on HIV prevention strategies and education. She received her medical degree from University of California, San Francisco and completed her training in Preventive Medicine.\n\nDr. Rodriguez oversees our PrEP (Pre-Exposure Prophylaxis) program, providing consultations, prescriptions, and monitoring for individuals seeking HIV prevention. She also leads our community education initiatives and risk-reduction counseling programs.",
+    shortBio: 'Tập trung vào các chiến lược phòng ngừa HIV, quản lý PrEP và giáo dục.',
+    fullBio: "Bác Sĩ Emma Rodriguez là Chuyên gia PrEP và Phòng ngừa của chúng tôi, tập trung vào các chiến lược phòng ngừa HIV và giáo dục. Bà nhận bằng y khoa từ Đại học California, San Francisco và hoàn thành đào tạo về Y học Dự phòng.\n\nBác Sĩ Rodriguez giám sát chương trình PrEP (Dự phòng Trước Phơi nhiễm) của chúng tôi, cung cấp tư vấn, kê đơn và theo dõi cho các cá nhân tìm kiếm phòng ngừa HIV. Bà cũng dẫn dắt các sáng kiến giáo dục cộng đồng và các chương trình tư vấn giảm thiểu rủi ro của chúng tôi.",
     education: [
-      'MD, University of California, San Francisco',
-      'Residency in Preventive Medicine, Emory University',
-      'MPH, Emory Rollins School of Public Health'
+      'Bác sĩ Y khoa, Đại học California, San Francisco',
+      'Nội trú về Y học Dự phòng, Đại học Emory',
+      'Thạc sĩ Y tế Công cộng, Trường Y tế Công cộng Rollins, Emory'
     ],
     certifications: [
-      'Board Certified in Preventive Medicine',
-      'American Academy of HIV Medicine PrEP Provider',
-      'Certified in Public Health'
+      'Chứng nhận về Y học Dự phòng',
+      'Nhà Cung cấp PrEP của Học viện Y học HIV Hoa Kỳ',
+      'Chứng nhận về Y tế Công cộng'
     ]
   },
   {
     id: 8,
-    name: 'Dr. David Thompson',
-    specialty: 'Case Management Director',
+    name: 'Bác Sĩ David Thompson',
+    specialty: 'Giám đốc Quản lý Trường hợp',
     image: '/images/doctors/doctor8.jpg',
-    shortBio: 'Social work professional leading comprehensive support services coordination.',
-    fullBio: "Dr. David Thompson is our Case Management Director, leading our comprehensive support services. He holds a PhD in Social Work from Columbia University with specialized training in healthcare coordination and HIV support services.\n\nDr. Thompson oversees our team of case managers who help patients navigate healthcare systems, access resources, and coordinate care. His approach emphasizes patient empowerment and addressing social determinants of health to improve treatment outcomes.",
+    shortBio: 'Chuyên gia công tác xã hội dẫn dắt điều phối dịch vụ hỗ trợ toàn diện.',
+    fullBio: "Bác Sĩ David Thompson là Giám đốc Quản lý Trường hợp của chúng tôi, dẫn dắt các dịch vụ hỗ trợ toàn diện của chúng tôi. Ông có bằng Tiến sĩ Công tác Xã hội từ Đại học Columbia với đào tạo chuyên biệt về điều phối chăm sóc sức khỏe và dịch vụ hỗ trợ HIV.\n\nBác Sĩ Thompson giám sát đội ngũ nhân viên quản lý trường hợp của chúng tôi, những người giúp bệnh nhân điều hướng hệ thống chăm sóc sức khỏe, tiếp cận nguồn lực và điều phối chăm sóc. Cách tiếp cận của ông nhấn mạnh vào trao quyền cho bệnh nhân và giải quyết các yếu tố xã hội quyết định sức khỏe để cải thiện kết quả điều trị.",
     education: [
-      'PhD in Social Work, Columbia University',
-      'MSW, University of Michigan',
-      'Certificate in Healthcare Management, Johns Hopkins University'
+      'Tiến sĩ Công tác Xã hội, Đại học Columbia',
+      'Thạc sĩ Công tác Xã hội, Đại học Michigan',
+      'Chứng chỉ về Quản lý Y tế, Đại học Johns Hopkins'
     ],
     certifications: [
-      'Licensed Clinical Social Worker',
-      'Certified Case Manager',
-      'HIV Care Coordination Specialist'
+      'Nhân viên Công tác Xã hội Lâm sàng có Giấy phép',
+      'Nhân viên Quản lý Trường hợp được Chứng nhận',
+      'Chuyên gia Điều phối Chăm sóc HIV'
     ]
   }
 ];
@@ -238,99 +238,99 @@ export const doctors = [
 export const news = [
   {
     id: 1,
-    title: 'New Long-Acting HIV Treatment Approved by FDA',
+    title: 'Điều Trị HIV Tác Động Dài Mới Được FDA Phê Duyệt',
     slug: 'new-long-acting-hiv-treatment',
     image: '/images/news/news1.jpg',
     date: {
       day: '15',
-      month: 'May',
+      month: 'Th5',
       year: '2023',
-      full: 'May 15, 2023'
+      full: 'Ngày 15 tháng 5, 2023'
     },
-    summary: 'The FDA has approved a new long-acting injectable HIV treatment that only requires dosing every two months.',
-    content: "In a significant advancement for HIV treatment, the FDA has approved a new long-acting injectable medication that only requires dosing once every two months. This breakthrough offers an alternative to daily oral medications that have been the standard of care for decades.\n\nThe new treatment, which combines two antiretroviral medications in a single injection, demonstrated high efficacy in clinical trials with a safety profile comparable to daily oral regimens. For many patients, this could represent a transformative option that simplifies treatment and potentially improves adherence.\n\n\"This approval marks a paradigm shift in how we approach HIV treatment,\" says Dr. Sarah Johnson, our Infectious Disease Specialist. \"For patients who struggle with daily pills or simply prefer a different option, this long-acting treatment could significantly improve quality of life while maintaining viral suppression.\"\n\nOur center will begin offering this treatment option to eligible patients starting next month. Interested individuals should schedule a consultation with their HIV care provider to discuss whether this new option is appropriate for their care plan.",
-    author: 'Medical Team',
-    category: 'Treatment Updates'
+    summary: 'FDA đã phê duyệt phương pháp điều trị HIV dạng tiêm tác động dài mới chỉ yêu cầu dùng thuốc hai tháng một lần.',
+    content: "Trong một bước tiến quan trọng cho việc điều trị HIV, FDA đã phê duyệt một loại thuốc tiêm tác động dài mới chỉ yêu cầu dùng liều hai tháng một lần. Đột phá này cung cấp một lựa chọn thay thế cho các loại thuốc uống hàng ngày vốn là tiêu chuẩn chăm sóc trong nhiều thập kỷ.\n\nPhương pháp điều trị mới, kết hợp hai loại thuốc kháng retrovirus trong một mũi tiêm, đã thể hiện hiệu quả cao trong các thử nghiệm lâm sàng với hồ sơ an toàn tương đương với các phác đồ uống hàng ngày. Đối với nhiều bệnh nhân, đây có thể là một lựa chọn đột phá giúp đơn giản hóa việc điều trị và có khả năng cải thiện sự tuân thủ.\n\n\"Sự phê duyệt này đánh dấu một sự thay đổi mô hình trong cách chúng ta tiếp cận điều trị HIV,\" Bác Sĩ Sarah Johnson, Chuyên Gia Bệnh Truyền Nhiễm của chúng tôi nói. \"Đối với những bệnh nhân gặp khó khăn với việc uống thuốc hàng ngày hoặc đơn giản là thích một lựa chọn khác, phương pháp điều trị tác động dài này có thể cải thiện đáng kể chất lượng cuộc sống trong khi vẫn duy trì sự ức chế virus.\"\n\nTrung tâm của chúng tôi sẽ bắt đầu cung cấp lựa chọn điều trị này cho các bệnh nhân đủ điều kiện bắt đầu từ tháng tới. Những cá nhân quan tâm nên lên lịch tư vấn với nhà cung cấp dịch vụ chăm sóc HIV của họ để thảo luận xem liệu lựa chọn mới này có phù hợp với kế hoạch chăm sóc của họ hay không.",
+    author: 'Đội ngũ Y tế',
+    category: 'Cập nhật Điều trị'
   },
   {
     id: 2,
-    title: 'HIV Prevention: PrEP Awareness Week Events Announced',
+    title: 'Phòng Ngừa HIV: Thông Báo Sự Kiện Tuần Lễ Nâng Cao Nhận Thức về PrEP',
     slug: 'prep-awareness-week-events',
     image: '/images/news/news2.jpg',
     date: {
       day: '03',
-      month: 'Jun',
+      month: 'Th6',
       year: '2023',
-      full: 'June 3, 2023'
+      full: 'Ngày 3 tháng 6, 2023'
     },
-    summary: 'Our center will host a series of educational events during National PrEP Awareness Week to promote HIV prevention.',
-    content: "In recognition of National PrEP Awareness Week, our HIV Treatment Center will host a series of educational events and free screening services focused on HIV prevention. Pre-Exposure Prophylaxis (PrEP) is a medication regimen that can prevent HIV infection in HIV-negative individuals who may be at risk.\n\nThe week-long program will include:\n\n• Free PrEP consultations with our prevention specialists\n• Virtual educational seminars on PrEP eligibility, efficacy, and access\n• HIV testing with same-day results\n• Insurance navigation assistance for PrEP coverage\n• Community forum discussing advances in HIV prevention\n\n\"PrEP is a powerful HIV prevention tool that remains underutilized,\" explains Dr. Emma Rodriguez, our PrEP & Prevention Specialist. \"Our goal is to increase awareness, address misconceptions, and help connect eligible individuals with this important prevention option.\"\n\nAll events are free and open to the public. Some services may require advance registration. Visit our PrEP Services page for the complete schedule and registration information.",
-    author: 'Prevention Team',
-    category: 'Events'
+    summary: 'Trung tâm của chúng tôi sẽ tổ chức một loạt các sự kiện giáo dục trong Tuần Lễ Nhận Thức PrEP Quốc gia để thúc đẩy phòng ngừa HIV.',
+    content: "Nhân dịp Tuần Lễ Nhận Thức PrEP Quốc gia, Trung tâm Điều trị HIV của chúng tôi sẽ tổ chức một loạt các sự kiện giáo dục và dịch vụ sàng lọc miễn phí tập trung vào phòng ngừa HIV. Dự phòng Trước Phơi nhiễm (PrEP) là một phác đồ thuốc có thể ngăn ngừa nhiễm HIV ở những người âm tính với HIV có thể có nguy cơ.\n\nChương trình kéo dài một tuần sẽ bao gồm:\n\n• Tư vấn PrEP miễn phí với các chuyên gia phòng ngừa của chúng tôi\n• Hội thảo giáo dục trực tuyến về tính đủ điều kiện, hiệu quả và tiếp cận PrEP\n• Xét nghiệm HIV với kết quả trong ngày\n• Hỗ trợ điều hướng bảo hiểm cho việc bao trả PrEP\n• Diễn đàn cộng đồng thảo luận về những tiến bộ trong phòng ngừa HIV\n\n\"PrEP là một công cụ phòng ngừa HIV mạnh mẽ nhưng vẫn chưa được sử dụng đúng mức,\" Bác Sĩ Emma Rodriguez, Chuyên gia PrEP & Phòng ngừa của chúng tôi giải thích. \"Mục tiêu của chúng tôi là tăng cường nhận thức, giải quyết các hiểu lầm và giúp kết nối những cá nhân đủ điều kiện với lựa chọn phòng ngừa quan trọng này.\"\n\nTất cả các sự kiện đều miễn phí và mở cho công chúng. Một số dịch vụ có thể yêu cầu đăng ký trước. Vui lòng truy cập trang Dịch vụ PrEP của chúng tôi để biết lịch trình đầy đủ và thông tin đăng ký.",
+    author: 'Đội ngũ Phòng ngừa',
+    category: 'Sự kiện'
   },
   {
     id: 3,
-    title: 'Research Study: Participants Needed for HIV Treatment Optimization Trial',
+    title: 'Nghiên Cứu: Cần Người Tham Gia cho Thử Nghiệm Tối Ưu Hóa Điều Trị HIV',
     slug: 'research-study-treatment-optimization',
     image: '/images/news/news3.jpg',
     date: {
       day: '22',
-      month: 'Apr',
+      month: 'Th4',
       year: '2023',
-      full: 'April 22, 2023'
+      full: 'Ngày 22 tháng 4, 2023'
     },
-    summary: 'Our research department is recruiting participants for a new study evaluating simplified treatment regimens.',
-    content: "The Research Department at our HIV Treatment Center is currently recruiting participants for a clinical trial investigating optimized antiretroviral therapy regimens. The study aims to evaluate the efficacy and safety of simplified treatment approaches that may reduce pill burden and potential long-term side effects.\n\nEligible participants include adults living with HIV who:\n• Have been on stable antiretroviral therapy for at least 12 months\n• Currently have undetectable viral loads\n• Have no history of treatment resistance\n• Meet additional health criteria\n\nStudy participation involves regular clinic visits over a 96-week period, with all study-related care and medications provided at no cost. Participants will also receive compensation for their time and travel expenses.\n\n\"This study represents an important step in our ongoing effort to improve HIV treatment,\" says Dr. Lisa Wong, our Research Director. \"By exploring simplified regimens, we hope to develop options that maintain excellent viral suppression while potentially improving quality of life and long-term health outcomes.\"\n\nInterested individuals can learn more by contacting our Research Department or speaking with their HIV care provider about a referral to the study team.",
-    author: 'Research Department',
-    category: 'Research'
+    summary: 'Bộ phận nghiên cứu của chúng tôi đang tuyển người tham gia cho một nghiên cứu mới đánh giá các phác đồ điều trị đơn giản hóa.',
+    content: "Bộ phận Nghiên cứu tại Trung tâm Điều trị HIV của chúng tôi hiện đang tuyển người tham gia cho một thử nghiệm lâm sàng điều tra các phác đồ liệu pháp kháng retrovirus được tối ưu hóa. Nghiên cứu nhằm đánh giá hiệu quả và độ an toàn của các phương pháp điều trị đơn giản hóa có thể giảm gánh nặng thuốc và tác dụng phụ tiềm ẩn lâu dài.\n\nNgười tham gia đủ điều kiện bao gồm người lớn sống chung với HIV:\n• Đã sử dụng liệu pháp kháng retrovirus ổn định trong ít nhất 12 tháng\n• Hiện có tải lượng virus không phát hiện được\n• Không có tiền sử kháng thuốc\n• Đáp ứng các tiêu chí sức khỏe bổ sung\n\nViệc tham gia nghiên cứu bao gồm các lần thăm khám định kỳ trong khoảng thời gian 96 tuần, với tất cả dịch vụ chăm sóc và thuốc liên quan đến nghiên cứu được cung cấp miễn phí. Người tham gia cũng sẽ nhận được bồi thường cho thời gian và chi phí đi lại của họ.\n\n\"Nghiên cứu này đại diện cho một bước quan trọng trong nỗ lực liên tục của chúng tôi nhằm cải thiện điều trị HIV,\" Bác Sĩ Lisa Wong, Giám đốc Nghiên cứu của chúng tôi nói. \"Bằng cách khám phá các phác đồ đơn giản hóa, chúng tôi hy vọng sẽ phát triển các lựa chọn duy trì sự ức chế virus tuyệt vời đồng thời có khả năng cải thiện chất lượng cuộc sống và kết quả sức khỏe lâu dài.\"\n\nNhững cá nhân quan tâm có thể tìm hiểu thêm bằng cách liên hệ với Bộ phận Nghiên cứu của chúng tôi hoặc nói chuyện với nhà cung cấp dịch vụ chăm sóc HIV của họ về việc giới thiệu đến đội nghiên cứu.",
+    author: 'Bộ phận Nghiên cứu',
+    category: 'Nghiên cứu'
   },
   {
     id: 4,
-    title: 'Mental Health and HIV: New Support Group Launching',
+    title: 'Sức Khỏe Tâm Thần và HIV: Ra Mắt Nhóm Hỗ Trợ Mới',
     slug: 'mental-health-support-group',
     image: '/images/news/news4.jpg',
     date: {
       day: '10',
-      month: 'Mar',
+      month: 'Th3',
       year: '2023',
-      full: 'March 10, 2023'
+      full: 'Ngày 10 tháng 3, 2023'
     },
-    summary: 'A new specialized support group addressing mental health challenges specific to living with HIV begins next month.',
-    content: "Our center is launching a new support group focused specifically on mental health for individuals living with HIV. The group, facilitated by Dr. Robert Garcia, our HIV Mental Health Psychiatrist, will address the unique psychological challenges that can accompany an HIV diagnosis and ongoing treatment.\n\nThe support group will meet weekly and cover topics including:\n• Managing anxiety and depression\n• Coping strategies for HIV-related stress\n• Dealing with stigma and disclosure concerns\n• Building resilience and self-care practices\n• Mindfulness and stress reduction techniques\n\n\"Mental health is a crucial component of overall wellbeing for people living with HIV,\" explains Dr. Garcia. \"This group will provide both professional guidance and peer support in a safe, confidential environment where participants can share experiences and develop coping skills.\"\n\nThe group is open to all patients of our center at no additional cost. Sessions will be held both in-person and via secure video connection to maximize accessibility. Interested individuals should contact our Mental Health Services department for more information or to register.",
-    author: 'Mental Health Team',
-    category: 'Support Services'
+    summary: 'Một nhóm hỗ trợ chuyên biệt mới giải quyết các thách thức sức khỏe tâm thần cụ thể khi sống chung với HIV bắt đầu vào tháng tới.',
+    content: "Trung tâm của chúng tôi đang ra mắt một nhóm hỗ trợ mới tập trung cụ thể vào sức khỏe tâm thần cho những cá nhân sống chung với HIV. Nhóm này, được hướng dẫn bởi Bác Sĩ Robert Garcia, Bác Sĩ Tâm thần Sức khỏe Tâm thần HIV của chúng tôi, sẽ giải quyết những thách thức tâm lý độc đáo có thể đi kèm với chẩn đoán HIV và điều trị liên tục.\n\nNhóm hỗ trợ sẽ gặp nhau hàng tuần và đề cập đến các chủ đề bao gồm:\n• Quản lý lo âu và trầm cảm\n• Chiến lược đối phó với căng thẳng liên quan đến HIV\n• Đối phó với kỳ thị và lo ngại về việc tiết lộ\n• Xây dựng khả năng phục hồi và thực hành tự chăm sóc\n• Kỹ thuật chánh niệm và giảm căng thẳng\n\n\"Sức khỏe tâm thần là một thành phần quan trọng của sức khỏe tổng thể cho người sống chung với HIV,\" Bác Sĩ Garcia giải thích. \"Nhóm này sẽ cung cấp cả hướng dẫn chuyên môn và hỗ trợ đồng đẳng trong một môi trường an toàn, bảo mật nơi người tham gia có thể chia sẻ kinh nghiệm và phát triển kỹ năng đối phó.\"\n\nNhóm này mở cửa cho tất cả bệnh nhân của trung tâm chúng tôi mà không tính thêm chi phí. Các buổi họp sẽ được tổ chức cả trực tiếp và qua kết nối video bảo mật để tối đa hóa khả năng tiếp cận. Những cá nhân quan tâm nên liên hệ với bộ phận Dịch vụ Sức khỏe Tâm thần của chúng tôi để biết thêm thông tin hoặc đăng ký.",
+    author: 'Đội ngũ Sức khỏe Tâm thần',
+    category: 'Dịch vụ Hỗ trợ'
   },
   {
     id: 5,
-    title: 'Nutrition Workshop Series: Managing Side Effects Through Diet',
+    title: 'Loạt Hội Thảo Dinh Dưỡng: Quản Lý Tác Dụng Phụ Thông Qua Chế Độ Ăn',
     slug: 'nutrition-workshop-side-effects',
     image: '/images/news/news5.jpg',
     date: {
       day: '18',
-      month: 'Feb',
+      month: 'Th2',
       year: '2023',
-      full: 'February 18, 2023'
+      full: 'Ngày 18 tháng 2, 2023'
     },
-    summary: 'Upcoming workshop series will focus on dietary strategies to manage treatment side effects and improve overall health.',
-    content: "Our HIV Treatment Center is offering a new series of nutrition workshops focused on managing medication side effects and optimizing health through dietary approaches. Led by Dr. James Wilson, our HIV Metabolic Care Nutritionist, the four-part series will provide practical strategies and personalized guidance.\n\nWorkshop topics include:\n• Dietary approaches to manage gastrointestinal side effects\n• Nutrition strategies for metabolic changes and lipid management\n• Meal planning for energy optimization and weight maintenance\n• Supplement guidance and nutrient-medication interactions\n\n\"Nutrition plays a vital role in HIV care, both in supporting immune function and in managing treatment side effects,\" says Dr. Wilson. \"These workshops will offer evidence-based, practical approaches that patients can implement in their daily lives.\"\n\nEach workshop includes a demonstration component with recipes and sample meal plans. Participants can attend individual sessions or the complete series. Registration is required, and a sliding scale fee is available to ensure accessibility for all patients.",
-    author: 'Nutrition Services',
-    category: 'Wellness'
+    summary: 'Loạt hội thảo sắp tới sẽ tập trung vào các chiến lược dinh dưỡng để quản lý tác dụng phụ của điều trị và cải thiện sức khỏe tổng thể.',
+    content: "Trung tâm Điều trị HIV của chúng tôi đang cung cấp một loạt hội thảo dinh dưỡng mới tập trung vào quản lý tác dụng phụ của thuốc và tối ưu hóa sức khỏe thông qua các phương pháp tiếp cận dinh dưỡng. Được dẫn dắt bởi Bác Sĩ James Wilson, Chuyên gia Dinh dưỡng Chăm sóc Chuyển hóa HIV của chúng tôi, loạt bốn phần này sẽ cung cấp chiến lược thực tế và hướng dẫn cá nhân hóa.\n\nChủ đề hội thảo bao gồm:\n• Phương pháp tiếp cận dinh dưỡng để quản lý tác dụng phụ về tiêu hóa\n• Chiến lược dinh dưỡng cho các thay đổi chuyển hóa và quản lý lipid\n• Lập kế hoạch bữa ăn để tối ưu hóa năng lượng và duy trì cân nặng\n• Hướng dẫn về thực phẩm bổ sung và tương tác giữa dinh dưỡng-thuốc\n\n\"Dinh dưỡng đóng vai trò quan trọng trong chăm sóc HIV, cả trong việc hỗ trợ chức năng miễn dịch và trong quản lý tác dụng phụ của điều trị,\" Bác Sĩ Wilson nói. \"Các hội thảo này sẽ cung cấp phương pháp tiếp cận thực tế, dựa trên bằng chứng mà bệnh nhân có thể áp dụng trong cuộc sống hàng ngày của họ.\"\n\nMỗi hội thảo bao gồm một phần trình diễn với công thức nấu ăn và kế hoạch bữa ăn mẫu. Người tham gia có thể tham dự các buổi riêng lẻ hoặc toàn bộ loạt hội thảo. Đăng ký là bắt buộc, và phí theo thang trượt được áp dụng để đảm bảo khả năng tiếp cận cho tất cả bệnh nhân.",
+    author: 'Dịch vụ Dinh dưỡng',
+    category: 'Sức khỏe'
   },
   {
     id: 6,
-    title: 'HIV and Aging: Specialized Care Program Expansion',
+    title: 'HIV và Lão hóa: Mở Rộng Chương Trình Chăm Sóc Chuyên Biệt',
     slug: 'hiv-aging-program-expansion',
     image: '/images/news/news6.jpg',
     date: {
       day: '05',
-      month: 'Jan',
+      month: 'Th1',
       year: '2023',
-      full: 'January 5, 2023'
+      full: 'Ngày 5 tháng 1, 2023'
     },
-    summary: 'Our center expands services specifically designed for the growing population of older adults living with HIV.',
-    content: "Recognizing the unique health needs of the growing population of older adults living with HIV, our center has expanded its specialized HIV and Aging program. The enhanced program integrates HIV care with geriatric medicine approaches to address the complex healthcare needs of this population.\n\nThe expanded services include:\n• Comprehensive geriatric assessments for HIV patients over 50\n• Management of HIV alongside age-related conditions\n• Medication reviews to minimize drug interactions and side effects\n• Cognitive health monitoring and support\n• Specialized support groups for long-term survivors\n\n\"As antiretroviral therapy has transformed HIV into a manageable chronic condition, we're seeing more patients living into their 60s, 70s, and beyond,\" explains Dr. Amara Okafor, who leads the HIV and Aging initiative. \"These individuals face unique challenges, including accelerated aging processes and managing HIV alongside other age-related conditions.\"\n\nThe program's multidisciplinary team includes infectious disease specialists, geriatricians, pharmacists, and social workers who collaborate to provide coordinated care. Patients interested in the HIV and Aging program should speak with their primary HIV provider for a referral.",
-    author: 'Clinical Care Team',
-    category: 'Patient Care'
+    summary: 'Trung tâm của chúng tôi mở rộng dịch vụ được thiết kế đặc biệt cho nhóm dân số ngày càng tăng của người lớn tuổi sống chung với HIV.',
+    content: "Nhận thức được nhu cầu sức khỏe độc đáo của nhóm dân số ngày càng tăng của người lớn tuổi sống chung với HIV, trung tâm của chúng tôi đã mở rộng chương trình HIV và Lão hóa chuyên biệt. Chương trình được nâng cấp kết hợp chăm sóc HIV với phương pháp y học lão khoa để giải quyết nhu cầu chăm sóc sức khỏe phức tạp của nhóm dân số này.\n\nCác dịch vụ mở rộng bao gồm:\n• Đánh giá lão khoa toàn diện cho bệnh nhân HIV trên 50 tuổi\n• Quản lý HIV cùng với các bệnh liên quan đến tuổi tác\n• Đánh giá thuốc để giảm thiểu tương tác thuốc và tác dụng phụ\n• Theo dõi và hỗ trợ sức khỏe nhận thức\n• Nhóm hỗ trợ chuyên biệt cho những người sống sót lâu dài\n\n\"Khi liệu pháp kháng retrovirus đã biến HIV thành một bệnh mãn tính có thể quản lý được, chúng tôi đang thấy nhiều bệnh nhân sống đến tuổi 60, 70 và hơn nữa,\" Bác Sĩ Amara Okafor, người dẫn dắt sáng kiến HIV và Lão hóa giải thích. \"Những cá nhân này đối mặt với những thách thức độc đáo, bao gồm quá trình lão hóa nhanh chóng và quản lý HIV cùng với các bệnh liên quan đến tuổi tác khác.\"\n\nĐội ngũ đa ngành của chương trình bao gồm các chuyên gia về bệnh truyền nhiễm, bác sĩ lão khoa, dược sĩ và nhân viên công tác xã hội cùng hợp tác để cung cấp dịch vụ chăm sóc phối hợp. Bệnh nhân quan tâm đến chương trình HIV và Lão hóa nên nói chuyện với nhà cung cấp dịch vụ HIV chính của họ để được giới thiệu.",
+    author: 'Đội ngũ Chăm sóc Lâm sàng',
+    category: 'Chăm sóc Bệnh nhân'
   }
 ];
 
@@ -338,37 +338,37 @@ export const news = [
 export const testimonials = [
   {
     id: 1,
-    name: 'Marcus T.',
+    name: 'Anh Marcus T.',
     image: '/images/testimonials/testimonial1.jpg',
-    quote: "The care I've received at this center has been transformative. From my first visit, the team has treated me with compassion and respect, developing a treatment plan that works for my specific needs.",
+    quote: "Sự chăm sóc tôi nhận được tại trung tâm này đã mang tính chuyển đổi. Từ lần thăm khám đầu tiên, đội ngũ đã đối xử với tôi bằng lòng trắc ẩn và sự tôn trọng, phát triển kế hoạch điều trị phù hợp với nhu cầu cụ thể của tôi.",
     rating: 5
   },
   {
     id: 2,
-    name: 'Jennifer L.',
+    name: 'Chị Jennifer L.',
     image: '/images/testimonials/testimonial2.jpg',
-    quote: "Finding this HIV treatment center was life-changing. The comprehensive approach to care addresses not just my medical needs but my overall wellbeing. The support groups have connected me with a community I didn't know I needed.",
+    quote: "Tìm thấy trung tâm điều trị HIV này là một sự thay đổi cuộc đời. Cách tiếp cận chăm sóc toàn diện không chỉ giải quyết nhu cầu y tế mà còn cả sức khỏe tổng thể của tôi. Các nhóm hỗ trợ đã kết nối tôi với một cộng đồng mà tôi không biết mình cần đến.",
     rating: 5
   },
   {
     id: 3,
-    name: 'David H.',
+    name: 'Anh David H.',
     image: '/images/testimonials/testimonial3.jpg',
-    quote: "The prevention services team is knowledgeable and non-judgmental. They've helped me navigate PrEP options and regular testing in a way that fits my lifestyle and needs.",
+    quote: "Đội ngũ dịch vụ phòng ngừa có kiến thức và không phán xét. Họ đã giúp tôi điều hướng các lựa chọn PrEP và xét nghiệm thường xuyên theo cách phù hợp với lối sống và nhu cầu của tôi.",
     rating: 5
   },
   {
     id: 4,
-    name: 'Sophia R.',
+    name: 'Chị Sophia R.',
     image: '/images/testimonials/testimonial4.jpg',
-    quote: 'I appreciate the holistic approach to HIV care at this center. My treatment plan includes not just medications but nutrition guidance, mental health support, and wellness strategies.',
+    quote: 'Tôi đánh giá cao cách tiếp cận toàn diện về chăm sóc HIV tại trung tâm này. Kế hoạch điều trị của tôi bao gồm không chỉ thuốc men mà còn hướng dẫn dinh dưỡng, hỗ trợ sức khỏe tâm thần và các chiến lược sức khỏe.',
     rating: 5
   },
   {
     id: 5,
-    name: 'Michael J.',
+    name: 'Anh Michael J.',
     image: '/images/testimonials/testimonial5.jpg',
-    quote: "After living with HIV for over 20 years, I've experienced many healthcare settings. This center stands out for its combination of cutting-edge treatment options and genuinely compassionate care.",
+    quote: "Sau khi sống chung với HIV hơn 20 năm, tôi đã trải nghiệm nhiều môi trường chăm sóc sức khỏe. Trung tâm này nổi bật nhờ sự kết hợp giữa các lựa chọn điều trị tiên tiến và sự chăm sóc thực sự đầy trắc ẩn.",
     rating: 5
   }
 ];
@@ -377,38 +377,38 @@ export const testimonials = [
 export const faqs = [
   {
     id: 1,
-    question: 'What HIV testing options do you offer?',
-    answer: 'We offer a comprehensive range of HIV testing options including rapid antibody tests (results in 20-30 minutes), standard HIV antibody tests, RNA tests for early detection, and at-home testing kits. All testing is confidential, and our counselors provide pre and post-test guidance. Most insurance plans are accepted, and we also offer free testing options for those who qualify.'
+    question: 'Trung tâm cung cấp những lựa chọn xét nghiệm HIV nào?',
+    answer: 'Chúng tôi cung cấp nhiều loại xét nghiệm HIV bao gồm xét nghiệm kháng thể nhanh (kết quả trong 20-30 phút), xét nghiệm kháng thể HIV tiêu chuẩn, xét nghiệm RNA để phát hiện sớm và bộ xét nghiệm tại nhà. Tất cả các xét nghiệm đều bảo mật, và các tư vấn viên của chúng tôi cung cấp hướng dẫn trước và sau xét nghiệm. Hầu hết các kế hoạch bảo hiểm đều được chấp nhận, và chúng tôi cũng cung cấp các lựa chọn xét nghiệm miễn phí cho những người đủ điều kiện.'
   },
   {
     id: 2,
-    question: 'How soon after potential exposure should I get tested?',
-    answer: "The timing of HIV testing depends on the type of test used. Antibody tests can detect HIV 23-90 days after exposure. Antigen/antibody tests can detect HIV 18-45 days after exposure. Nucleic acid tests (NAT) can detect HIV about 10-33 days after exposure. If you've had a recent potential exposure, we recommend consulting with our healthcare providers who can advise on the most appropriate testing timeline and options for your situation."
+    question: 'Bao lâu sau khi có khả năng phơi nhiễm tôi nên đi xét nghiệm?',
+    answer: 'Thời điểm xét nghiệm HIV phụ thuộc vào loại xét nghiệm được sử dụng. Xét nghiệm kháng thể có thể phát hiện HIV 23-90 ngày sau khi phơi nhiễm. Xét nghiệm kháng nguyên/kháng thể có thể phát hiện HIV 18-45 ngày sau khi phơi nhiễm. Xét nghiệm axit nucleic (NAT) có thể phát hiện HIV khoảng 10-33 ngày sau khi phơi nhiễm. Nếu bạn đã có khả năng phơi nhiễm gần đây, chúng tôi khuyên bạn nên tham khảo ý kiến của nhà cung cấp dịch vụ chăm sóc sức khỏe, người có thể tư vấn về thời gian xét nghiệm thích hợp nhất và các lựa chọn cho tình huống của bạn.'
   },
   {
     id: 3,
-    question: 'What is PrEP and how effective is it?',
-    answer: 'PrEP (Pre-Exposure Prophylaxis) is a medication taken by HIV-negative individuals to prevent HIV infection. When taken as prescribed, PrEP reduces the risk of getting HIV from sex by about 99% and from injection drug use by at least 74%. Our center provides PrEP prescriptions, regular monitoring, and support services to ensure safe and effective use. We also help navigate insurance coverage and assistance programs to make PrEP affordable.'
+    question: 'PrEP là gì và nó hiệu quả như thế nào?',
+    answer: 'PrEP (Dự phòng Trước Phơi nhiễm) là một loại thuốc được sử dụng bởi những người âm tính với HIV để ngăn ngừa nhiễm HIV. Khi được sử dụng theo chỉ định, PrEP giảm nguy cơ nhiễm HIV qua đường tình dục khoảng 99% và qua đường tiêm chích ma túy ít nhất 74%. Trung tâm của chúng tôi cung cấp đơn thuốc PrEP, theo dõi thường xuyên và dịch vụ hỗ trợ để đảm bảo sử dụng an toàn và hiệu quả. Chúng tôi cũng giúp điều hướng bảo hiểm và các chương trình hỗ trợ để làm cho PrEP trở nên giá cả phải chăng.'
   },
   {
     id: 4,
-    question: 'What should I do if I\'ve been recently exposed to HIV?',
-    answer: "If you believe you've been exposed to HIV in the last 72 hours, come to our center immediately or go to an emergency room to ask about PEP (Post-Exposure Prophylaxis). PEP is emergency medication that can prevent HIV infection if started quickly after exposure. The sooner PEP is started, the more effective it is—ideally within 24 hours, but it can be started up to 72 hours after exposure. Our center provides PEP services with follow-up care and support."
+    question: 'Tôi nên làm gì nếu tôi vừa bị phơi nhiễm HIV gần đây?',
+    answer: 'Nếu bạn tin rằng bạn đã bị phơi nhiễm HIV trong 72 giờ qua, hãy đến trung tâm của chúng tôi ngay lập tức hoặc đến phòng cấp cứu để hỏi về PEP (Dự phòng Sau Phơi nhiễm). PEP là thuốc khẩn cấp có thể ngăn ngừa nhiễm HIV nếu được bắt đầu nhanh chóng sau khi phơi nhiễm. PEP càng bắt đầu sớm càng hiệu quả—lý tưởng nhất là trong vòng 24 giờ, nhưng có thể bắt đầu trong vòng tối đa 72 giờ sau khi phơi nhiễm. Trung tâm của chúng tôi cung cấp dịch vụ PEP với chăm sóc theo dõi và hỗ trợ.'
   },
   {
     id: 5,
-    question: 'How often do I need to see my doctor for HIV care?',
-    answer: 'The frequency of HIV care visits depends on your individual health status, treatment plan, and how recently you were diagnosed. Typically, new patients or those starting treatment may have visits every 1-3 months. Once stable on treatment with an undetectable viral load, visits may be scheduled every 3-6 months. Each visit includes monitoring of your viral load, CD4 count, overall health, and medication effectiveness. Our care team will develop a follow-up schedule tailored to your specific needs.'
+    question: 'Tôi cần gặp bác sĩ thường xuyên như thế nào cho dịch vụ chăm sóc HIV?',
+    answer: 'Tần suất thăm khám chăm sóc HIV phụ thuộc vào tình trạng sức khỏe cá nhân, kế hoạch điều trị và thời gian bạn được chẩn đoán. Thông thường, bệnh nhân mới hoặc những người bắt đầu điều trị có thể có các lần thăm khám cách 1-3 tháng. Khi đã ổn định với việc điều trị và có tải lượng virus không phát hiện được, các lần thăm khám có thể được lên lịch cách 3-6 tháng. Mỗi lần thăm khám bao gồm theo dõi tải lượng virus, số lượng CD4, sức khỏe tổng thể và hiệu quả của thuốc. Đội ngũ chăm sóc của chúng tôi sẽ phát triển lịch theo dõi được điều chỉnh theo nhu cầu cụ thể của bạn.'
   },
   {
     id: 6,
-    question: 'What support services do you offer beyond medical care?',
-    answer: 'We offer a comprehensive range of support services including: case management to help with healthcare coordination and access to resources; mental health services including individual therapy and support groups; nutrition counseling; medication adherence support; insurance navigation; substance use treatment referrals; housing and transportation assistance; dental care referrals; and legal services referrals. Our goal is to address all factors that impact your health and quality of life.'
+    question: 'Trung tâm cung cấp những dịch vụ hỗ trợ nào ngoài chăm sóc y tế?',
+    answer: 'Chúng tôi cung cấp nhiều dịch vụ hỗ trợ toàn diện bao gồm: quản lý trường hợp để giúp điều phối chăm sóc sức khỏe và tiếp cận nguồn lực; dịch vụ sức khỏe tâm thần bao gồm trị liệu cá nhân và nhóm hỗ trợ; tư vấn dinh dưỡng; hỗ trợ tuân thủ dùng thuốc; hướng dẫn bảo hiểm; giới thiệu điều trị sử dụng chất gây nghiện; hỗ trợ nhà ở và vận chuyển; giới thiệu chăm sóc nha khoa; và giới thiệu dịch vụ pháp lý. Mục tiêu của chúng tôi là giải quyết tất cả các yếu tố ảnh hưởng đến sức khỏe và chất lượng cuộc sống của bạn.'
   },
   {
     id: 7,
-    question: 'How do I enroll as a new patient at your center?',
-    answer: "To become a new patient, you can start by calling our intake line or filling out the new patient form on our website. We'll schedule an initial appointment where you'll meet with a case manager and a healthcare provider. Please bring your identification, insurance information, and any medical records or medication lists if available. During this first visit, we'll collect your medical history, perform baseline laboratory tests, and begin developing your personalized care plan. We welcome all patients regardless of insurance status or ability to pay."
+    question: 'Làm thế nào để đăng ký làm bệnh nhân mới tại trung tâm của các bạn?',
+    answer: 'Để trở thành bệnh nhân mới, bạn có thể bắt đầu bằng cách gọi đến đường dây tiếp nhận của chúng tôi hoặc điền vào mẫu bệnh nhân mới trên trang web của chúng tôi. Chúng tôi sẽ lên lịch hẹn ban đầu, nơi bạn sẽ gặp nhân viên quản lý trường hợp và nhà cung cấp dịch vụ chăm sóc sức khỏe. Vui lòng mang theo giấy tờ tùy thân, thông tin bảo hiểm và bất kỳ hồ sơ y tế hoặc danh sách thuốc nếu có. Trong lần thăm khám đầu tiên này, chúng tôi sẽ thu thập tiền sử y tế của bạn, thực hiện các xét nghiệm cơ bản và bắt đầu phát triển kế hoạch chăm sóc cá nhân hóa của bạn. Chúng tôi chào đón tất cả bệnh nhân bất kể tình trạng bảo hiểm hoặc khả năng chi trả.'
   }
 ];
 
@@ -416,62 +416,62 @@ export const faqs = [
 export const locations = [
   {
     id: 1,
-    name: 'Main Treatment Center',
+    name: 'Trung Tâm Điều Trị Chính',
     address: '123 Medical Center Drive, Suite 200, New York, NY 10001',
     phone: '(800) 123-4567',
     email: 'info@hivtreatmentcenter.org',
-    hours: 'Monday-Friday: 8:00 AM - 6:00 PM, Saturday: 9:00 AM - 1:00 PM',
+    hours: 'Thứ Hai-Thứ Sáu: 8:00 - 18:00, Thứ Bảy: 9:00 - 13:00',
     coordinates: {
       lat: 40.7128,
       lng: -74.0060
     },
     services: [
-      'HIV Testing & Screening',
-      'Antiretroviral Therapy',
-      'PrEP & Prevention',
-      'Counseling Services',
-      'Case Management',
-      'Nutrition & Wellness',
-      'Support Groups',
-      'Research Programs'
+      'Xét Nghiệm & Sàng Lọc HIV',
+      'Liệu Pháp Kháng Retrovirus',
+      'PrEP & Phòng Ngừa',
+      'Dịch Vụ Tư Vấn',
+      'Quản Lý Trường Hợp',
+      'Dinh Dưỡng & Sức Khỏe',
+      'Nhóm Hỗ Trợ',
+      'Chương Trình Nghiên Cứu'
     ]
   },
   {
     id: 2,
-    name: 'Downtown Clinic',
+    name: 'Phòng Khám Trung Tâm',
     address: '456 Community Health Blvd, New York, NY 10002',
     phone: '(800) 123-4569',
     email: 'downtown@hivtreatmentcenter.org',
-    hours: 'Monday-Friday: 10:00 AM - 8:00 PM, Saturday: 10:00 AM - 2:00 PM',
+    hours: 'Thứ Hai-Thứ Sáu: 10:00 - 20:00, Thứ Bảy: 10:00 - 14:00',
     coordinates: {
       lat: 40.7112,
       lng: -73.9974
     },
     services: [
-      'HIV Testing & Screening',
-      'PrEP & Prevention',
-      'Antiretroviral Therapy',
-      'Walk-in Testing Services',
-      'Youth-Focused Programs'
+      'Xét Nghiệm & Sàng Lọc HIV',
+      'PrEP & Phòng Ngừa',
+      'Liệu Pháp Kháng Retrovirus',
+      'Dịch Vụ Xét Nghiệm Không Hẹn Trước',
+      'Chương Trình Tập Trung Cho Thanh Niên'
     ]
   },
   {
     id: 3,
-    name: 'Research & Education Center',
+    name: 'Trung Tâm Nghiên Cứu & Giáo Dục',
     address: '789 Innovation Way, Suite 300, New York, NY 10003',
     phone: '(800) 123-4570',
     email: 'research@hivtreatmentcenter.org',
-    hours: 'Monday-Friday: 9:00 AM - 5:00 PM',
+    hours: 'Thứ Hai-Thứ Sáu: 9:00 - 17:00',
     coordinates: {
       lat: 40.7281,
       lng: -73.9942
     },
     services: [
-      'Clinical Trials',
-      'Research Programs',
-      'Educational Workshops',
-      'Professional Training',
-      'Community Outreach'
+      'Thử Nghiệm Lâm Sàng',
+      'Chương Trình Nghiên Cứu',
+      'Hội Thảo Giáo Dục',
+      'Đào Tạo Chuyên Môn',
+      'Tiếp Cận Cộng Đồng'
     ]
   }
 ]; 
