@@ -91,11 +91,11 @@ export const services = [
 export const doctors = [
   {
     id: 1,
-    name: 'Bác Sĩ Sarah Johnson',
-    specialty: 'Chuyên Gia Bệnh Truyền Nhiễm',
+    name: 'Bác Sĩ NGUYỄN VĂN AN',
+    specialty: 'Giám đốc Trung tâm Tim mạch',
     image: '/images/doctors/doctor1.jpg',
     shortBio: 'Chuyên gia có chứng nhận với hơn 15 năm kinh nghiệm điều trị HIV.',
-    fullBio: "Bác Sĩ Sarah Johnson là Chuyên Gia Bệnh Truyền Nhiễm có chứng nhận với hơn 15 năm kinh nghiệm trong y học HIV. Bà tốt nghiệp y khoa tại Đại học Johns Hopkins, sau đó hoàn thành chương trình nội trú về Y khoa Nội khoa và học bổng về Bệnh Truyền Nhiễm tại UCSF.\n\nBác Sĩ Johnson đã xuất bản nhiều công trình về tối ưu hóa liệu pháp kháng retrovirus và được công nhận về phương pháp chăm sóc lấy bệnh nhân làm trung tâm. Bà đảm nhiệm vị trí Giám đốc Chương trình Liệu pháp Kháng Retrovirus và tích cực tham gia vào nghiên cứu lâm sàng.",
+    fullBio: "Bác Sĩ  NGUYỄN VĂN AN là Chuyên Gia Bệnh Truyền Nhiễm có chứng nhận với hơn 15 năm kinh nghiệm trong y học HIV. Bà tốt nghiệp y khoa tại Đại học Johns Hopkins, sau đó hoàn thành chương trình nội trú về Y khoa Nội khoa và học bổng về Bệnh Truyền Nhiễm tại UCSF.\n\nBác Sĩ Johnson đã xuất bản nhiều công trình về tối ưu hóa liệu pháp kháng retrovirus và được công nhận về phương pháp chăm sóc lấy bệnh nhân làm trung tâm. Bà đảm nhiệm vị trí Giám đốc Chương trình Liệu pháp Kháng Retrovirus và tích cực tham gia vào nghiên cứu lâm sàng.",
     education: [
       'Bác sĩ Y khoa, Trường Y Johns Hopkins University',
       'Nội trú về Y khoa Nội khoa, UCSF',
@@ -109,11 +109,11 @@ export const doctors = [
   },
   {
     id: 2,
-    name: 'Bác Sĩ Michael Chen',
+    name: 'Bác Sĩ TRẦN THỊ MINH',
     specialty: 'Dược sĩ Lâm sàng HIV',
     image: '/images/doctors/doctor2.jpg',
     shortBio: 'Dược sĩ chuyên khoa tập trung vào quản lý thuốc và hỗ trợ tuân thủ.',
-    fullBio: "Bác Sĩ Michael Chen là Dược sĩ Lâm sàng HIV của chúng tôi với đào tạo chuyên biệt về quản lý thuốc kháng retrovirus. Ông có bằng Tiến sĩ Dược từ Đại học Michigan và hoàn thành chương trình nội trú chuyên khoa về Dược lý HIV tại Bệnh viện Northwestern Memorial.\n\nBác Sĩ Chen làm việc chặt chẽ với đội ngũ y tế của chúng tôi để tối ưu hóa phác đồ thuốc, quản lý tương tác thuốc và phát triển chiến lược tuân thủ. Ông cũng dẫn dắt các chương trình giáo dục về thuốc và nhóm hỗ trợ cho bệnh nhân bắt đầu điều trị mới.",
+    fullBio: "Bác Sĩ TRẦN THỊ MINH là Dược sĩ Lâm sàng HIV của chúng tôi với đào tạo chuyên biệt về quản lý thuốc kháng retrovirus. Ông có bằng Tiến sĩ Dược từ Đại học Michigan và hoàn thành chương trình nội trú chuyên khoa về Dược lý HIV tại Bệnh viện Northwestern Memorial.\n\nBác Sĩ Chen làm việc chặt chẽ với đội ngũ y tế của chúng tôi để tối ưu hóa phác đồ thuốc, quản lý tương tác thuốc và phát triển chiến lược tuân thủ. Ông cũng dẫn dắt các chương trình giáo dục về thuốc và nhóm hỗ trợ cho bệnh nhân bắt đầu điều trị mới.",
     education: [
       'Tiến sĩ Dược, Trường Đại học Dược Michigan',
       'Nội trú về Dược lý HIV, Bệnh viện Northwestern Memorial'
@@ -126,8 +126,8 @@ export const doctors = [
   },
   {
     id: 3,
-    name: 'Bác Sĩ Amara Okafor',
-    specialty: 'Bác Sĩ Chăm Sóc Chính HIV',
+    name: 'Bác sĩ LÊ VĂN PHÚC',
+    specialty: 'Bác sĩ Chăm sóc chính HIV',
     image: '/images/doctors/doctor3.jpg',
     shortBio: 'Chăm sóc chính toàn diện với chuyên môn về HIV và sức khỏe phòng ngừa.',
     fullBio: "Bác Sĩ Amara Okafor là Bác Sĩ Chăm Sóc Chính HIV của chúng tôi, cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho bệnh nhân sống chung với HIV. Bà nhận bằng y khoa từ Trường Y Howard University và hoàn thành chương trình nội trú về Y học Gia đình tại Đại học Emory.\n\nBác Sĩ Okafor chuyên về quản lý nhu cầu chăm sóc sức khỏe chính của người sống chung với HIV, bao gồm chăm sóc phòng ngừa, quản lý bệnh mãn tính và duy trì sức khỏe. Bà nổi tiếng về cách tiếp cận toàn diện đối với chăm sóc bệnh nhân và nhấn mạnh mạnh mẽ vào việc giáo dục bệnh nhân.",
@@ -144,11 +144,11 @@ export const doctors = [
   },
   {
     id: 4,
-    name: 'Bác Sĩ Robert Garcia',
+    name: 'Bác Sĩ NGUYỄN THỊ HÀ',
     specialty: 'Bác Sĩ Tâm thần, Sức khỏe Tâm thần HIV',
     image: '/images/doctors/doctor4.jpg',
     shortBio: 'Chuyên gia sức khỏe tâm thần với chuyên môn về các thách thức tâm lý liên quan đến HIV.',
-    fullBio: "Bác Sĩ Robert Garcia là Bác Sĩ Tâm thần Sức khỏe Tâm thần HIV của chúng tôi với chuyên môn đặc biệt về các khía cạnh tâm lý của việc sống chung với HIV. Ông nhận bằng y khoa từ Trường Y Stanford University và hoàn thành chương trình nội trú tâm thần tại UCLA.\n\nBác Sĩ Garcia chuyên điều trị trầm cảm, lo âu, sang chấn và các rối loạn thích ứng trong bối cảnh chẩn đoán và điều trị HIV. Ông kết hợp quản lý thuốc với các phương pháp tâm lý trị liệu để cung cấp dịch vụ chăm sóc sức khỏe tâm thần toàn diện.",
+    fullBio: "Bác Sĩ NGUYỄN THỊ HÀ là Bác Sĩ Tâm thần Sức khỏe Tâm thần HIV của chúng tôi với chuyên môn đặc biệt về các khía cạnh tâm lý của việc sống chung với HIV. Ông nhận bằng y khoa từ Trường Y Stanford University và hoàn thành chương trình nội trú tâm thần tại UCLA.\n\nBác Sĩ Garcia chuyên điều trị trầm cảm, lo âu, sang chấn và các rối loạn thích ứng trong bối cảnh chẩn đoán và điều trị HIV. Ông kết hợp quản lý thuốc với các phương pháp tâm lý trị liệu để cung cấp dịch vụ chăm sóc sức khỏe tâm thần toàn diện.",
     education: [
       'Bác sĩ Y khoa, Trường Y Stanford University',
       'Nội trú Tâm thần, Trung tâm Y tế UCLA',

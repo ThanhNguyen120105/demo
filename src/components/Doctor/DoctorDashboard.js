@@ -298,7 +298,7 @@ const DoctorDashboard = () => {
               <Col lg={8}>
                 <Card className="chart-card">
                   <Card.Header>
-                    <h5>Patient Visits (Monthly)</h5>
+                    <h5> Thống Kê Bệnh Nhân (Tháng)</h5>
                   </Card.Header>
                   <Card.Body>
                     <div className="chart-area">
@@ -378,34 +378,27 @@ const DoctorDashboard = () => {
               <Col lg={4}>
                 <Card className="chart-card">
                   <Card.Header>
-                    <h5>Patient Distribution</h5>
+                    <h5>Phân Phối Bệnh Nhân</h5>
                   </Card.Header>
                   <Card.Body>
                     <div className="chart-area">
                       {/* Placeholder for pie chart */}
                       <div className="pie-chart-placeholder">
                         <div className="pie-chart">
-                          <div className="pie-slice slice1"></div>
-                          <div className="pie-slice slice2"></div>
-                          <div className="pie-slice slice3"></div>
-                          <div className="pie-slice slice4"></div>
+                          {/* Pie chart now uses conic-gradient */}
                         </div>
                         <div className="pie-legend">
                           <div className="legend-item">
                             <span className="color-box" style={{ backgroundColor: '#4CAF50' }}></span>
-                            <span>New Patients (25%)</span>
+                            <span>Bệnh nhân mới (25%)</span>
+                          </div>
+                          <div className="legend-item">
+                            <span className="color-box" style={{ backgroundColor: '#FF9800' }}></span>
+                            <span>Chưa đăng ký (25%)</span>
                           </div>
                           <div className="legend-item">
                             <span className="color-box" style={{ backgroundColor: '#2196F3' }}></span>
-                            <span>Follow-ups (40%)</span>
-                          </div>
-                          <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#FFC107' }}></span>
-                            <span>Regular Checks (20%)</span>
-                          </div>
-                          <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#9C27B0' }}></span>
-                            <span>Emergency (15%)</span>
+                            <span>Đã đăng ký (50%)</span>
                           </div>
                         </div>
                       </div>

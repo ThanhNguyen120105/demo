@@ -316,15 +316,15 @@ const AppointmentHistory = () => {
   const getStatusBadge = (status) => {
     switch(status) {
       case 'Completed':
-        return <Badge bg="success" className="status-badge"><FontAwesomeIcon icon={faCheckCircle} className="status-icon" /> Completed</Badge>;
+        return <Badge bg="success" className="status-badge"><FontAwesomeIcon icon={faCheckCircle} className="status-icon" /> Hoàn thành</Badge>;
       case 'Accepted':
-        return <Badge bg="primary" className="status-badge"><FontAwesomeIcon icon={faCalendarCheck} className="status-icon" /> Accepted</Badge>;
+        return <Badge bg="primary" className="status-badge"><FontAwesomeIcon icon={faCalendarCheck} className="status-icon" /> Chấp nhận</Badge>;
       case 'Pending':
-        return <Badge bg="warning" text="dark" className="status-badge"><FontAwesomeIcon icon={faHourglass} className="status-icon" /> Pending</Badge>;
+        return <Badge bg="warning" text="dark" className="status-badge"><FontAwesomeIcon icon={faHourglass} className="status-icon" /> Chờ xác nhận</Badge>;
       case 'Denied':
-        return <Badge bg="danger" className="status-badge"><FontAwesomeIcon icon={faBan} className="status-icon" /> Denied</Badge>;
+        return <Badge bg="danger" className="status-badge"><FontAwesomeIcon icon={faBan} className="status-icon" /> Từ chối</Badge>;
       default:
-        return <Badge bg="secondary" className="status-badge">Unknown</Badge>;
+        return <Badge bg="secondary" className="status-badge">Chưa xác nhận</Badge>;
     }
   };
 
@@ -352,8 +352,8 @@ const AppointmentHistory = () => {
               <FontAwesomeIcon icon={faHistory} />
             </div>
             <div>
-              <h1 className="page-title">Appointment History</h1>
-              <p className="page-description">View and manage all your past and upcoming appointments</p>
+              <h1 className="page-title">Lịch sử đặt hẹn</h1>
+              <p className="page-description">Xem và quản lý tất cả các cuộc hẹn đã qua và sắp tới </p>
             </div>
           </div>
         </Container>
@@ -755,7 +755,7 @@ const AppointmentHistory = () => {
                             <h3>
                               {appointmentData.filter(a => a.status === 'Pending').length}
                             </h3>
-                            <p>Pending</p>
+                            <p>Chưa xác nhận</p>
                           </div>
                         </div>
                       </Col>
@@ -768,7 +768,7 @@ const AppointmentHistory = () => {
                             <h3>
                               {appointmentData.filter(a => a.status === 'Accepted').length}
                             </h3>
-                            <p>Accepted</p>
+                            <p>Xác nhận</p>
                           </div>
                         </div>
                       </Col>
@@ -781,7 +781,7 @@ const AppointmentHistory = () => {
                             <h3>
                               {appointmentData.filter(a => a.status === 'Completed').length}
                             </h3>
-                            <p>Completed</p>
+                            <p>Hoàn thành</p>
                           </div>
                         </div>
                       </Col>
@@ -794,7 +794,7 @@ const AppointmentHistory = () => {
                             <h3>
                               {appointmentData.filter(a => a.status === 'Denied').length}
                             </h3>
-                            <p>Denied</p>
+                            <p>Từ chối</p>
                           </div>
                         </div>
                       </Col>
@@ -806,7 +806,7 @@ const AppointmentHistory = () => {
                       <Col xs={12} md={6}>
                         <h5 className="mb-0 mt-2">
                           <FontAwesomeIcon icon={faFilter} className="me-2" />
-                          Filter by Status:
+                          Lọc theo trạng thái:
                         </h5>
                       </Col>
                       <Col xs={12} md={6}>
@@ -815,11 +815,11 @@ const AppointmentHistory = () => {
                           onChange={(e) => setFilter(e.target.value)}
                           className="status-filter"
                         >
-                          <option value="All">All Appointments</option>
-                          <option value="Pending">Pending</option>
-                          <option value="Accepted">Accepted</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Denied">Denied</option>
+                          <option value="All">Tất cả buổi hẹn</option>
+                          <option value="Pending">Chờ xác nhận</option>
+                          <option value="Accepted">Chấp nhận</option>
+                          <option value="Completed">Hoàn thành</option>
+                          <option value="Denied">Từ chối</option>
                         </Form.Select>
                       </Col>
                     </Row>
@@ -829,11 +829,11 @@ const AppointmentHistory = () => {
                     <Table hover className="custom-table">
                       <thead>
                         <tr>
-                          <th>Date & Time</th>
-                          <th>Doctor</th>
-                          <th>Reason</th>
-                          <th>Status</th>
-                          <th className="text-center">Actions</th>
+                          <th>Ngày & Giờ</th>
+                          <th>Bác sĩ</th>
+                          <th>Triệu Chứng</th>
+                          <th>Trạng Thái</th>
+                          <th className="text-center">Hành Động</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -871,7 +871,7 @@ const AppointmentHistory = () => {
                                 className="view-details-btn"
                                 onClick={() => handleViewDetails(appointment)}
                               >
-                                <FontAwesomeIcon icon={faEye} className="me-1" /> View Details
+                                <FontAwesomeIcon icon={faEye} className="me-1" /> Xem Chi Tiết
                               </Button>
                             </td>
                           </tr>
@@ -900,7 +900,7 @@ const AppointmentHistory = () => {
               <div className="sidebar-box upcoming-box">
                 <h4 className="sidebar-title">
                   <FontAwesomeIcon icon={faCalendarCheck} className="sidebar-icon" />
-                  Upcoming Appointments
+                  Lịch hẹn sắp tới
                 </h4>
                 {upcomingAppointments.length > 0 ? (
                   upcomingAppointments.map(appointment => (
@@ -933,7 +933,7 @@ const AppointmentHistory = () => {
                   ))
                 ) : (
                   <div className="no-upcoming">
-                    <p>No upcoming appointments</p>
+                    <p>Không có buổi hẹn nào</p>
                   </div>
                 )}
                 <Button variant="outline-primary" className="w-100 mt-3">
@@ -947,7 +947,7 @@ const AppointmentHistory = () => {
                   FAQ
                 </h4>
                 <div className="faq-item">
-                  <div className="faq-question">How do I reschedule an appointment?</div>
+                  <div className="faq-question">Làm thế nào tôi có thể lên lịch lại một buổi hẹn?</div>
                   <div className="faq-answer">
                     You can reschedule by clicking the "View Details" button and selecting "Reschedule" option.
                   </div>

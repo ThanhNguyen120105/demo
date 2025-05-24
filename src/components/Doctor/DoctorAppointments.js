@@ -471,13 +471,13 @@ const DoctorAppointments = () => {
                   <Card.Body className="p-0">
                     <div className="calendar">
                       <div className="calendar-header">
-                        <div className="weekday">Sun</div>
-                        <div className="weekday">Mon</div>
-                        <div className="weekday">Tue</div>
-                        <div className="weekday">Wed</div>
-                        <div className="weekday">Thu</div>
-                        <div className="weekday">Fri</div>
-                        <div className="weekday">Sat</div>
+                        <div className="weekday">Chủ Nhật</div>
+                        <div className="weekday">Thứ 2</div>
+                        <div className="weekday">Thứ 3</div>
+                        <div className="weekday">Thứ 4</div>
+                        <div className="weekday">Thứ 5</div>
+                        <div className="weekday">Thứ 6</div>
+                        <div className="weekday">Thứ 7</div>
                       </div>
                       <div className="calendar-grid">
                         {days.map((day, index) => (
@@ -632,10 +632,10 @@ const DoctorAppointments = () => {
                   <table className="table appointment-table">
                     <thead>
                       <tr>
-                        <th>Date & Time</th>
-                        <th>Patient</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Ngày và giờ</th>
+                        <th>Bệnh nhân</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
                       </tr>
                     </thead>
                     <tbody>

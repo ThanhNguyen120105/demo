@@ -12,6 +12,8 @@ import About from './components/About/About';
 import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
 import AppointmentHistory from './components/Appointment/AppointmentHistory';
+import StaffDoctorManagement from './components/Appointment/StaffDoctorManagement';
+import NavigationDemo from './components/common/NavigationDemo';
 import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
@@ -39,6 +41,10 @@ function App() {
           <Route path="/qna" element={<QnA />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/navigation" element={<NavigationDemo />} />
+          
+          {/* Staff Routes */}
+          <Route path="/staff/doctor-management" element={<StaffDoctorManagement />} />
           
           {/* Doctor Routes */}
           <Route path="/doctor" element={<DoctorDashboard />} />

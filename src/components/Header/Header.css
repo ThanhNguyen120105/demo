@@ -177,10 +177,7 @@
   transform: scale(1.05);
 }
 
-.brand-text {
-  display: flex;
-  flex-direction: column;
-}
+
 
 .brand-name {
   font-size: 18px;
@@ -196,7 +193,7 @@
 /* Navigation Links */
 .main-nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   width: 100%;
   align-items: center;
   padding: 0;
