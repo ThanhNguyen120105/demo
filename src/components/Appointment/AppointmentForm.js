@@ -12,7 +12,8 @@ import {
   faEnvelope,
   faPhone,
   faArrowRight,
-  faArrowLeft
+  faArrowLeft,
+  faStethoscope
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
 
@@ -20,6 +21,7 @@ const AppointmentForm = () => {
   const [formStep, setFormStep] = useState(1);
   const [formData, setFormData] = useState({
     serviceTime: 'inHours',
+    serviceType: '',
     doctor: '',
     date: '',
     healthIssues: '',
@@ -41,11 +43,35 @@ const AppointmentForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formStep === 1) {
+      if (!formData.serviceType) {
+        alert('Vui lòng chọn loại dịch vụ');
+        return;
+      }
       setFormStep(2);
     } else if (formStep === 2) {
       setShowSuccessModal(true);
       console.log('Form submitted:', formData);
     }
+  };
+
+  const getServiceTypeName = (value) => {
+    const serviceTypes = {
+      'hiv-test': 'Xét nghiệm HIV',
+      'treatment-program': 'Chương trình Điều trị',
+      'prevention-service': 'Dịch vụ Phòng ngừa',
+      'counseling': 'Tư vấn'
+    };
+    return serviceTypes[value] || value;
+  };
+
+  const getServiceDescription = (value) => {
+    const descriptions = {
+      'hiv-test': 'Xét nghiệm phát hiện virus HIV, bao gồm test nhanh và xét nghiệm định lượng',
+      'treatment-program': 'Chương trình điều trị ARV và theo dõi sức khỏe cho người nhiễm HIV',
+      'prevention-service': 'Dịch vụ phòng ngừa lây nhiễm HIV, PrEP, PEP và tư vấn an toàn',
+      'counseling': 'Tư vấn tâm lý, hỗ trợ tinh thần và giải đáp thắc mắc về HIV/AIDS'
+    };
+    return descriptions[value] || '';
   };
 
   return (
@@ -99,6 +125,34 @@ const AppointmentForm = () => {
                     </div>
                   </Col>
                 </Row>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <FontAwesomeIcon icon={faStethoscope} className="label-icon" />
+                  Chọn loại dịch vụ
+                </label>
+                <Form.Select
+                  name="serviceType"
+                  value={formData.serviceType}
+                  onChange={handleInputChange}
+                  className="form-select"
+                  required
+                >
+                  <option value="">Chọn loại dịch vụ bạn cần</option>
+                  <option value="hiv-test">🧪 Xét nghiệm HIV</option>
+                  <option value="treatment-program">💊 Chương trình Điều trị</option>
+                  <option value="prevention-service">🛡️ Dịch vụ Phòng ngừa</option>
+                  <option value="counseling">💬 Tư vấn</option>
+                </Form.Select>
+                {formData.serviceType && (
+                  <div className="service-description">
+                    <small className="text-muted">
+                      <FontAwesomeIcon icon={faCommentMedical} className="me-1" />
+                      {getServiceDescription(formData.serviceType)}
+                    </small>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -226,7 +280,7 @@ const AppointmentForm = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
-          <p>Cảm ơn bạn đã đăng ký.</p>
+          <p>Cảm ơn bạn đã đăng ký dịch vụ <strong>{getServiceTypeName(formData.serviceType)}</strong>.</p>
           <p>
             Vui lòng kiểm tra{' '}
             <a 
@@ -242,6 +296,19 @@ const AppointmentForm = () => {
             </a>{' '}
              để xác nhận trạng thái.
           </p>
+          {formData.serviceType && (
+            <div className="mt-3 p-3 bg-light rounded">
+              <small className="text-muted">
+                <strong>Dịch vụ:</strong> {getServiceTypeName(formData.serviceType)}<br/>
+                <strong>Thời gian:</strong> {formData.serviceTime === 'inHours' ? 'Trong giờ' : 'Ngoài giờ'}
+                {formData.date && (
+                  <>
+                    <br/><strong>Ngày hẹn:</strong> {new Date(formData.date).toLocaleString('vi-VN')}
+                  </>
+                )}
+              </small>
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer className="border-0 justify-content-center">
           <Button 

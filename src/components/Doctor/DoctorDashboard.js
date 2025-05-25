@@ -385,10 +385,7 @@ const DoctorDashboard = () => {
                       {/* Placeholder for pie chart */}
                       <div className="pie-chart-placeholder">
                         <div className="pie-chart">
-                          <div className="pie-slice slice1"></div>
-                          <div className="pie-slice slice2"></div>
-                          <div className="pie-slice slice3"></div>
-                          <div className="pie-slice slice4"></div>
+                          {/* Pie chart now uses conic-gradient */}
                         </div>
                         <div className="pie-legend">
                           <div className="legend-item">

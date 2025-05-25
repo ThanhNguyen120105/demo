@@ -31,6 +31,15 @@
 .hero-image {
   position: relative;
   text-align: center;
+  /* Alternative: Use as background image */
+  /* 
+  background-image: url('../../assets/images/homepage.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 400px;
+  border-radius: 10px;
+  */
 }
 
 .hero-image img {
@@ -136,6 +145,17 @@
   width: 100%;
   border-radius: 10px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.about-content-image img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.about-content-image img:hover {
+  transform: scale(1.02);
 }
 
 .about-content {

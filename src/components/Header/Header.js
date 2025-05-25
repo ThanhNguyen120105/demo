@@ -19,7 +19,9 @@ import {
   faHeartbeat,
   faUserMd,
   faLocationArrow,
-  faUserPlus
+  faUserPlus,
+  faUserTie,
+  faClipboardList
 } from '@fortawesome/free-solid-svg-icons';
 import './Header.css';
 import logo from '../../assets/images/logo.png';
@@ -63,6 +65,12 @@ const Header = () => {
                 </Link>
               </div>
               <div className="action-item">
+                <Link to="/staff/doctor-management" className="action-link">
+                  <FontAwesomeIcon icon={faUserTie} />
+                  <span>Staff</span>
+                </Link>
+              </div>
+              <div className="action-item">
                 <Link to="/qna" className="action-link">
                   <FontAwesomeIcon icon={faQuestionCircle} />
                   <span>Hỏi & Đáp</span>
@@ -88,10 +96,7 @@ const Header = () => {
           <Navbar.Brand as={Link} to="/" className="brand-container">
             <div className="brand-logo">
               <img src={logo} alt="HIV Treatment Center" className="logo" />
-              <div className="brand-text">
-                <span className="brand-name">Trung tâm Điều trị HIV</span>
-                <span className="brand-tagline">Chăm sóc Tận tâm. Cuộc sống Tốt đẹp hơn.</span>
-              </div>
+              
             </div>
           </Navbar.Brand>
           <Navbar.Toggle 
@@ -107,32 +112,7 @@ const Header = () => {
                 </div>
               </Nav.Link>
               
-              <Dropdown className="nav-dropdown">
-                <Dropdown.Toggle as={Nav.Link}>
-                  <div className="nav-icon-container">
-                    <FontAwesomeIcon icon={faNotesMedical} className="nav-icon" />
-                    <span>Dịch vụ</span>
-                  </div>
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/services/testing" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faStethoscope} className="dropdown-icon" /> Xét nghiệm HIV
-                  </Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/services/treatment" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faNotesMedical} className="dropdown-icon" /> Chương trình Điều trị
-                  </Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/services/prevention" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faHeartbeat} className="dropdown-icon" /> Dịch vụ Phòng ngừa
-                  </Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/services/counseling" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faUser} className="dropdown-icon" /> Tư vấn
-                  </Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item as={Link} to="/appointment-history" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faCalendarAlt} className="dropdown-icon" /> Lịch sử Cuộc hẹn
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+              
               
               <Nav.Link as={Link} to="/doctors" onClick={() => setExpanded(false)}>
                 <div className="nav-icon-container">
@@ -144,7 +124,7 @@ const Header = () => {
               <Nav.Link as={Link} to="/appointment-history" onClick={() => setExpanded(false)}>
                 <div className="nav-icon-container">
                   <FontAwesomeIcon icon={faCalendarAlt} className="nav-icon" />
-                  <span>Lịch hẹn</span>
+                  <span>Lịch sử đặt hẹn</span>
                 </div>
               </Nav.Link>
               
@@ -171,6 +151,22 @@ const Header = () => {
                 </Dropdown.Menu>
               </Dropdown>
               
+              <Dropdown className="nav-dropdown">
+                <Dropdown.Toggle as={Nav.Link}>
+                  <div className="nav-icon-container">
+                    <FontAwesomeIcon icon={faUserTie} className="nav-icon" />
+                    <span>Quản lý</span>
+                  </div>
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item as={Link} to="/staff/doctor-management" onClick={() => setExpanded(false)}>
+                    <FontAwesomeIcon icon={faClipboardList} className="dropdown-icon" /> Quản lý Bác sĩ & Lịch hẹn
+                  </Dropdown.Item>
+                  <Dropdown.Item as={Link} to="/doctor/dashboard" onClick={() => setExpanded(false)}>
+                    <FontAwesomeIcon icon={faUserMd} className="dropdown-icon" /> Dashboard Bác sĩ
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </Nav>
 
             <div className="header-action-buttons">

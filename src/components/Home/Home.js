@@ -7,12 +7,12 @@ import {
   faMicroscope, faHandHoldingMedical, faCalendarCheck, faUserMd,
   faImage, faPhone, faHistory, faTrophy, faStar, faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
 import './Home.css';
-
-// Import demo data
-import { services, doctors, news, stats } from '../../data/demoData';
+import AnimatedSection from '../common/AnimatedSection';
+import { stats, services, doctors, news } from '../../data/demoData';
+import homepageImage from '../../assets/images/homepage.jpg';
+import homepage2Image from '../../assets/images/homepage2.jpg';
 
 // Animation variants
 const fadeIn = {
@@ -32,26 +32,6 @@ const staggerContainer = {
       staggerChildren: 0.2
     }
   }
-};
-
-// Animated section wrapper component
-const AnimatedSection = ({ children, className }) => {
-  const [ref, inView] = useInView({
-    triggerOnce: false,
-    threshold: 0.1
-  });
-
-  return (
-    <motion.section
-      ref={ref}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      variants={fadeIn}
-      className={className}
-    >
-      {children}
-    </motion.section>
-  );
 };
 
 // Counter icons mapping
@@ -94,9 +74,7 @@ const Home = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "400px", borderRadius: "10px"}}>
-                  <FontAwesomeIcon icon={faImage} style={{fontSize: "80px", color: "#ccc"}} />
-                </div>
+                <img src={homepageImage} alt="HIV Treatment Center" />
               </motion.div>
             </Col>
           </Row>
@@ -136,9 +114,9 @@ const Home = () => {
                 className="about-image"
                 variants={fadeIn}
               >
-                <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "350px", borderRadius: "10px"}}>
-                  <FontAwesomeIcon icon={faImage} style={{fontSize: "80px", color: "#ccc"}} />
-                </div>
+                 <motion.div variants={fadeIn} className="about-content-image">
+                  <img src={homepage2Image} alt="HIV Treatment Center About" style={{width: "100%", borderRadius: "10px", marginBottom: "20px"}} />
+                </motion.div>
               </motion.div>
             </Col>
             <Col lg={6} md={12}>
@@ -149,6 +127,7 @@ const Home = () => {
                 <motion.div className="section-title text-start" variants={fadeIn}>
                   <h2>Về Trung Tâm Điều Trị HIV Của Chúng Tôi</h2>
                 </motion.div>
+              
                 <motion.p variants={fadeIn}>
                   Trong hơn 20 năm, trung tâm của chúng tôi đã luôn đi đầu trong điều trị và chăm sóc HIV. 
                   Chúng tôi cung cấp phương pháp tiếp cận toàn diện đối với quản lý HIV, kết hợp các phương pháp 

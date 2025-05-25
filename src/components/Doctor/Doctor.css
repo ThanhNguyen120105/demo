@@ -315,32 +315,16 @@
   border-radius: 50%;
   overflow: hidden;
   margin-bottom: 1.5rem;
+  background: conic-gradient(
+    from 0deg,
+    #4CAF50 0deg 90deg,
+    #FF9800 90deg 180deg,
+    #2196F3 180deg 360deg
+  );
 }
 
 .pie-slice {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.slice1 {
-  background-color: #4CAF50;
-  clip-path: polygon(50% 50%, 100% 0, 100% 50%);
-}
-
-.slice2 {
-  background-color: #2196F3;
-  clip-path: polygon(50% 50%, 100% 50%, 100% 100%, 0 100%, 0 50%);
-}
-
-.slice3 {
-  background-color: #FFC107;
-  clip-path: polygon(50% 50%, 0 50%, 0 0, 30% 0);
-}
-
-.slice4 {
-  background-color: #9C27B0;
-  clip-path: polygon(50% 50%, 30% 0, 100% 0);
+  display: none;
 }
 
 .pie-legend {
