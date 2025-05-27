@@ -130,7 +130,7 @@ const AppointmentForm = () => {
               <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faStethoscope} className="label-icon" />
-                  Chọn loại dịch vụ
+                   Dịch vụ
                 </label>
                 <Form.Select
                   name="serviceType"
@@ -139,11 +139,8 @@ const AppointmentForm = () => {
                   className="form-select"
                   required
                 >
-                  <option value="">Chọn loại dịch vụ bạn cần</option>
-                  <option value="hiv-test">🧪 Xét nghiệm HIV</option>
-                  <option value="treatment-program">💊 Chương trình Điều trị</option>
-                  <option value="prevention-service">🛡️ Dịch vụ Phòng ngừa</option>
-                  <option value="counseling">💬 Tư vấn</option>
+              
+                  <option value="hiv-test">🧪 Xét nghiệm và điều trị HIV</option>
                 </Form.Select>
                 {formData.serviceType && (
                   <div className="service-description">

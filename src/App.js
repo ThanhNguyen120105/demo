@@ -13,6 +13,7 @@ import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
 import AppointmentHistory from './components/Appointment/AppointmentHistory';
 import StaffDoctorManagement from './components/Appointment/StaffDoctorManagement';
+import TestResultsLookup from './components/Appointment/TestResultsLookup';
 import NavigationDemo from './components/common/NavigationDemo';
 import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
@@ -37,6 +38,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/appointment" element={<AppointmentPage />} />
           <Route path="/appointment-history" element={<AppointmentHistory />} />
+          <Route path="/test-results" element={<TestResultsLookup />} />
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/qna" element={<QnA />} />
           <Route path="/login" element={<Login />} />
