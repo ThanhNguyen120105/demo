@@ -8,14 +8,14 @@ import {
 import DoctorSidebar from './DoctorSidebar';
 import './Doctor.css';
 
-// Sample data for unanswered questions
+// Dữ liệu mẫu cho câu hỏi chưa trả lời
 const unansweredQuestionsData = [
   {
     id: 1,
     question: 'Is umbilical cord infection dangerous?',
     content: 'Hello doctor, my baby is 5 days old, and the umbilical cord area is showing signs of redness and slight inflammation. When I took my baby for a check-up, the doctor said the baby has a mild umbilical cord infection, prescribed medication, and provided instructions on cord care. Doctor, I would like to ask if umbilical cord infection is dangerous?',
     date: '06/20/2024',
-    category: 'Children\'s Health',
+    category: 'Sức khỏe trẻ em',
     daysOld: 3,
     views: 352
   },
@@ -24,7 +24,7 @@ const unansweredQuestionsData = [
     question: 'Back pain during 8th month of pregnancy, what should I do?',
     content: 'I\'m in my 8th month of pregnancy and have been experiencing significant back pain recently, especially in the evening and when sitting for long periods. I\'ve tried changing sleeping positions and light walking but haven\'t seen improvement. Doctor, could you advise on safe ways to relieve back pain at this stage? Should I see a doctor, or is this a normal condition?',
     date: '06/15/2024',
-    category: 'Pregnancy & Childbirth',
+    category: 'Thai sản & Sinh nở',
     daysOld: 8,
     views: 412
   },
@@ -60,35 +60,35 @@ const unansweredQuestionsData = [
 const UnansweredQuestions = () => {
   const [activeTab, setActiveTab] = useState('unanswered-questions');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('Tất cả');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [answer, setAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
   
-  // Filter questions based on search term and category
+  // Lọc câu hỏi dựa trên từ khóa tìm kiếm và danh mục
   const filteredQuestions = unansweredQuestionsData.filter(q => {
     const matchesSearch = q.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           q.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || q.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'Tất cả' || q.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
   
-  // Categories for filter dropdown
-  const categories = ['All', 'HIV/AIDS', 'Children\'s Health', 'Pregnancy & Childbirth', 'General Health', 'Medication & Treatment'];
+  // Danh mục cho dropdown lọc
+  const categories = ['Tất cả', 'HIV/AIDS', 'Sức khỏe trẻ em', 'Thai sản & Sinh nở', 'Sức khỏe tổng quát', 'Thuốc & Điều trị'];
   
-  // Handle form submission
+  // Xử lý gửi biểu mẫu
   const handleSubmit = (e) => {
     e.preventDefault();
     if (answer.trim().length < 50) {
-      alert('Please provide a more detailed answer (at least 50 characters)');
+      alert('Vui lòng cung cấp câu trả lời chi tiết hơn (ít nhất 50 ký tự)');
       return;
     }
     
-    console.log('Submitting answer:', { questionId: selectedQuestion.id, answer });
-    // In a real app, you would make an API call here to save the answer
+    console.log('Đang gửi câu trả lời:', { questionId: selectedQuestion.id, answer });
+    // Trong ứng dụng thực tế, bạn sẽ gọi API ở đây để lưu câu trả lời
     setSubmitted(true);
     
-    // Close the question form after a delay
+    // Đóng biểu mẫu câu hỏi sau một khoảng thời gian
     setTimeout(() => {
       setSelectedQuestion(null);
       setAnswer('');
@@ -109,18 +109,18 @@ const UnansweredQuestions = () => {
           <div className="content-header">
             <h2>
               <FontAwesomeIcon icon={faQuestionCircle} className="me-2 text-danger" />
-              Unanswered Questions
+              Câu hỏi chưa trả lời
             </h2>
-            <p>Review and answer patient questions anonymously submitted through the Q&A portal</p>
+            <p>Xem xét và trả lời các câu hỏi của bệnh nhân được gửi ẩn danh qua cổng Hỏi & Đáp</p>
           </div>
           
-          {/* Search and Filter */}
+          {/* Tìm kiếm và Lọc */}
           <Row className="mb-4">
             <Col md={7}>
               <div className="search-box position-relative">
                 <Form.Control 
                   type="search" 
-                  placeholder="Search questions..." 
+                  placeholder="Tìm kiếm câu hỏi..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pe-5"
@@ -143,7 +143,7 @@ const UnansweredQuestions = () => {
             </Col>
           </Row>
           
-          {/* Questions List */}
+          {/* Danh sách câu hỏi */}
           <Row>
             <Col md={selectedQuestion ? 6 : 12}>
               {filteredQuestions.length > 0 ? (
@@ -159,7 +159,7 @@ const UnansweredQuestions = () => {
                           </small>
                           <small className="text-muted">
                             <FontAwesomeIcon icon={faThumbsUp} className="me-1" />
-                            {question.views} views
+                            {question.views} lượt xem
                           </small>
                         </div>
                       </div>
@@ -174,12 +174,12 @@ const UnansweredQuestions = () => {
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
                           {question.daysOld <= 2 && (
-                            <Badge bg="danger" className="me-2 pulse-badge">New</Badge>
+                            <Badge bg="danger" className="me-2 pulse-badge">Mới</Badge>
                           )}
                           <Badge bg="secondary" style={{ opacity: 0.7 }}>
                             {question.daysOld === 1 
-                              ? 'Posted today' 
-                              : `${question.daysOld} days ago`}
+                              ? 'Đăng hôm nay' 
+                              : `${question.daysOld} ngày trước`}
                           </Badge>
                         </div>
                         <Button 
@@ -188,7 +188,7 @@ const UnansweredQuestions = () => {
                           onClick={() => setSelectedQuestion(question)}
                         >
                           <FontAwesomeIcon icon={faLightbulb} className="me-1" />
-                          Answer Question
+                          Trả lời câu hỏi
                         </Button>
                       </div>
                     </Card.Body>
@@ -197,13 +197,13 @@ const UnansweredQuestions = () => {
               ) : (
                 <Alert variant="info" className="text-center py-5">
                   <FontAwesomeIcon icon={faSearch} size="2x" className="mb-3 text-muted" />
-                  <h5>No questions found</h5>
-                  <p className="mb-0">Try adjusting your search or filter criteria</p>
+                  <h5>Không tìm thấy câu hỏi nào</h5>
+                  <p className="mb-0">Hãy thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc</p>
                 </Alert>
               )}
             </Col>
             
-            {/* Answer Form */}
+            {/* Biểu mẫu trả lời */}
             {selectedQuestion && (
               <Col md={6}>
                 <Card className="answer-card shadow border-0">
@@ -211,7 +211,7 @@ const UnansweredQuestions = () => {
                     <div className="d-flex justify-content-between align-items-center">
                       <h5 className="mb-0">
                         <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                        Provide Your Answer
+                        Cung cấp câu trả lời của bạn
                       </h5>
                       <Button 
                         variant="link" 
@@ -225,13 +225,13 @@ const UnansweredQuestions = () => {
                   <Card.Body>
                     {submitted ? (
                       <Alert variant="success" className="mb-0">
-                        <h5 className="alert-heading">Answer Submitted Successfully!</h5>
-                        <p>Your response has been published to the Q&A section. Thank you for contributing your expertise.</p>
+                        <h5 className="alert-heading">Đã gửi câu trả lời thành công!</h5>
+                        <p>Câu trả lời của bạn đã được đăng lên mục Hỏi & Đáp. Cảm ơn bạn đã đóng góp chuyên môn của mình.</p>
                       </Alert>
                     ) : (
                       <Form onSubmit={handleSubmit}>
                         <div className="question-preview mb-4">
-                          <h6 className="text-primary mb-3">Question:</h6>
+                          <h6 className="text-primary mb-3">Câu hỏi:</h6>
                           <Card className="bg-light border-0">
                             <Card.Body>
                               <h5>{selectedQuestion.question}</h5>
@@ -242,29 +242,29 @@ const UnansweredQuestions = () => {
                         
                         <Form.Group className="mb-4">
                           <Form.Label>
-                            <h6 className="text-primary mb-2">Your Answer:</h6>
+                            <h6 className="text-primary mb-2">Câu trả lời của bạn:</h6>
                           </Form.Label>
                           <Form.Control
                             as="textarea"
                             rows={10}
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
-                            placeholder="Provide a comprehensive answer based on medical evidence. Include any relevant advice, recommendations, or resources that may be helpful."
+                            placeholder="Cung cấp câu trả lời toàn diện dựa trên bằng chứng y khoa. Bao gồm bất kỳ lời khuyên, đề xuất hoặc tài nguyên liên quan có thể hữu ích."
                             required
                             className="answer-textarea"
                           />
                           <Form.Text className="text-muted">
-                            Your answer will be posted anonymously as a medical professional from HIV Treatment Center.
+                            Câu trả lời của bạn sẽ được đăng ẩn danh với tư cách là chuyên gia y tế từ Trung tâm Điều trị HIV.
                           </Form.Text>
                         </Form.Group>
                         
                         <div className="d-flex justify-content-end">
                           <Button variant="outline-secondary" className="me-2" onClick={() => setSelectedQuestion(null)}>
-                            Cancel
+                            Hủy
                           </Button>
                           <Button variant="primary" type="submit">
                             <FontAwesomeIcon icon={faSave} className="me-2" />
-                            Submit Answer
+                            Gửi câu trả lời
                           </Button>
                         </div>
                       </Form>
@@ -280,4 +280,4 @@ const UnansweredQuestions = () => {
   );
 };
 
-export default UnansweredQuestions; 
+export default UnansweredQuestions;

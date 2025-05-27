@@ -55,25 +55,25 @@ const DoctorDashboard = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // State cho Medical Report Modal
+  // State cho Modal Báo cáo Y tế
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [medicalReport, setMedicalReport] = useState(null);
   
-  // Dashboard statistics
+  // Thống kê tổng quan
   const stats = [
-    { title: 'Total Patients', value: '1,248', icon: faUsers, color: '#4CAF50' },
-    { title: 'Today\'s Appointments', value: '8', icon: faCalendarAlt, color: '#2196F3' },
-    { title: 'Completed Today', value: '5', icon: faCheckCircle, color: '#9C27B0' },
-    { title: 'Pending Actions', value: '3', icon: faExclamationTriangle, color: '#FF9800' }
+    { title: 'Tổng số bệnh nhân', value: '1,248', icon: faUsers, color: '#4CAF50' },
+    { title: 'Lịch hẹn hôm nay', value: '8', icon: faCalendarAlt, color: '#2196F3' },
+    { title: 'Hoàn thành hôm nay', value: '5', icon: faCheckCircle, color: '#9C27B0' },
+    { title: 'Đang chờ xử lý', value: '3', icon: faExclamationTriangle, color: '#FF9800' }
   ];
 
   // Type counts for current month (actual values for chart)
   const appointmentTypes = [
-    { type: 'Initial Consultation', count: 45, color: '#4CAF50' },
-    { type: 'Follow-up', count: 60, color: '#2196F3' },
-    { type: 'Lab Results', count: 35, color: '#FF9800' },
-    { type: 'Treatment Review', count: 25, color: '#9C27B0' }
+    { type: 'Tư vấn đầu tiên', count: 45, color: '#4CAF50' },
+    { type: 'Tái khám', count: 60, color: '#2196F3' },
+    { type: 'Kết quả xét nghiệm', count: 35, color: '#FF9800' },
+    { type: 'Đánh giá điều trị', count: 25, color: '#9C27B0' }
   ];
   
   // Xử lý hiển thị modal medical report
@@ -252,7 +252,7 @@ const DoctorDashboard = () => {
   // Lưu report
   const handleSaveReport = () => {
     // Cập nhật status của appointment thành completed
-    console.log('Saving medical report:', medicalReport);
+    console.log('Lưu báo cáo y tế:', medicalReport);
     
     // Đóng modal sau khi lưu
     handleCloseReportModal();
@@ -272,8 +272,8 @@ const DoctorDashboard = () => {
           {/* Main Content */}
           <Col md={9} lg={10} className="main-content">
             <div className="content-header">
-              <h2>Doctor Dashboard</h2>
-              <p>Welcome back, Dr. John Doe</p>
+              <h2>Tổng quan</h2>
+              <p>Chào mừng trở lại, Dr. John Doe</p>
             </div>
             
             {/* Stats Cards */}
@@ -298,7 +298,7 @@ const DoctorDashboard = () => {
               <Col lg={8}>
                 <Card className="chart-card">
                   <Card.Header>
-                    <h5> Thống Kê Bệnh Nhân (Tháng)</h5>
+                    <h5>Lượt khám bệnh (Theo tháng)</h5>
                   </Card.Header>
                   <Card.Body>
                     <div className="chart-area">
@@ -322,51 +322,51 @@ const DoctorDashboard = () => {
                         <div className="chart-bars">
                           <div className="chart-bar" style={{ height: '60%' }}>
                             <div className="chart-value">60</div>
-                            <span>Jan</span>
+                            <span>T1</span>
                           </div>
                           <div className="chart-bar" style={{ height: '75%' }}>
                             <div className="chart-value">75</div>
-                            <span>Feb</span>
+                            <span>T2</span>
                           </div>
                           <div className="chart-bar" style={{ height: '45%' }}>
                             <div className="chart-value">45</div>
-                            <span>Mar</span>
+                            <span>T3</span>
                           </div>
                           <div className="chart-bar" style={{ height: '80%' }}>
                             <div className="chart-value">80</div>
-                            <span>Apr</span>
+                            <span>T4</span>
                           </div>
                           <div className="chart-bar" style={{ height: '65%' }}>
                             <div className="chart-value">65</div>
-                            <span>May</span>
+                            <span>T5</span>
                           </div>
                           <div className="chart-bar" style={{ height: '90%' }}>
                             <div className="chart-value">90</div>
-                            <span>Jun</span>
+                            <span>T6</span>
                           </div>
                           <div className="chart-bar accent" style={{ height: '85%' }}>
                             <div className="chart-value">85</div>
-                            <span>Jul</span>
+                            <span>T7</span>
                           </div>
                           <div className="chart-bar" style={{ height: '70%' }}>
                             <div className="chart-value">70</div>
-                            <span>Aug</span>
+                            <span>T8</span>
                           </div>
                           <div className="chart-bar" style={{ height: '75%' }}>
                             <div className="chart-value">75</div>
-                            <span>Sep</span>
+                            <span>T9</span>
                           </div>
                           <div className="chart-bar" style={{ height: '60%' }}>
                             <div className="chart-value">60</div>
-                            <span>Oct</span>
+                            <span>T10</span>
                           </div>
                           <div className="chart-bar" style={{ height: '50%' }}>
                             <div className="chart-value">50</div>
-                            <span>Nov</span>
+                            <span>T11</span>
                           </div>
                           <div className="chart-bar" style={{ height: '65%' }}>
                             <div className="chart-value">65</div>
-                            <span>Dec</span>
+                            <span>T12</span>
                           </div>
                         </div>
                         <div className="x-axis"></div>
@@ -378,7 +378,7 @@ const DoctorDashboard = () => {
               <Col lg={4}>
                 <Card className="chart-card">
                   <Card.Header>
-                    <h5>Phân Phối Bệnh Nhân</h5>
+                    <h5>Phân bố bệnh nhân</h5>
                   </Card.Header>
                   <Card.Body>
                     <div className="chart-area">
@@ -393,12 +393,16 @@ const DoctorDashboard = () => {
                             <span>Bệnh nhân mới (25%)</span>
                           </div>
                           <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#FF9800' }}></span>
-                            <span>Chưa đăng ký (25%)</span>
+                            <span className="color-box" style={{ backgroundColor: '#2196F3' }}></span>
+                            <span>Tái khám (40%)</span>
                           </div>
                           <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#2196F3' }}></span>
-                            <span>Đã đăng ký (50%)</span>
+                            <span className="color-box" style={{ backgroundColor: '#FFC107' }}></span>
+                            <span>Kiểm tra định kỳ (20%)</span>
+                          </div>
+                          <div className="legend-item">
+                            <span className="color-box" style={{ backgroundColor: '#9C27B0' }}></span>
+                            <span>Khẩn cấp (15%)</span>
                           </div>
                         </div>
                       </div>
@@ -413,14 +417,14 @@ const DoctorDashboard = () => {
               <Col>
                 <Card className="appointments-card">
                   <Card.Header className="d-flex justify-content-between align-items-center">
-                    <h5>Today's Appointments</h5>
+                    <h5>Lịch hẹn hôm nay</h5>
                     <div>
                       <Button variant="outline-primary" size="sm" className="me-2">
                         <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                        Weekly View
+                        Xem theo tuần
                       </Button>
                       <Button variant="outline-primary" size="sm">
-                        View All
+                        Xem tất cả
                       </Button>
                     </div>
                   </Card.Header>
@@ -429,10 +433,10 @@ const DoctorDashboard = () => {
                       <table className="table appointment-table">
                         <thead>
                           <tr>
-                            <th>Time</th>
-                            <th>Patient</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Thời gian</th>
+                            <th>Bệnh nhân</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -455,7 +459,8 @@ const DoctorDashboard = () => {
                                   appointment.status === 'completed' ? 'success' : 
                                   appointment.status === 'pending' ? 'warning' : 'danger'
                                 }>
-                                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                                  {appointment.status === 'completed' ? 'Hoàn thành' : 
+                                  appointment.status === 'pending' ? 'Đang chờ' : 'Đã hủy'}
                                 </Badge>
                               </td>
                               <td>
@@ -466,7 +471,7 @@ const DoctorDashboard = () => {
                                   onClick={() => handleShowReportModal(appointment)}
                                 >
                                   <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                  Details
+                                  Chi tiết
                                 </Button>
                                 <Button variant="outline-success" size="sm" className="me-2">
                                   <FontAwesomeIcon icon={faPhone} />
@@ -490,21 +495,21 @@ const DoctorDashboard = () => {
               <Col>
                 <Card className="appointments-card">
                   <Card.Header>
-                    <h5>Weekly Schedule Preview</h5>
+                    <h5>Lịch trình tuần</h5>
                   </Card.Header>
                   <Card.Body className="p-0">
                     <div className="table-responsive">
                       <table className="table appointment-table">
                         <thead>
                           <tr>
-                            <th>Day</th>
-                            <th>Appointments</th>
-                            <th>Status</th>
+                            <th>Ngày</th>
+                            <th>Lịch hẹn</th>
+                            <th>Trạng thái</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr>
-                            <td className="fw-bold">Monday</td>
+                            <td className="fw-bold">Thứ Hai</td>
                             <td>
                               <div className="d-flex flex-column">
                                 {weeklyAppointments.monday.map((apt, idx) => (
@@ -513,11 +518,11 @@ const DoctorDashboard = () => {
                               </div>
                             </td>
                             <td>
-                              <Badge bg="success">{weeklyAppointments.monday.length} Scheduled</Badge>
+                              <Badge bg="success">{weeklyAppointments.monday.length} Đã lên lịch</Badge>
                             </td>
                           </tr>
                           <tr>
-                            <td className="fw-bold">Tuesday</td>
+                            <td className="fw-bold">Thứ Ba</td>
                             <td>
                               <div className="d-flex flex-column">
                                 {weeklyAppointments.tuesday.map((apt, idx) => (
@@ -526,11 +531,11 @@ const DoctorDashboard = () => {
                               </div>
                             </td>
                             <td>
-                              <Badge bg="success">{weeklyAppointments.tuesday.length} Scheduled</Badge>
+                              <Badge bg="success">{weeklyAppointments.tuesday.length} Đã lên lịch</Badge>
                             </td>
                           </tr>
                           <tr>
-                            <td className="fw-bold">Wednesday</td>
+                            <td className="fw-bold">Thứ Tư</td>
                             <td>
                               <div className="d-flex flex-column">
                                 {weeklyAppointments.wednesday.map((apt, idx) => (
@@ -539,11 +544,11 @@ const DoctorDashboard = () => {
                               </div>
                             </td>
                             <td>
-                              <Badge bg="success">{weeklyAppointments.wednesday.length} Scheduled</Badge>
+                              <Badge bg="success">{weeklyAppointments.wednesday.length} Đã lên lịch</Badge>
                             </td>
                           </tr>
                           <tr>
-                            <td className="fw-bold">Thursday</td>
+                            <td className="fw-bold">Thứ Năm</td>
                             <td>
                               <div className="d-flex flex-column">
                                 {weeklyAppointments.thursday.map((apt, idx) => (
@@ -552,11 +557,11 @@ const DoctorDashboard = () => {
                               </div>
                             </td>
                             <td>
-                              <Badge bg="success">{weeklyAppointments.thursday.length} Scheduled</Badge>
+                              <Badge bg="success">{weeklyAppointments.thursday.length} Đã lên lịch</Badge>
                             </td>
                           </tr>
                           <tr>
-                            <td className="fw-bold">Friday</td>
+                            <td className="fw-bold">Thứ Sáu</td>
                             <td>
                               <div className="d-flex flex-column">
                                 {weeklyAppointments.friday.map((apt, idx) => (
@@ -565,7 +570,7 @@ const DoctorDashboard = () => {
                               </div>
                             </td>
                             <td>
-                              <Badge bg="success">{weeklyAppointments.friday.length} Scheduled</Badge>
+                              <Badge bg="success">{weeklyAppointments.friday.length} Đã lên lịch</Badge>
                             </td>
                           </tr>
                         </tbody>
@@ -595,4 +600,4 @@ const DoctorDashboard = () => {
   );
 };
 
-export default DoctorDashboard; 
+export default DoctorDashboard;
