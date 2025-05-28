@@ -250,22 +250,6 @@ const medicalReports = {
   }
 };
 
-// Upcoming appointments for side panel
-const upcomingAppointments = appointmentData
-  .filter(app => app.status === 'Pending' || app.status === 'Accepted')
-  .sort((a, b) => new Date(a.date) - new Date(b.date))
-  .slice(0, 3);
-
-// Health metrics data for chart
-const healthMetrics = [
-  { month: 'Aug', value: 280 },
-  { month: 'Sep', value: 200 },
-  { month: 'Oct', value: 160 },
-  { month: 'Nov', value: 140 },
-  { month: 'Dec', value: 120 },
-  { month: 'Jan', value: 110 }
-];
-
 const AppointmentHistory = () => {
   const [filter, setFilter] = useState('All');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -361,8 +345,8 @@ const AppointmentHistory = () => {
       
       <Container fluid className="appointment-page-container">
         <Row>
-          {/* Main Content - Wider */}
-          <Col lg={8} md={12} className="main-content-col">
+          {/* Main Content - Full Width */}
+          <Col lg={12} md={12} className="main-content-col">
             <div className="appointment-history-container">
               {showMedicalReport && selectedReport ? (
                 <div className="medical-report animated fadeIn">
@@ -801,83 +785,87 @@ const AppointmentHistory = () => {
                     </Row>
                   </div>
                   
-                  <div className="filter-bar mb-4">
-                    <Row className="align-items-center">
-                      <Col xs={12} md={6}>
-                        <h5 className="mb-0 mt-2">
-                          <FontAwesomeIcon icon={faFilter} className="me-2" />
-                          Lọc theo trạng thái:
-                        </h5>
-                      </Col>
-                      <Col xs={12} md={6}>
-                        <Form.Select 
-                          value={filter} 
-                          onChange={(e) => setFilter(e.target.value)}
-                          className="status-filter"
-                        >
-                          <option value="All">Tất cả buổi hẹn</option>
-                          <option value="Pending">Chờ xác nhận</option>
-                          <option value="Accepted">Chấp nhận</option>
-                          <option value="Completed">Hoàn thành</option>
-                          <option value="Denied">Từ chối</option>
-                        </Form.Select>
-                      </Col>
-                    </Row>
+                  <div className="filter-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div className="filter-bar mb-4">
+                      <Row className="align-items-center">
+                        <Col xs={12} md={6}>
+                          <h5 className="mb-0 mt-2">
+                            <FontAwesomeIcon icon={faFilter} className="me-2" />
+                            Lọc theo trạng thái:
+                          </h5>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Select 
+                            value={filter} 
+                            onChange={(e) => setFilter(e.target.value)}
+                            className="status-filter"
+                          >
+                            <option value="All">Tất cả buổi hẹn</option>
+                            <option value="Pending">Chờ xác nhận</option>
+                            <option value="Accepted">Chấp nhận</option>
+                            <option value="Completed">Hoàn thành</option>
+                            <option value="Denied">Từ chối</option>
+                          </Form.Select>
+                        </Col>
+                      </Row>
+                    </div>
                   </div>
                   
-                  <div className="table-responsive appointment-table">
-                    <Table hover className="custom-table">
-                      <thead>
-                        <tr>
-                          <th>Ngày & Giờ</th>
-                          <th>Bác sĩ</th>
-                          <th>Triệu Chứng</th>
-                          <th>Trạng Thái</th>
-                          <th className="text-center">Hành Động</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredAppointments.map((appointment) => (
-                          <tr 
-                            key={appointment.id} 
-                            className={`status-${appointment.status.toLowerCase()} ${animatedItems.includes(appointment.id) ? 'animated fadeInUp' : ''}`}
-                          >
-                            <td>
-                              <div className="appointment-date">
-                                <FontAwesomeIcon icon={faCalendarAlt} className="me-2 calendar-icon" />
-                                <div>
-                                  <div className="date">{appointment.date}</div>
-                                  <div className="time">{appointment.time}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="doctor-info">
-                                <FontAwesomeIcon icon={faUserMd} className="me-2 doctor-icon" />
-                                <div>
-                                  <div className="doctor-name">{appointment.doctor}</div>
-                                  <div className="doctor-specialty">{appointment.specialty}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="reason-text">{appointment.reason}</div>
-                            </td>
-                            <td>{getStatusBadge(appointment.status)}</td>
-                            <td className="text-center">
-                              <Button 
-                                variant="outline-primary" 
-                                size="sm"
-                                className="view-details-btn"
-                                onClick={() => handleViewDetails(appointment)}
-                              >
-                                <FontAwesomeIcon icon={faEye} className="me-1" /> Xem Chi Tiết
-                              </Button>
-                            </td>
+                  <div className="table-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div className="table-responsive appointment-table">
+                      <Table hover className="custom-table">
+                        <thead>
+                          <tr>
+                            <th>Ngày & Giờ</th>
+                            <th>Bác sĩ</th>
+                            <th>Triệu Chứng</th>
+                            <th>Trạng Thái</th>
+                            <th className="text-center">Hành Động</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
+                        </thead>
+                        <tbody>
+                          {filteredAppointments.map((appointment) => (
+                            <tr 
+                              key={appointment.id} 
+                              className={`status-${appointment.status.toLowerCase()} ${animatedItems.includes(appointment.id) ? 'animated fadeInUp' : ''}`}
+                            >
+                              <td>
+                                <div className="appointment-date">
+                                  <FontAwesomeIcon icon={faCalendarAlt} className="me-2 calendar-icon" />
+                                  <div>
+                                    <div className="date">{appointment.date}</div>
+                                    <div className="time">{appointment.time}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <div className="doctor-info">
+                                  <FontAwesomeIcon icon={faUserMd} className="me-2 doctor-icon" />
+                                  <div>
+                                    <div className="doctor-name">{appointment.doctor}</div>
+                                    <div className="doctor-specialty">{appointment.specialty}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <div className="reason-text">{appointment.reason}</div>
+                              </td>
+                              <td>{getStatusBadge(appointment.status)}</td>
+                              <td className="text-center">
+                                <Button 
+                                  variant="outline-primary" 
+                                  size="sm"
+                                  className="view-details-btn"
+                                  onClick={() => handleViewDetails(appointment)}
+                                >
+                                  <FontAwesomeIcon icon={faEye} className="me-1" /> Xem Chi Tiết
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </div>
                   </div>
                   
                   {filteredAppointments.length === 0 && (
@@ -891,75 +879,6 @@ const AppointmentHistory = () => {
                   )}
                 </>
               )}
-            </div>
-          </Col>
-          
-          {/* Right Sidebar - Properly positioned */}
-          <Col lg={4} md={12} className="sidebar-col d-none d-lg-block">
-            <div className="sidebar right-sidebar">
-              <div className="sidebar-box upcoming-box">
-                <h4 className="sidebar-title">
-                  <FontAwesomeIcon icon={faCalendarCheck} className="sidebar-icon" />
-                  Lịch hẹn sắp tới
-                </h4>
-                {upcomingAppointments.length > 0 ? (
-                  upcomingAppointments.map(appointment => (
-                    <div 
-                      key={appointment.id} 
-                      className={`upcoming-appointment status-${appointment.status.toLowerCase()}`}
-                    >
-                      <div className="upcoming-date">
-                        <div className="calendar-wrapper">
-                          <div className="calendar-month">
-                            {new Date(appointment.date).toLocaleDateString('en-US', { month: 'short' })}
-                          </div>
-                          <div className="calendar-day">
-                            {new Date(appointment.date).getDate()}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="upcoming-details">
-                        <div className="upcoming-time">
-                          <FontAwesomeIcon icon={faClock} /> {appointment.time}
-                        </div>
-                        <div className="upcoming-doctor">
-                          <FontAwesomeIcon icon={faUserMd} /> {appointment.doctor}
-                        </div>
-                        <div className="upcoming-status">
-                          {getStatusBadge(appointment.status)}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="no-upcoming">
-                    <p>Không có buổi hẹn nào</p>
-                  </div>
-                )}
-                <Button variant="outline-primary" className="w-100 mt-3">
-                  <FontAwesomeIcon icon={faCalendarPlus} className="me-1" /> Schedule New
-                </Button>
-              </div>
-
-              <div className="sidebar-box faq-box">
-                <h4 className="sidebar-title">
-                  <FontAwesomeIcon icon={faQuestionCircle} className="sidebar-icon" />
-                  FAQ
-                </h4>
-                <div className="faq-item">
-                  <div className="faq-question">Làm thế nào tôi có thể lên lịch lại một buổi hẹn?</div>
-                  <div className="faq-answer">
-                    You can reschedule by clicking the "View Details" button and selecting "Reschedule" option.
-                  </div>
-                </div>
-                <div className="faq-item">
-                  <div className="faq-question">What if I need to cancel?</div>
-                  <div className="faq-answer">
-                    Please cancel at least 24 hours in advance to avoid cancellation fees.
-                  </div>
-                </div>
-                <Button variant="link" className="btn-sm faq-link">View All FAQs</Button>
-              </div>
             </div>
           </Col>
         </Row>

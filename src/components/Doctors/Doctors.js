@@ -25,7 +25,7 @@ const doctorsData = [
     position: "Dược sĩ Lâm sàng HIV",
     hospital: "Bệnh viện Đại học Y dược Huế",
     image: id2Image,
-    description: "Dược sĩ lâm sàng chuyên về HIV với kinh nghiệm trong tư vấn sử dụng , theo dõi tương tác thuốc và tối ưu hóa hiệu quả điều trị. Hỗ trợ bệnh nhân trong việc tuân thủ phác đồ và nâng cao chất lượng sống."
+    description: "Dược sĩ lâm sàng chuyên về HIV với kinh nghiệm trong tư vấn sử dụng thuốc, theo dõi tương tác thuốc và tối ưu hóa hiệu quả điều trị. Hỗ trợ bệnh nhân trong việc quản lý phác đồ và nâng cao chất lượng sống."
   },
   {
     id: 3,

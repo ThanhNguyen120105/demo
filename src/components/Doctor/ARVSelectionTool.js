@@ -12,40 +12,27 @@ import DoctorSidebar from './DoctorSidebar';
 
 const ARVSelectionTool = () => {
   const [activeTab, setActiveTab] = useState('arv-tool');
-  const [mutations, setMutations] = useState('');
   const [viralLoad, setViralLoad] = useState('unknown');
   const [cd4Count, setCd4Count] = useState('unknown');
   const [hlaB5701, setHlaB5701] = useState('positive');
   const [tropism, setTropism] = useState('unknown');
   const [comorbidities, setComorbidities] = useState([]);
   const [currentRegimen, setCurrentRegimen] = useState([]);
-  const [excludedARVs, setExcludedARVs] = useState([
-    'D4T', 'DDI', 'FPV/r', 'TPV/r', 'SQV/r', 'IDV/r', 'NFV'
-  ]);
-  const [preferredRegimen, setPreferredRegimen] = useState('');
+  const [preferredRegimen, setPreferredRegimen] = useState([]);
   const [coMedications, setCoMedications] = useState([]);
-  
-  // Adherence options
-  const [pillBurden, setPillBurden] = useState(false);
-  const [pillFrequency, setPillFrequency] = useState(false);
-  const [resistanceBarrier, setResistanceBarrier] = useState(false);
-  const [activeThreeDrugs, setActiveThreeDrugs] = useState(false);
-  const [penalizeInjectable, setPenalizeInjectable] = useState(false);
-  const [prioritizeInjectable, setPrioritizeInjectable] = useState(false);
-  const [penalizeFood, setPenalizeFood] = useState(false);
   
   // List of comorbidities
   const comorbidityOptions = [
-    { value: 'cardiovascular', label: 'Cardiovascular Disease', icon: faHeartbeat },
-    { value: 'hyperlipidemia', label: 'Hyperlipidemia', icon: faHeartbeat },
-    { value: 'diabetes', label: 'Diabetes Mellitus', icon: faWeight },
-    { value: 'liver', label: 'Hepatic Dysfunction', icon: faLungs },
-    { value: 'hbv', label: 'Hepatitis B (HBV) Coinfection', icon: faVial },
-    { value: 'osteoporosis', label: 'Osteoporosis', icon: faBrain },
-    { value: 'dementia', label: 'HIV Associated Dementia', icon: faBrain },
-    { value: 'renal', label: 'Chronic Renal Disease', icon: faLungs },
-    { value: 'psychiatric', label: 'Psychiatric Disorder', icon: faBrain },
-    { value: 'pregnancy', label: 'Pregnancy', icon: faWeight }
+    { value: 'cardiovascular', label: 'Bệnh Tim Mạch', icon: faHeartbeat },
+    { value: 'hyperlipidemia', label: 'Tăng Lipid Máu', icon: faHeartbeat },
+    { value: 'diabetes', label: 'Đái Tháo Đường', icon: faWeight },
+    { value: 'liver', label: 'Rối Loạn Chức Năng Gan', icon: faLungs },
+    { value: 'hbv', label: 'Đồng Nhiễm Viêm Gan B (HBV)', icon: faVial },
+    { value: 'osteoporosis', label: 'Loãng Xương', icon: faBrain },
+    { value: 'dementia', label: 'Sa Sút Trí Tuệ Do HIV', icon: faBrain },
+    { value: 'renal', label: 'Bệnh Thận Mãn Tính', icon: faLungs },
+    { value: 'psychiatric', label: 'Rối Loạn Tâm Thần', icon: faBrain },
+    { value: 'pregnancy', label: 'Thai Kỳ', icon: faWeight }
   ];
   
   // List of ARV medications
@@ -56,45 +43,81 @@ const ARVSelectionTool = () => {
     { value: 'TAF', label: 'TAF (Tenofovir alafenamide/Vemlidy)' },
     { value: 'TDF', label: 'TDF (Tenofovir diproxil fumarate/Viread)' },
     { value: 'AZT', label: 'AZT (Zidovudine/Retrovir)' },
+    { value: 'D4T', label: 'D4T (Stavudine/Zerit)' },
+    { value: 'DDI', label: 'DDI (Didanosine/Videx)' },
     { value: 'EFV', label: 'EFV (Efavirenz/Sustiva)' },
+    { value: 'ETR', label: 'ETR (Etravirine/Intelence)' },
     { value: 'RPV', label: 'RPV (Rilpivirine/Edurant)' },
+    { value: 'NVP', label: 'NVP (Nevirapine/Viramune)' },
     { value: 'DOR', label: 'DOR (Doravirine/Pifeltro)' },
+    { value: 'LPV/r', label: 'LPV/r (Lopinavir-ritonavir/Kaletra)' },
+    { value: 'FPV/r', label: 'FPV/r (Fosamprenavir-ritonavir/Lexiva and Norvir)' },
+    { value: 'TPV/r', label: 'TPV/r (Tipranavir-ritonavir/Aptivus and Norvir)' },
+    { value: 'SQV/r', label: 'SQV/r (Saquinavir-ritonavir/Invirase and Norvir)' },
+    { value: 'IDV/r', label: 'IDV/r (Indinavir-ritonavir/Crixivan and Norvir)' },
+    { value: 'NFV', label: 'NFV (Nelfinavir/Viracept)' },
+    { value: 'ATV/r', label: 'ATV/r (Atazanavir-ritonavir/Reyataz and Norvir)' },
+    { value: 'ATV/c', label: 'ATV/c (Atazanavir-cobicistat/Evotaz)' },
+    { value: 'ATV', label: 'ATV (Atazanavir/Reyataz)' },
+    { value: 'DRV', label: 'DRV (Darunavir/Prezista)' },
     { value: 'DRV/r', label: 'DRV/r (Darunavir-ritonavir/Prezista and Norvir)' },
+    { value: 'DRV/c', label: 'DRV/c (Darunavir-cobicistat/Prezcobix)' },
+    { value: 'RAL', label: 'RAL (Raltegravir/Isentress)' },
+    { value: 'EVG/c', label: 'EVG/c (Elvitegravir/NA)' },
     { value: 'DTG', label: 'DTG (Dolutegravir/Tivicay)' },
     { value: 'BIC', label: 'BIC (Bictegravir/NA)' },
+    { value: 'MVC', label: 'MVC (Maraviroc/Selzentry)' },
+    { value: 'IBA', label: 'IBA (Ibalizumab/Trogarzo)' },
+    { value: 'FTR', label: 'FTR (Fostemsavir/Rukobia)' },
+    { value: '3TC/AZT', label: '3TC/AZT (Combivir)' },
+    { value: 'TDF/FTC', label: 'TDF/FTC (Truvada)' },
+    { value: 'ABC/3TC', label: 'ABC/3TC (Epzicom)' },
+    { value: 'TAF/FTC', label: 'TAF/FTC (Descovy)' },
+    { value: 'DTG/RPV', label: 'DTG/RPV (Juluca)' },
     { value: 'BIC/TAF/FTC', label: 'BIC/TAF/FTC (Biktarvy)' },
     { value: 'DTG/ABC/3TC', label: 'DTG/ABC/3TC (Triumeq)' },
-    { value: 'DTG/3TC', label: 'DTG/3TC (Dovato)' }
+    { value: 'EVG/c/TDF/FTC', label: 'EVG/c/TDF/FTC (Stribild)' },
+    { value: 'EVG/c/TAF/FTC', label: 'EVG/c/TAF/FTC (Genvoya)' },
+    { value: 'RPV/TDF/FTC', label: 'RPV/TDF/FTC (Complera)' },
+    { value: 'RPV/TAF/FTC', label: 'RPV/TAF/FTC (Odefsey)' },
+    { value: 'EFV/TDF/FTC', label: 'EFV/TDF/FTC (Atripla)' },
+    { value: 'DRV/c/TAF/FTC', label: 'DRV/c/TAF/FTC (Symtuza)' },
+    { value: 'DOR/TDF/3TC', label: 'DOR/TDF/3TC (Delstrigo)' },
+    { value: 'DTG/3TC', label: 'DTG/3TC (Dovato)' },
+    { value: 'CAB', label: 'CAB (Cabotegravir/Apretude)' },
+    { value: 'CAB/RPV', label: 'CAB/RPV (Cabenuva)' },
+    { value: 'DTG/TDF/3TC', label: 'DTG/TDF/3TC (TLD)' },
+    { value: 'LEN', label: 'LEN (lenacapavir/Sunlenca)' }
   ];
   
   // List of common co-medications
   const medicationCategories = [
     {
-      category: 'Cardiac Medications',
+      category: 'Thuốc Tim Mạch',
       options: [
         'Amiodarone', 'Digoxin', 'Flecainide', 'Propafenone', 'Quinidine', 'Sotalol'
       ]
     },
     {
-      category: 'Antiviral Medications',
+      category: 'Thuốc Kháng Virus',
       options: [
         'Acyclovir', 'Ganciclovir', 'Ribavirin', 'Entecavir', 'Remdesivir', 'Sofosbuvir'
       ]
     },
     {
-      category: 'Antibiotics',
+      category: 'Kháng Sinh',
       options: [
         'Azithromycin', 'Clarithromycin', 'Ciprofloxacin', 'Doxycycline', 'Rifampin', 'Trimethoprim-Sulfamethoxazole'
       ]
     },
     {
-      category: 'Psychotropic Medications',
+      category: 'Thuốc Tâm Thần',
       options: [
         'Amitriptyline', 'Fluoxetine', 'Bupropion', 'Carbamazepine', 'Lamotrigine', 'Risperidone'
       ]
     },
     {
-      category: 'Other Medications',
+      category: 'Thuốc Khác',
       options: [
         'Methadone', 'Metformin', 'Atorvastatin', 'Warfarin', 'Prednisone', 'Tacrolimus'
       ]
@@ -107,15 +130,6 @@ const ARVSelectionTool = () => {
       setComorbidities([...comorbidities, value]);
     } else {
       setComorbidities(comorbidities.filter(item => item !== value));
-    }
-  };
-  
-  const handleExcludedARVChange = (e) => {
-    const value = e.target.value;
-    if (e.target.checked) {
-      setExcludedARVs([...excludedARVs, value]);
-    } else {
-      setExcludedARVs(excludedARVs.filter(item => item !== value));
     }
   };
   
@@ -134,6 +148,15 @@ const ARVSelectionTool = () => {
       setCurrentRegimen([...currentRegimen, value]);
     } else {
       setCurrentRegimen(currentRegimen.filter(item => item !== value));
+    }
+  };
+  
+  const handlePreferredRegimenChange = (e) => {
+    const value = e.target.value;
+    if (e.target.checked) {
+      setPreferredRegimen([...preferredRegimen, value]);
+    } else {
+      setPreferredRegimen(preferredRegimen.filter(item => item !== value));
     }
   };
   
@@ -156,8 +179,8 @@ const ARVSelectionTool = () => {
           {/* Main Content */}
           <Col md={9} lg={10} className="main-content">
             <div className="content-header">
-              <h2>ARV Selection Tool</h2>
-              <p>Personalized HIV treatment recommendations</p>
+              <h2>Công Cụ Lựa Chọn ARV</h2>
+              <p>Khuyến nghị điều trị HIV cá nhân hóa</p>
             </div>
             
             <Card className="mb-4">
@@ -165,109 +188,22 @@ const ARVSelectionTool = () => {
                 <Form onSubmit={handleSubmit}>
                   <Row>
                     <Col md={6}>
-                      {/* Mutations */}
-                      <Form.Group className="mb-4">
-                        <Form.Label className="fw-bold d-flex align-items-center">
-                          <FontAwesomeIcon icon={faDna} className="me-2" />
-                          Mutations
-                        </Form.Label>
-                        <Form.Control
-                          as="textarea"
-                          rows={2}
-                          value={mutations}
-                          onChange={(e) => setMutations(e.target.value)}
-                          placeholder="Enter mutations (e.g., M184V, K65R)"
-                        />
-                        <Form.Text className="text-muted">
-                          Enter the patient's HIV mutations separated by commas
-                        </Form.Text>
-                      </Form.Group>
-                      
-                      {/* Adherence Options */}
-                      <Form.Group className="mb-4">
-                        <Form.Label className="fw-bold d-flex align-items-center">
-                          <FontAwesomeIcon icon={faPills} className="me-2" />
-                          Adherence
-                        </Form.Label>
-                        <div className="border rounded p-3">
-                          <Form.Check
-                            type="switch"
-                            id="pill-burden"
-                            label="Prioritize fewer and smaller pills"
-                            checked={pillBurden}
-                            onChange={(e) => setPillBurden(e.target.checked)}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="switch"
-                            id="pill-frequency"
-                            label="Prioritize once daily dosing"
-                            checked={pillFrequency}
-                            onChange={(e) => setPillFrequency(e.target.checked)}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="switch"
-                            id="resistance-barrier"
-                            label="Prioritize drugs with higher barrier to resistance"
-                            checked={resistanceBarrier}
-                            onChange={(e) => setResistanceBarrier(e.target.checked)}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="switch"
-                            id="active-three-drugs"
-                            label="Prioritize at least 3 active drugs"
-                            checked={activeThreeDrugs}
-                            onChange={(e) => setActiveThreeDrugs(e.target.checked)}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="switch"
-                            id="penalize-injectable"
-                            label="Penalize IV/IM/SC dosing"
-                            checked={penalizeInjectable}
-                            onChange={(e) => setPenalizeInjectable(e.target.checked)}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="switch"
-                            id="prioritize-injectable"
-                            label="Prioritize IV/IM/SC dosing"
-                            checked={prioritizeInjectable}
-                            onChange={(e) => setPrioritizeInjectable(e.target.checked)}
-                            className="mb-2"
-                          />
-                          <Form.Check
-                            type="switch"
-                            id="penalize-food"
-                            label="Penalize regimens with food requirements"
-                            checked={penalizeFood}
-                            onChange={(e) => setPenalizeFood(e.target.checked)}
-                            className="mb-2"
-                          />
-                        </div>
-                        <Form.Text className="text-muted">
-                          Select options to optimize for patient's adherence patterns
-                        </Form.Text>
-                      </Form.Group>
-                      
                       {/* Viral Load */}
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faVial} className="me-2" />
-                          Viral Load
+                          Tải Lượng Virus
                         </Form.Label>
                         <Form.Select 
                           value={viralLoad}
                           onChange={(e) => setViralLoad(e.target.value)}
                         >
-                          <option value="unknown">Unknown</option>
-                          <option value="suppressed_6m">Suppressed (&lt;50) for more than 6 months</option>
-                          <option value="suppressed_recent">Suppressed (&lt;50) for less than 6 months</option>
-                          <option value="low">Low (200 - 100,000)</option>
-                          <option value="high">High (100,000 - 500,000)</option>
-                          <option value="very_high">Very high (≥ 500,000)</option>
+                          <option value="unknown">Không rõ</option>
+                          <option value="suppressed_6m">Được kiểm soát (&lt;50) hơn 6 tháng</option>
+                          <option value="suppressed_recent">Được kiểm soát (&lt;50) dưới 6 tháng</option>
+                          <option value="low">Thấp (200 - 100,000)</option>
+                          <option value="high">Cao (100,000 - 500,000)</option>
+                          <option value="very_high">Rất cao (≥ 500,000)</option>
                         </Form.Select>
                       </Form.Group>
                       
@@ -275,13 +211,13 @@ const ARVSelectionTool = () => {
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faVial} className="me-2" />
-                          CD4 Cell Count
+                          Số Lượng Tế Bào CD4
                         </Form.Label>
                         <Form.Select 
                           value={cd4Count}
                           onChange={(e) => setCd4Count(e.target.value)}
                         >
-                          <option value="unknown">Unknown</option>
+                          <option value="unknown">Không rõ</option>
                           <option value="le_50">≤ 50</option>
                           <option value="le_100">≤ 100</option>
                           <option value="le_200">≤ 200</option>
@@ -293,14 +229,14 @@ const ARVSelectionTool = () => {
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faAllergies} className="me-2" />
-                          HLA-B5701
+                          Trạng thái HLA-B5701
                         </Form.Label>
                         <Form.Select 
                           value={hlaB5701}
                           onChange={(e) => setHlaB5701(e.target.value)}
                         >
-                          <option value="positive">Positive (or unknown)</option>
-                          <option value="negative">Negative</option>
+                          <option value="positive">Dương tính </option>
+                          <option value="negative">Âm tính</option>
                         </Form.Select>
                       </Form.Group>
                       
@@ -308,16 +244,16 @@ const ARVSelectionTool = () => {
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faVial} className="me-2" />
-                          Tropism
+                          Tính Hướng Thụ Thể
                         </Form.Label>
                         <Form.Select 
                           value={tropism}
                           onChange={(e) => setTropism(e.target.value)}
                         >
-                          <option value="unknown">Unknown</option>
-                          <option value="r5">R5 virus</option>
-                          <option value="x4">X4 virus</option>
-                          <option value="dual">Dual Tropic virus</option>
+                          <option value="unknown">Không rõ</option>
+                          <option value="r5">Virus R5</option>
+                          <option value="x4">Virus X4</option>
+                          <option value="dual">Virus Hướng Thụ Thể Kép</option>
                         </Form.Select>
                       </Form.Group>
                     </Col>
@@ -327,7 +263,7 @@ const ARVSelectionTool = () => {
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faCapsules} className="me-2" />
-                          Current Regimen
+                          Phác Đồ Hiện Tại
                         </Form.Label>
                         <div className="border rounded p-3" style={{ maxHeight: '150px', overflowY: 'auto' }}>
                           {arvOptions.map(arv => (
@@ -344,7 +280,7 @@ const ARVSelectionTool = () => {
                           ))}
                         </div>
                         <Form.Text className="text-muted">
-                          Select the patient's current ARV regimen (if any)
+                          Chọn phác đồ ARV hiện tại của bệnh nhân (nếu có)
                         </Form.Text>
                       </Form.Group>
                       
@@ -352,7 +288,7 @@ const ARVSelectionTool = () => {
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
-                          Co-medications
+                          Thuốc Phối Hợp
                         </Form.Label>
                         <div className="border rounded p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                           {medicationCategories.map((category, index) => (
@@ -374,7 +310,7 @@ const ARVSelectionTool = () => {
                           ))}
                         </div>
                         <Form.Text className="text-muted">
-                          Select any other medications the patient is currently taking
+                          Chọn các thuốc khác mà bệnh nhân đang sử dụng
                         </Form.Text>
                       </Form.Group>
                       
@@ -382,7 +318,7 @@ const ARVSelectionTool = () => {
                       <Form.Group className="mb-4">
                         <Form.Label className="fw-bold d-flex align-items-center">
                           <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                          Comorbidities
+                          Bệnh Đồng Mắc
                         </Form.Label>
                         <div className="border rounded p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                           {comorbidityOptions.map(option => (
@@ -404,59 +340,38 @@ const ARVSelectionTool = () => {
                           ))}
                         </div>
                       </Form.Group>
-                      
-                      {/* Preferred Regimen */}
-                      <Form.Group className="mb-4">
-                        <Form.Label className="fw-bold d-flex align-items-center">
-                          <FontAwesomeIcon icon={faSyringe} className="me-2" />
-                          Preferred Regimen
-                        </Form.Label>
-                        <Form.Select 
-                          value={preferredRegimen}
-                          onChange={(e) => setPreferredRegimen(e.target.value)}
-                        >
-                          <option value="">Select preferred regimen (optional)</option>
-                          {arvOptions.map(arv => (
-                            <option key={`preferred-${arv.value}`} value={arv.value}>
-                              {arv.label}
-                            </option>
-                          ))}
-                        </Form.Select>
-                        <Form.Text className="text-muted">
-                          Select the ART regimen you are considering for this patient
-                        </Form.Text>
-                      </Form.Group>
-                      
-                      {/* Excluded ARVs */}
-                      <Form.Group className="mb-4">
-                        <Form.Label className="fw-bold d-flex align-items-center">
-                          <FontAwesomeIcon icon={faAllergies} className="me-2" />
-                          Exclude these ARVs
-                        </Form.Label>
-                        <Form.Text className="text-muted d-block mb-2">
-                          Older and less preferred ARVs are pre-selected for exclusion
-                        </Form.Text>
-                        <div className="border rounded p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                          {arvOptions.map(arv => (
-                            <Form.Check
-                              key={arv.value}
-                              type="checkbox"
-                              id={`exclude-${arv.value}`}
-                              label={arv.label}
-                              value={arv.value}
-                              checked={excludedARVs.includes(arv.value)}
-                              onChange={handleExcludedARVChange}
-                              className="mb-2"
-                            />
-                          ))}
-                        </div>
-                      </Form.Group>
                     </Col>
                   </Row>
                   
+                  {/* Preferred Regimen - Full Width */}
+                  <Form.Group className="mb-4">
+                    <Form.Label className="fw-bold d-flex align-items-center">
+                      <FontAwesomeIcon icon={faSyringe} className="me-2" />
+                      Phác Đồ Ưu Tiên
+                    </Form.Label>
+                    <Row>
+                      {arvOptions.map((arv, index) => (
+                        <Col md={4} key={`preferred-${arv.value}`} className="mb-2">
+                          <Form.Check
+                            type="checkbox"
+                            id={`preferred-${arv.value}`}
+                            label={arv.label}
+                            value={arv.value}
+                            checked={preferredRegimen.includes(arv.value)}
+                            onChange={handlePreferredRegimenChange}
+                            className="small-text"
+                          />
+                        </Col>
+                      ))}
+                    </Row>
+                    <Form.Text className="text-muted">
+                      Chọn phác đồ ART mà bạn đang cân nhắc cho bệnh nhân này
+                    </Form.Text>
+                  </Form.Group>
+                  
                   <div className="d-flex justify-content-center mt-4">
                     <Button type="submit" variant="primary" size="lg">
-                      Generate Recommendations
+                      Tạo Khuyến Nghị
                     </Button>
                   </div>
                 </Form>

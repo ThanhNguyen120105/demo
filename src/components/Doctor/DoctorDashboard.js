@@ -135,7 +135,7 @@ const DoctorDashboard = () => {
           }
         ],
         assessment: 'Patient is clinically stable with good virologic and immunologic response to current antiretroviral therapy.',
-        plan: 'Continue current antiretroviral therapy. Follow up in 3 months with repeat CD4 count and viral load. Encourage adherence to medication regimen and safe sex practices.',
+        plan: 'Continue current antiretroviral therapy. Follow up in 3 months with repeat CD4 count and viral load. Encourage safe sex practices.',
         recommendations: [
           'Maintain healthy diet and regular exercise',
           'Avoid alcohol consumption',

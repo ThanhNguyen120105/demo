@@ -28,7 +28,7 @@ export const services = [
     slug: 'treatment',
     icon: faPills,
     description: 'Kế hoạch điều trị cá nhân hóa sử dụng các loại thuốc kháng retrovirus và liệu pháp mới nhất.',
-    fullDescription: "Chương trình Liệu Pháp Kháng Retrovirus (ART) của chúng tôi cung cấp kế hoạch điều trị cá nhân hóa sử dụng các loại thuốc và phương pháp điều trị tiên tiến nhất. Chăm sóc toàn diện của chúng tôi bao gồm:\n\n• Phác đồ thuốc được điều chỉnh riêng cho từng người\n• Theo dõi và điều chỉnh thường xuyên\n• Hỗ trợ tuân thủ dùng thuốc\n• Quản lý tác dụng phụ của thuốc\n• Tiếp cận với các thử nghiệm lâm sàng về liệu pháp mới\n\nMục tiêu của chúng tôi là đạt được sự ức chế virus, cải thiện chức năng miễn dịch và nâng cao chất lượng cuộc sống tổng thể của bạn.",
+    fullDescription: "Chương trình Liệu Pháp Kháng Retrovirus (ART) của chúng tôi cung cấp kế hoạch điều trị cá nhân hóa sử dụng các loại thuốc và phương pháp điều trị tiên tiến nhất. Chăm sóc toàn diện của chúng tôi bao gồm:\n\n• Phác đồ thuốc được điều chỉnh riêng cho từng người\n• Theo dõi và điều chỉnh thường xuyên\n• Hỗ trợ quản lý thuốc\n• Quản lý tác dụng phụ của thuốc\n• Tiếp cận với các thử nghiệm lâm sàng về liệu pháp mới\n\nMục tiêu của chúng tôi là đạt được sự ức chế virus, cải thiện chức năng miễn dịch và nâng cao chất lượng cuộc sống tổng thể của bạn.",
     image: '/images/services/treatment.jpg'
   },
   {
@@ -112,8 +112,8 @@ export const doctors = [
     name: 'Bác Sĩ TRẦN THỊ MINH',
     specialty: 'Dược sĩ Lâm sàng HIV',
     image: '/images/doctors/doctor2.jpg',
-    shortBio: 'Dược sĩ chuyên khoa tập trung vào quản lý thuốc và hỗ trợ tuân thủ.',
-    fullBio: "Bác Sĩ TRẦN THỊ MINH là Dược sĩ Lâm sàng HIV của chúng tôi với đào tạo chuyên biệt về quản lý thuốc kháng retrovirus. Ông có bằng Tiến sĩ Dược từ Đại học Michigan và hoàn thành chương trình nội trú chuyên khoa về Dược lý HIV tại Bệnh viện Northwestern Memorial.\n\nBác Sĩ Chen làm việc chặt chẽ với đội ngũ y tế của chúng tôi để tối ưu hóa phác đồ thuốc, quản lý tương tác thuốc và phát triển chiến lược tuân thủ. Ông cũng dẫn dắt các chương trình giáo dục về thuốc và nhóm hỗ trợ cho bệnh nhân bắt đầu điều trị mới.",
+    shortBio: 'Dược sĩ chuyên khoa tập trung vào quản lý thuốc và tối ưu hóa điều trị.',
+    fullBio: "Bác Sĩ TRẦN THỊ MINH là Dược sĩ Lâm sàng HIV của chúng tôi với đào tạo chuyên biệt về quản lý thuốc kháng retrovirus. Ông có bằng Tiến sĩ Dược từ Đại học Michigan và hoàn thành chương trình nội trú chuyên khoa về Dược lý HIV tại Bệnh viện Northwestern Memorial.\n\nBác Sĩ Chen làm việc chặt chẽ với đội ngũ y tế của chúng tôi để tối ưu hóa phác đồ thuốc, quản lý tương tác thuốc và phát triển chiến lược điều trị hiệu quả. Ông cũng dẫn dắt các chương trình giáo dục về thuốc và nhóm hỗ trợ cho bệnh nhân bắt đầu điều trị mới.",
     education: [
       'Tiến sĩ Dược, Trường Đại học Dược Michigan',
       'Nội trú về Dược lý HIV, Bệnh viện Northwestern Memorial'
@@ -130,7 +130,7 @@ export const doctors = [
     specialty: 'Bác sĩ Chăm sóc chính HIV',
     image: '/images/doctors/doctor3.jpg',
     shortBio: 'Chăm sóc chính toàn diện với chuyên môn về HIV và sức khỏe phòng ngừa.',
-    fullBio: "Bác Sĩ Amara Okafor là Bác Sĩ Chăm Sóc Chính HIV của chúng tôi, cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho bệnh nhân sống chung với HIV. Bà nhận bằng y khoa từ Trường Y Howard University và hoàn thành chương trình nội trú về Y học Gia đình tại Đại học Emory.\n\nBác Sĩ Okafor chuyên về quản lý nhu cầu chăm sóc sức khỏe chính của người sống chung với HIV, bao gồm chăm sóc phòng ngừa, quản lý bệnh mãn tính và duy trì sức khỏe. Bà nổi tiếng về cách tiếp cận toàn diện đối với chăm sóc bệnh nhân và nhấn mạnh mạnh mẽ vào việc giáo dục bệnh nhân.",
+    fullBio: "Bác Sĩ Amara Okafor là Bác Sĩ Chăm Sóc Chính HIV của chúng tôi, cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho bệnh nhân sống chung với HIV. Bà nhận bằng y khoa từ Trường Y Howard University và hoàn thành chương trình nội trú về Y học Gia đình tại Đại học Emory.\n\nBác Sĩ Okafor chuyên về quản lý nhu cầu chăm sóc sức khỏe chính của người sống chung với HIV, bao gồm chăm sóc phòng ngừa, quản lý bệnh mãn tính và duy trì sức khỏe. Bà nổi tiếng về cách tiếp cận toàn diện đối với chăm sóc bệnh nhân và nhấn mạnh mẽ vào việc giáo dục bệnh nhân.",
     education: [
       'Bác sĩ Y khoa, Trường Y Howard University',
       'Nội trú về Y học Gia đình, Đại học Emory',
@@ -248,7 +248,7 @@ export const news = [
       full: 'Ngày 15 tháng 5, 2023'
     },
     summary: 'FDA đã phê duyệt phương pháp điều trị HIV dạng tiêm tác động dài mới chỉ yêu cầu dùng thuốc hai tháng một lần.',
-    content: "Trong một bước tiến quan trọng cho việc điều trị HIV, FDA đã phê duyệt một loại thuốc tiêm tác động dài mới chỉ yêu cầu dùng liều hai tháng một lần. Đột phá này cung cấp một lựa chọn thay thế cho các loại thuốc uống hàng ngày vốn là tiêu chuẩn chăm sóc trong nhiều thập kỷ.\n\nPhương pháp điều trị mới, kết hợp hai loại thuốc kháng retrovirus trong một mũi tiêm, đã thể hiện hiệu quả cao trong các thử nghiệm lâm sàng với hồ sơ an toàn tương đương với các phác đồ uống hàng ngày. Đối với nhiều bệnh nhân, đây có thể là một lựa chọn đột phá giúp đơn giản hóa việc điều trị và có khả năng cải thiện sự tuân thủ.\n\n\"Sự phê duyệt này đánh dấu một sự thay đổi mô hình trong cách chúng ta tiếp cận điều trị HIV,\" Bác Sĩ Sarah Johnson, Chuyên Gia Bệnh Truyền Nhiễm của chúng tôi nói. \"Đối với những bệnh nhân gặp khó khăn với việc uống thuốc hàng ngày hoặc đơn giản là thích một lựa chọn khác, phương pháp điều trị tác động dài này có thể cải thiện đáng kể chất lượng cuộc sống trong khi vẫn duy trì sự ức chế virus.\"\n\nTrung tâm của chúng tôi sẽ bắt đầu cung cấp lựa chọn điều trị này cho các bệnh nhân đủ điều kiện bắt đầu từ tháng tới. Những cá nhân quan tâm nên lên lịch tư vấn với nhà cung cấp dịch vụ chăm sóc HIV của họ để thảo luận xem liệu lựa chọn mới này có phù hợp với kế hoạch chăm sóc của họ hay không.",
+    content: "Trong một bước tiến quan trọng cho việc điều trị HIV, FDA đã phê duyệt một loại thuốc tiêm tác động dài mới chỉ yêu cầu dùng liều hai tháng một lần. Đột phá này cung cấp một lựa chọn thay thế cho các loại thuốc uống hàng ngày vốn là tiêu chuẩn chăm sóc trong nhiều thập kỷ.\n\nPhương pháp điều trị mới, kết hợp hai loại thuốc kháng retrovirus trong một mũi tiêm, đã thể hiện hiệu quả cao trong các thử nghiệm lâm sàng với hồ sơ an toàn tương đương với các phác đồ uống hàng ngày. Đối với nhiều bệnh nhân, đây có thể là một lựa chọn đột phá giúp đơn giản hóa việc điều trị và có khả năng cải thiện chất lượng cuộc sống.\n\n\"Sự phê duyệt này đánh dấu một sự thay đổi mô hình trong cách chúng ta tiếp cận điều trị HIV,\" Bác Sĩ Sarah Johnson, Chuyên Gia Bệnh Truyền Nhiễm của chúng tôi nói. \"Đối với những bệnh nhân gặp khó khăn với việc uống thuốc hàng ngày hoặc đơn giản là thích một lựa chọn khác, phương pháp điều trị tác động dài này có thể cải thiện đáng kể chất lượng cuộc sống trong khi vẫn duy trì sự ức chế virus.\"\n\nTrung tâm của chúng tôi sẽ bắt đầu cung cấp lựa chọn điều trị này cho các bệnh nhân đủ điều kiện bắt đầu từ tháng tới. Những cá nhân quan tâm nên lên lịch tư vấn với nhà cung cấp dịch vụ chăm sóc HIV của họ để thảo luận xem liệu lựa chọn mới này có phù hợp với kế hoạch chăm sóc của họ hay không.",
     author: 'Đội ngũ Y tế',
     category: 'Cập nhật Điều trị'
   },
@@ -403,7 +403,7 @@ export const faqs = [
   {
     id: 6,
     question: 'Trung tâm cung cấp những dịch vụ hỗ trợ nào ngoài chăm sóc y tế?',
-    answer: 'Chúng tôi cung cấp nhiều dịch vụ hỗ trợ toàn diện bao gồm: quản lý trường hợp để giúp điều phối chăm sóc sức khỏe và tiếp cận nguồn lực; dịch vụ sức khỏe tâm thần bao gồm trị liệu cá nhân và nhóm hỗ trợ; tư vấn dinh dưỡng; hỗ trợ tuân thủ dùng thuốc; hướng dẫn bảo hiểm; giới thiệu điều trị sử dụng chất gây nghiện; hỗ trợ nhà ở và vận chuyển; giới thiệu chăm sóc nha khoa; và giới thiệu dịch vụ pháp lý. Mục tiêu của chúng tôi là giải quyết tất cả các yếu tố ảnh hưởng đến sức khỏe và chất lượng cuộc sống của bạn.'
+    answer: 'Chúng tôi cung cấp nhiều dịch vụ hỗ trợ toàn diện bao gồm: quản lý trường hợp để giúp điều phối chăm sóc sức khỏe và tiếp cận nguồn lực; dịch vụ sức khỏe tâm thần bao gồm trị liệu cá nhân và nhóm hỗ trợ; tư vấn dinh dưỡng; hỗ trợ quản lý thuốc; hướng dẫn bảo hiểm; giới thiệu điều trị sử dụng chất gây nghiện; hỗ trợ nhà ở và vận chuyển; giới thiệu chăm sóc nha khoa; và giới thiệu dịch vụ pháp lý. Mục tiêu của chúng tôi là giải quyết tất cả các yếu tố ảnh hưởng đến sức khỏe và chất lượng cuộc sống của bạn.'
   },
   {
     id: 7,

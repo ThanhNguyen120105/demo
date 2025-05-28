@@ -11,8 +11,6 @@ import {
   faSignInAlt, 
   faHospital,
   faHome,
-  faStethoscope,
-  faNotesMedical,
   faInfoCircle,
   faNewspaper,
   faEnvelope,
@@ -21,7 +19,7 @@ import {
   faLocationArrow,
   faUserPlus,
   faUserTie,
-  faClipboardList
+  faVial
 } from '@fortawesome/free-solid-svg-icons';
 import './Header.css';
 import logo from '../../assets/images/logo.png';
@@ -68,6 +66,12 @@ const Header = () => {
                 <Link to="/staff/doctor-management" className="action-link">
                   <FontAwesomeIcon icon={faUserTie} />
                   <span>Staff</span>
+                </Link>
+              </div>
+              <div className="action-item">
+                <Link to="/test-results" className="action-link">
+                  <FontAwesomeIcon icon={faVial} />
+                  <span>Kết quả XN</span>
                 </Link>
               </div>
               <div className="action-item">
@@ -128,6 +132,13 @@ const Header = () => {
                 </div>
               </Nav.Link>
               
+              <Nav.Link as={Link} to="/test-results" onClick={() => setExpanded(false)}>
+                <div className="nav-icon-container">
+                  <FontAwesomeIcon icon={faVial} className="nav-icon" />
+                  <span>Kết quả XN & Lịch sử</span>
+                </div>
+              </Nav.Link>
+              
               <Dropdown className="nav-dropdown">
                 <Dropdown.Toggle as={Nav.Link}>
                   <div className="nav-icon-container">
@@ -151,22 +162,7 @@ const Header = () => {
                 </Dropdown.Menu>
               </Dropdown>
               
-              <Dropdown className="nav-dropdown">
-                <Dropdown.Toggle as={Nav.Link}>
-                  <div className="nav-icon-container">
-                    <FontAwesomeIcon icon={faUserTie} className="nav-icon" />
-                    <span>Quản lý</span>
-                  </div>
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/staff/doctor-management" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faClipboardList} className="dropdown-icon" /> Quản lý Bác sĩ & Lịch hẹn
-                  </Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/doctor/dashboard" onClick={() => setExpanded(false)}>
-                    <FontAwesomeIcon icon={faUserMd} className="dropdown-icon" /> Dashboard Bác sĩ
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+
             </Nav>
 
             <div className="header-action-buttons">
