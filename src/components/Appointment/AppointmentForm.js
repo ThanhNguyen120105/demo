@@ -138,8 +138,7 @@ const AppointmentForm = () => {
                   onChange={handleInputChange}
                   className="form-select"
                   required
-                >
-              
+                > 
                   <option value="hiv-test">🧪 Xét nghiệm và điều trị HIV</option>
                 </Form.Select>
                 {formData.serviceType && (

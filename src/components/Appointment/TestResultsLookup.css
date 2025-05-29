@@ -24,6 +24,11 @@
   margin: 0;
   opacity: 0.9;
   font-size: 1.1rem;
+  text-align: center !important;
+}
+
+.test-results-lookup .page-header p {
+  text-align: center !important;
 }
 
 /* Search and Filter Card */
@@ -252,9 +257,12 @@
 
 /* Next Visit */
 .next-visit {
-  font-size: 0.85rem;
-  color: #495057;
+  color: #28a745;
   font-weight: 500;
+}
+
+.next-visit .fa-calendar-alt {
+  color: #17a2b8;
 }
 
 /* Button Styling */

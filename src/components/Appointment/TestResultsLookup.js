@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Table, Badge, Modal, Tabs, Tab } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Table, Badge, Modal, Tabs, Tab, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faVial, faSearch, faCalendarAlt, faDownload, faEye,
@@ -42,11 +42,13 @@ const TestResultsLookup = () => {
       id: 1,
       patientId: 'HIV001',
       patientName: 'Nguyễn Văn A',
+      appointmentId: 'APT-2024-001',
       testDate: '2024-01-15',
       testType: 'HIV Viral Load',
       result: 'Undetectable (<50 copies/mL)',
       status: 'completed',
       doctor: 'BS. Trần Thị B',
+      nextVisit: '2024-04-15',
       cd4Count: 650,
       viralLoad: '<50',
       arvRegimen: ['DTG', 'TAF', 'FTC'],
@@ -67,11 +69,13 @@ const TestResultsLookup = () => {
       id: 2,
       patientId: 'HIV002',
       patientName: 'Lê Thị C',
+      appointmentId: 'APT-2024-002',
       testDate: '2024-01-10',
       testType: 'CD4 Count',
       result: '450 cells/μL',
       status: 'completed',
       doctor: 'BS. Phạm Văn D',
+      nextVisit: '2024-04-10',
       cd4Count: 450,
       viralLoad: '85',
       arvRegimen: ['BIC/TAF/FTC'],
@@ -92,11 +96,13 @@ const TestResultsLookup = () => {
       id: 3,
       patientId: 'HIV003',
       patientName: 'Hoàng Minh E',
+      appointmentId: 'APT-2024-003',
       testDate: '2024-01-08',
       testType: 'ARV Resistance',
       result: 'K65R resistance detected',
       status: 'completed',
       doctor: 'BS. Nguyễn Thị F',
+      nextVisit: '2024-02-08',
       cd4Count: 320,
       viralLoad: '15000',
       arvRegimen: ['DRV/r', 'TAF', '3TC'],
@@ -117,11 +123,13 @@ const TestResultsLookup = () => {
       id: 4,
       patientId: 'HIV001',
       patientName: 'Nguyễn Văn A',
+      appointmentId: 'APT-2023-045',
       testDate: '2023-12-15',
       testType: 'HIV Viral Load',
       result: '150 copies/mL',
       status: 'completed',
       doctor: 'BS. Trần Thị B',
+      nextVisit: '2024-01-15',
       cd4Count: 580,
       viralLoad: '150',
       arvRegimen: ['DTG', 'TAF', 'FTC'],
@@ -142,11 +150,13 @@ const TestResultsLookup = () => {
       id: 5,
       patientId: 'HIV004',
       patientName: 'Vũ Thị G',
+      appointmentId: 'APT-2024-004',
       testDate: '2024-01-12',
       testType: 'Complete Panel',
       result: 'VL: <50, CD4: 720',
       status: 'completed',
       doctor: 'BS. Lê Văn H',
+      nextVisit: '2024-07-12',
       cd4Count: 720,
       viralLoad: '<50',
       arvRegimen: ['DTG/ABC/3TC'],
@@ -167,11 +177,13 @@ const TestResultsLookup = () => {
       id: 6,
       patientId: 'HIV005',
       patientName: 'Phạm Thị H',
+      appointmentId: 'APT-2024-005',
       testDate: '2024-01-05',
       testType: 'HIV Viral Load',
       result: '2500 copies/mL',
       status: 'completed',
       doctor: 'BS. Nguyễn Văn I',
+      nextVisit: '2024-01-19',
       cd4Count: 280,
       viralLoad: '2500',
       arvRegimen: ['EFV', 'TDF', 'FTC'],
@@ -192,11 +204,13 @@ const TestResultsLookup = () => {
       id: 7,
       patientId: 'HIV006',
       patientName: 'Trần Văn K',
+      appointmentId: 'APT-2024-006',
       testDate: '2024-01-03',
       testType: 'ARV Resistance',
       result: 'Multiple resistance detected',
       status: 'completed',
       doctor: 'BS. Lê Thị L',
+      nextVisit: '2024-01-17',
       cd4Count: 180,
       viralLoad: '45000',
       arvRegimen: ['DRV/r', 'RPV', 'TAF'],
@@ -217,11 +231,13 @@ const TestResultsLookup = () => {
       id: 8,
       patientId: 'HIV007',
       patientName: 'Ngô Thị M',
+      appointmentId: 'APT-2024-007',
       testDate: '2024-01-01',
       testType: 'Complete Panel',
       result: 'VL: 250, CD4: 380',
       status: 'completed',
       doctor: 'BS. Hoàng Văn N',
+      nextVisit: '2024-01-29',
       cd4Count: 380,
       viralLoad: '250',
       arvRegimen: ['DTG/3TC'],
@@ -358,13 +374,14 @@ const TestResultsLookup = () => {
 
   const filteredTestResults = testResults.filter(test => {
     const matchesSearch = test.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         test.patientId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPatient = selectedPatient === '' || test.patientId === selectedPatient;
+                         test.patientId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         test.appointmentId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesAppointment = selectedPatient === '' || test.appointmentId === selectedPatient;
     const matchesTestType = testType === 'all' || test.testType.toLowerCase().includes(testType.toLowerCase());
     const matchesDateRange = (!dateRange.from || test.testDate >= dateRange.from) &&
                             (!dateRange.to || test.testDate <= dateRange.to);
     
-    return matchesSearch && matchesPatient && matchesTestType && matchesDateRange;
+    return matchesSearch && matchesAppointment && matchesTestType && matchesDateRange;
   });
 
   const filteredMedicalHistory = medicalHistory.filter(visit => {
@@ -398,8 +415,6 @@ const TestResultsLookup = () => {
     setShowDetailModal(true);
   };
 
-  const uniquePatients = [...new Set(testResults.map(test => test.patientId))];
-
   return (
     <Container fluid className="test-results-lookup">
       <div className="page-header">
@@ -407,7 +422,7 @@ const TestResultsLookup = () => {
           <FontAwesomeIcon icon={faVial} className="me-2" />
           Tra Cứu Kết Quả Xét Nghiệm & Lịch Sử Khám Bệnh
         </h2>
-        <p>Theo dõi kết quả xét nghiệm HIV, phác đồ ARV và lịch sử điều trị</p>
+        <p style={{textAlign: 'center'}}>Theo dõi kết quả xét nghiệm HIV, phác đồ ARV và lịch sử điều trị</p>
       </div>
 
       {/* Search and Filter Section */}
@@ -430,21 +445,21 @@ const TestResultsLookup = () => {
             </Col>
             <Col md={2}>
               <Form.Group>
-                <Form.Label>Bệnh nhân</Form.Label>
+                <Form.Label>Mã Lịch Hẹn</Form.Label>
                 <Form.Select
                   value={selectedPatient}
                   onChange={(e) => setSelectedPatient(e.target.value)}
                 >
                   <option value="">Tất cả</option>
-                  {uniquePatients.map(patientId => (
-                    <option key={patientId} value={patientId}>{patientId}</option>
+                  {[...new Set(testResults.map(test => test.appointmentId))].map(appointmentId => (
+                    <option key={appointmentId} value={appointmentId}>{appointmentId}</option>
                   ))}
                 </Form.Select>
               </Form.Group>
             </Col>
             <Col md={2}>
               <Form.Group>
-                <Form.Label>Loại xét nghiệm</Form.Label>
+                <Form.Label>Loại Xét Nghiệm</Form.Label>
                 <Form.Select
                   value={testType}
                   onChange={(e) => setTestType(e.target.value)}
@@ -516,48 +531,39 @@ const TestResultsLookup = () => {
               <Table responsive striped hover>
                 <thead>
                   <tr>
-                    <th>Mã BN</th>
-                    <th>Tên Bệnh Nhân</th>
+                    <th>Mã Lịch Hẹn</th>
                     <th>Ngày XN</th>
-                    <th>Loại XN</th>
-                    <th>Viral Load</th>
-                    <th>CD4</th>
-                    <th>Phác Đồ ARV</th>
-                    <th>Trạng Thái</th>
+                    <th>Bác Sĩ</th>
+                    <th>Loại Xét Nghiệm</th>
+                    <th>Ngày Tái Khám</th>
                     <th>Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTestResults.map(test => (
                     <tr key={test.id}>
-                      <td><strong>{test.patientId}</strong></td>
-                      <td>{test.patientName}</td>
+                      <td><strong>{test.appointmentId}</strong></td>
                       <td>
                         <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                         {new Date(test.testDate).toLocaleDateString('vi-VN')}
                       </td>
                       <td>
+                        <FontAwesomeIcon icon={faStethoscope} className="me-1" />
+                        {test.doctor}
+                      </td>
+                      <td>
                         <Badge bg="info">{test.testType}</Badge>
                       </td>
                       <td>
-                        <span className={`viral-load ${test.viralLoad === '<50' || test.viralLoad === 'Undetectable' ? 'undetectable' : 
-                          parseInt(test.viralLoad) < 1000 ? 'low' : parseInt(test.viralLoad) < 10000 ? 'medium' : 'high'}`}>
-                          {test.viralLoad} {test.viralLoad !== '<50' && test.viralLoad !== 'Undetectable' ? 'copies/mL' : ''}
-                        </span>
+                        {test.nextVisit ? (
+                          <span className="next-visit">
+                            <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
+                            {new Date(test.nextVisit).toLocaleDateString('vi-VN')}
+                          </span>
+                        ) : (
+                          <span className="text-muted">Chưa xác định</span>
+                        )}
                       </td>
-                      <td>
-                        <span className={`cd4-count ${test.cd4Count > 500 ? 'high' : test.cd4Count > 200 ? 'medium' : 'low'}`}>
-                          {test.cd4Count} cells/μL
-                        </span>
-                      </td>
-                      <td className="arv-regimen">
-                        {test.arvRegimen.map((arv, index) => (
-                          <Badge key={index} bg="secondary" className="me-1">
-                            {arv}
-                          </Badge>
-                        ))}
-                      </td>
-                      <td>{getStatusBadge(test.status)}</td>
                       <td>
                         <Button
                           variant="outline-primary"
@@ -669,6 +675,7 @@ const TestResultsLookup = () => {
                 <h6><FontAwesomeIcon icon={faUser} className="me-1" />Thông Tin Bệnh Nhân</h6>
                 <p><strong>Mã BN:</strong> {selectedTest.patientId}</p>
                 <p><strong>Tên:</strong> {selectedTest.patientName}</p>
+                <p><strong>Mã Lịch Hẹn:</strong> {selectedTest.appointmentId}</p>
                 <p><strong>Ngày XN:</strong> {new Date(selectedTest.testDate).toLocaleDateString('vi-VN')}</p>
                 <p><strong>Bác sĩ:</strong> {selectedTest.doctor}</p>
                 

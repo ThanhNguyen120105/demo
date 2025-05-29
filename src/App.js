@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Components
 import Header from './components/Header/Header';
@@ -11,7 +12,7 @@ import Services from './components/Services/Services';
 import About from './components/About/About';
 import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
-import AppointmentHistory from './components/Appointment/AppointmentHistory';
+
 import StaffDoctorManagement from './components/Appointment/StaffDoctorManagement';
 import TestResultsLookup from './components/Appointment/TestResultsLookup';
 import NavigationDemo from './components/common/NavigationDemo';
@@ -28,36 +29,38 @@ import UnansweredQuestions from './components/Doctor/UnansweredQuestions';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/appointment" element={<AppointmentPage />} />
-          <Route path="/appointment-history" element={<AppointmentHistory />} />
-          <Route path="/test-results" element={<TestResultsLookup />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/qna" element={<QnA />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/navigation" element={<NavigationDemo />} />
-          
-          {/* Staff Routes */}
-          <Route path="/staff/doctor-management" element={<StaffDoctorManagement />} />
-          
-          {/* Doctor Routes */}
-          <Route path="/doctor" element={<DoctorDashboard />} />
-          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-          <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-          <Route path="/doctor/arv-tool" element={<ARVSelectionTool />} />
-          <Route path="/doctor/unanswered-questions" element={<UnansweredQuestions />} />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
+    <NotificationProvider>
+      <Router>
+        <div className="App">
+          <Header />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/appointment" element={<AppointmentPage />} />
+        
+            <Route path="/test-results" element={<TestResultsLookup />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/qna" element={<QnA />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/navigation" element={<NavigationDemo />} />
+            
+            {/* Staff Routes */}
+            <Route path="/staff/doctor-management" element={<StaffDoctorManagement />} />
+            
+            {/* Doctor Routes */}
+            <Route path="/doctor" element={<DoctorDashboard />} />
+            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+            <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+            <Route path="/doctor/arv-tool" element={<ARVSelectionTool />} />
+            <Route path="/doctor/unanswered-questions" element={<UnansweredQuestions />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    </NotificationProvider>
   );
 }
 

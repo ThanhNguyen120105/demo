@@ -7,7 +7,6 @@ import {
   faCalendarAlt, 
   faUser, 
   faQuestionCircle, 
-  faSearch, 
   faSignInAlt, 
   faHospital,
   faHome,
@@ -19,14 +18,15 @@ import {
   faLocationArrow,
   faUserPlus,
   faUserTie,
-  faVial
+  faVial,
+  faBell
 } from '@fortawesome/free-solid-svg-icons';
 import './Header.css';
 import logo from '../../assets/images/logo.png';
+import NotificationBell from './NotificationBell';
 
 const Header = () => {
   const [expanded, setExpanded] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
 
   return (
     <header className="header">
@@ -125,12 +125,7 @@ const Header = () => {
                 </div>
               </Nav.Link>
               
-              <Nav.Link as={Link} to="/appointment-history" onClick={() => setExpanded(false)}>
-                <div className="nav-icon-container">
-                  <FontAwesomeIcon icon={faCalendarAlt} className="nav-icon" />
-                  <span>Lịch sử đặt hẹn</span>
-                </div>
-              </Nav.Link>
+          
               
               <Nav.Link as={Link} to="/test-results" onClick={() => setExpanded(false)}>
                 <div className="nav-icon-container">
@@ -166,35 +161,7 @@ const Header = () => {
             </Nav>
 
             <div className="header-action-buttons">
-              {showSearch ? (
-                <div className="search-container">
-                  <div className="search-input-wrapper">
-                    <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                    <Form.Control 
-                      type="text" 
-                      placeholder="Tìm kiếm..." 
-                      className="search-input" 
-                      autoFocus 
-                    />
-                    <button 
-                      className="search-close-btn" 
-                      onClick={() => setShowSearch(false)}
-                      aria-label="Close search"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <Button 
-                  variant="outline-secondary" 
-                  className="search-btn" 
-                  onClick={() => setShowSearch(true)}
-                  aria-label="Search"
-                >
-                  <FontAwesomeIcon icon={faSearch} />
-                </Button>
-              )}
+              <NotificationBell />
               
               <Button 
                 variant="primary" 
