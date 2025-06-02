@@ -10,9 +10,19 @@ import {
 import { motion } from 'framer-motion';
 import './Home.css';
 import AnimatedSection from '../common/AnimatedSection';
-import { stats, services, doctors, news } from '../../data/demoData';
+import { stats, services, news } from '../../data/demoData';
 import homepageImage from '../../assets/images/homepage.jpg';
 import homepage2Image from '../../assets/images/homepage2.jpg';
+import appointmentImage from '../../assets/images/appoinment_with_doctor.jpg';
+import thuocHIVMoiImage from '../../assets/images/thuoc_HIV_moi.jpg';
+import tuanLeVangImage from '../../assets/images/tuan_le_vang.jpg';
+import thuThuocImage from '../../assets/images/thu_thuoc.jpg';
+
+// Import doctor images
+import id1Image from '../../assets/images/id1.png';
+import id2Image from '../../assets/images/id2.png';
+import id3Image from '../../assets/images/id3.png';
+import id4Image from '../../assets/images/id4.png';
 
 // Animation variants
 const fadeIn = {
@@ -157,7 +167,7 @@ const Home = () => {
                   </motion.li>
                 </motion.ul>
                 <motion.div variants={fadeIn}>
-                  <Button variant="primary">Tìm Hiểu Thêm Về Chúng Tôi</Button>
+                  <Button variant="primary" as={Link} to="/about">Tìm Hiểu Thêm Về Chúng Tôi</Button>
                 </motion.div>
               </motion.div>
             </Col>
@@ -270,28 +280,115 @@ const Home = () => {
           </motion.div>
           <motion.div variants={staggerContainer}>
             <Row>
-              {doctors.slice(0, 4).map((doctor, index) => (
-                <Col lg={3} md={6} key={index}>
-                  <motion.div 
-                    className="doctor-card"
-                    variants={fadeIn}
-                  >
-                    <div className="card-img">
-                      <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "200px", borderRadius: "10px 10px 0 0"}}>
-                        <FontAwesomeIcon icon={faUserMd} style={{fontSize: "60px", color: "#ccc"}} />
-                      </div>
-                    </div>
-                    <div className="card-body">
-                      <h3 className="card-title">{doctor.name}</h3>
-                      <div className="doctor-specialty">{doctor.specialty}</div>
-                      <p className="card-text">{doctor.shortBio}</p>
-                      <Link to={`/doctors/${doctor.id}`} className="card-link">
-                        Xem Hồ Sơ
-                      </Link>
-                    </div>
-                  </motion.div>
-                </Col>
-              ))}
+              <Col lg={3} md={6}>
+                <motion.div 
+                  className="doctor-card"
+                  variants={fadeIn}
+                >
+                  <div className="card-img">
+                    <img 
+                      src={id1Image} 
+                      alt="Bác sĩ NGUYỄN VĂN AN"
+                      style={{
+                        width: "100%",
+                        height: "200px",
+                        objectFit: "cover",
+                        borderRadius: "10px 10px 0 0"
+                      }}
+                    />
+                  </div>
+                  <div className="card-body">
+                    <h3 className="card-title">Bác sĩ NGUYỄN VĂN AN</h3>
+                    <div className="doctor-specialty">Bác sĩ Chăm sóc và Điều trị HIV</div>
+                    <p className="card-text">Chịu trách nhiệm chẩn đoán và điều trị cho người bị HIV. Tư vấn cá nhân hóa phác đồ điều trị ARV.</p>
+                    <Link to="/doctors/1" className="card-link">
+                      Xem Hồ Sơ
+                    </Link>
+                  </div>
+                </motion.div>
+              </Col>
+              <Col lg={3} md={6}>
+                <motion.div 
+                  className="doctor-card"
+                  variants={fadeIn}
+                >
+                  <div className="card-img">
+                    <img 
+                      src={id2Image} 
+                      alt="Bác sĩ TRẦN THỊ MINH"
+                      style={{
+                        width: "100%",
+                        height: "200px",
+                        objectFit: "cover",
+                        objectPosition: "top",
+                        borderRadius: "10px 10px 0 0"
+                      }}
+                    />
+                  </div>
+                  <div className="card-body">
+                    <h3 className="card-title">Bác sĩ TRẦN THỊ MINH</h3>
+                    <div className="doctor-specialty">Dược sĩ Lâm sàng HIV</div>
+                    <p className="card-text">Dược sĩ lâm sàng chuyên về HIV với kinh nghiệm trong tư vấn sử dụng thuốc và theo dõi tương tác thuốc.</p>
+                    <Link to="/doctors/2" className="card-link">
+                      Xem Hồ Sơ
+                    </Link>
+                  </div>
+                </motion.div>
+              </Col>
+              <Col lg={3} md={6}>
+                <motion.div 
+                  className="doctor-card"
+                  variants={fadeIn}
+                >
+                  <div className="card-img">
+                    <img 
+                      src={id3Image} 
+                      alt="Bác sĩ LÊ VĂN PHÚC"
+                      style={{
+                        width: "100%",
+                        height: "200px",
+                        objectFit: "cover",
+                        borderRadius: "10px 10px 0 0"
+                      }}
+                    />
+                  </div>
+                  <div className="card-body">
+                    <h3 className="card-title">Bác sĩ LÊ VĂN PHÚC</h3>
+                    <div className="doctor-specialty">Bác sĩ Chăm sóc chính HIV</div>
+                    <p className="card-text">Chăm sóc chính toàn diện với chuyên môn sâu về HIV, tư vấn điều trị và theo dõi tiến trình bệnh.</p>
+                    <Link to="/doctors/3" className="card-link">
+                      Xem Hồ Sơ
+                    </Link>
+                  </div>
+                </motion.div>
+              </Col>
+              <Col lg={3} md={6}>
+                <motion.div 
+                  className="doctor-card"
+                  variants={fadeIn}
+                >
+                  <div className="card-img">
+                    <img 
+                      src={id4Image} 
+                      alt="Bác sĩ NGUYỄN THỊ HÀ"
+                      style={{
+                        width: "100%",
+                        height: "200px",
+                        objectFit: "cover",
+                        borderRadius: "10px 10px 0 0"
+                      }}
+                    />
+                  </div>
+                  <div className="card-body">
+                    <h3 className="card-title">Bác sĩ NGUYỄN THỊ HÀ</h3>
+                    <div className="doctor-specialty">Bác Sĩ Tâm thần, Sức khỏe Tâm thần HIV</div>
+                    <p className="card-text">Chuyên gia sức khỏe tâm thần với chuyên môn về các thách thức tâm lý liên quan đến HIV.</p>
+                    <Link to="/doctors/4" className="card-link">
+                      Xem Hồ Sơ
+                    </Link>
+                  </div>
+                </motion.div>
+              </Col>
             </Row>
           </motion.div>
           <motion.div className="text-center mt-5" variants={fadeIn}>
@@ -311,30 +408,99 @@ const Home = () => {
           </motion.div>
           <motion.div variants={staggerContainer}>
             <Row>
-              {news.slice(0, 3).map((item, index) => (
-                <Col lg={4} md={6} key={index}>
-                  <motion.div variants={fadeIn}>
-                    <Card className="news-card">
-                      <div className="card-img">
-                        <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "200px", borderRadius: "10px 10px 0 0"}}>
-                          <FontAwesomeIcon icon={faImage} style={{fontSize: "60px", color: "#ccc"}} />
-                        </div>
-                        <div className="news-date">
-                          <span className="day">{item.date.day}</span>
-                          <span className="month">{item.date.month}</span>
-                        </div>
+              <Col lg={4} md={6}>
+                <motion.div variants={fadeIn}>
+                  <Card className="news-card">
+                    <div className="card-img">
+                      <img 
+                        src={thuocHIVMoiImage}
+                        alt="Điều Trị HIV Tác Động Dài"
+                        style={{
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
+                          borderRadius: "10px 10px 0 0"
+                        }}
+                      />
+                      <div className="news-date">
+                        <span className="day">15</span>
+                        <span className="month">Th3</span>
                       </div>
-                      <Card.Body>
-                        <Card.Title>{item.title}</Card.Title>
-                        <Card.Text>{item.summary}</Card.Text>
-                        <Link to={`/news/${item.id}`} className="card-link">
-                          Đọc Thêm
-                        </Link>
-                      </Card.Body>
-                    </Card>
-                  </motion.div>
-                </Col>
-              ))}
+                    </div>
+                    <Card.Body>
+                      <Card.Title>Điều Trị HIV Tác Động Dài Mới Được FDA Phê Duyệt</Card.Title>
+                      <Card.Text>
+                        FDA đã phê duyệt một loại thuốc điều trị HIV tác động dài mới, mở ra hy vọng mới cho bệnh nhân.
+                      </Card.Text>
+                      <Link to="/news/1" className="card-link">
+                        Đọc Thêm
+                      </Link>
+                    </Card.Body>
+                  </Card>
+                </motion.div>
+              </Col>
+              <Col lg={4} md={6}>
+                <motion.div variants={fadeIn}>
+                  <Card className="news-card">
+                    <div className="card-img">
+                      <img 
+                        src={tuanLeVangImage}
+                        alt="Tuần Lễ Nâng Cao Nhận Thức về PrEP"
+                        style={{
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
+                          borderRadius: "10px 10px 0 0"
+                        }}
+                      />
+                      <div className="news-date">
+                        <span className="day">10</span>
+                        <span className="month">Th3</span>
+                      </div>
+                    </div>
+                    <Card.Body>
+                      <Card.Title>Phòng Ngừa HIV: Thông Báo Sự Kiện Tuần Lễ Nâng Cao Nhận Thức về PrEP</Card.Title>
+                      <Card.Text>
+                        Tuần lễ nâng cao nhận thức về PrEP sẽ diễn ra với nhiều hoạt động giáo dục và tư vấn.
+                      </Card.Text>
+                      <Link to="/news/2" className="card-link">
+                        Đọc Thêm
+                      </Link>
+                    </Card.Body>
+                  </Card>
+                </motion.div>
+              </Col>
+              <Col lg={4} md={6}>
+                <motion.div variants={fadeIn}>
+                  <Card className="news-card">
+                    <div className="card-img">
+                      <img 
+                        src={thuThuocImage}
+                        alt="Nghiên Cứu Tối Ưu Hóa Điều Trị HIV"
+                        style={{
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
+                          borderRadius: "10px 10px 0 0"
+                        }}
+                      />
+                      <div className="news-date">
+                        <span className="day">05</span>
+                        <span className="month">Th3</span>
+                      </div>
+                    </div>
+                    <Card.Body>
+                      <Card.Title>Nghiên Cứu: Cần Người Tham Gia cho Thử Nghiệm Tối Ưu Hóa Điều Trị HIV</Card.Title>
+                      <Card.Text>
+                        Chúng tôi đang tìm kiếm người tham gia cho nghiên cứu mới về tối ưu hóa phác đồ điều trị HIV.
+                      </Card.Text>
+                      <Link to="/news/3" className="card-link">
+                        Đọc Thêm
+                      </Link>
+                    </Card.Body>
+                  </Card>
+                </motion.div>
+              </Col>
             </Row>
           </motion.div>
           <motion.div className="text-center mt-5" variants={fadeIn}>
@@ -376,9 +542,16 @@ const Home = () => {
                 className="appointment-image"
                 variants={fadeIn}
               >
-                <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "350px", borderRadius: "10px"}}>
-                  <FontAwesomeIcon icon={faCalendarCheck} style={{fontSize: "80px", color: "#ccc"}} />
-                </div>
+                <img 
+                  src={appointmentImage} 
+                  alt="Đặt lịch hẹn"
+                  style={{
+                    width: "100%",
+                    height: "350px",
+                    objectFit: "cover",
+                    borderRadius: "10px"
+                  }}
+                />
               </motion.div>
             </Col>
           </Row>

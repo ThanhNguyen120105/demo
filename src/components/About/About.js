@@ -4,6 +4,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStethoscope, faUsers, faHandHoldingMedical, faHeart, faFlask, faImage, faUserTie } from '@fortawesome/free-solid-svg-icons';
 import './About.css';
 
+// Import images
+import storyImage from '../../assets/images/story.jpg';
+import visionImage from '../../assets/images/vision.jpg';
+import chinhTrucImage from '../../assets/images/chinh_truc.jpg';
+import doiMoiImage from '../../assets/images/doi_moi.jpg';
+import hoaNhapImage from '../../assets/images/hoa_nhap.jpg';
+import hopTacImage from '../../assets/images/hop_tac.jpg';
+import longTracAnImage from '../../assets/images/long_trac_an.jpg';
+import xuatSacImage from '../../assets/images/xuat_sac.jpg';
+
 // Import demo data
 import { stats } from '../../data/demoData';
 
@@ -26,9 +36,16 @@ const About = () => {
           <Row className="align-items-center">
             <Col lg={6} md={12}>
               <div className="about-image">
-                <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "350px", borderRadius: "10px"}}>
-                  <FontAwesomeIcon icon={faImage} style={{fontSize: "80px", color: "#ccc"}} />
-                </div>
+                <img 
+                  src={storyImage} 
+                  alt="Câu chuyện của chúng tôi"
+                  style={{
+                    width: "100%",
+                    height: "350px",
+                    objectFit: "cover",
+                    borderRadius: "10px"
+                  }}
+                />
               </div>
             </Col>
             <Col lg={6} md={12}>
@@ -123,9 +140,16 @@ const About = () => {
                   đều nhận được sự chăm sóc tối ưu cho phép họ sống một cuộc đời dài lâu, khỏe mạnh và trọn vẹn.
                 </p>
                 <div className="vision-image">
-                  <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "200px", borderRadius: "10px"}}>
-                    <FontAwesomeIcon icon={faHeart} style={{fontSize: "60px", color: "#ccc"}} />
-                  </div>
+                  <img 
+                    src={visionImage} 
+                    alt="Tầm nhìn của chúng tôi"
+                    style={{
+                      width: "100%",
+                      height: "200px",
+                      objectFit: "cover",
+                      borderRadius: "10px"
+                    }}
+                  />
                 </div>
               </div>
             </Col>
@@ -144,69 +168,173 @@ const About = () => {
             <Col lg={4} md={6} sm={12}>
               <Card className="value-card">
                 <Card.Body>
-                  <h3>Xuất Sắc</h3>
-                  <p>
-                    Chúng tôi cam kết cung cấp dịch vụ chăm sóc y tế chất lượng cao nhất sử dụng các
-                    phương pháp dựa trên bằng chứng và duy trì các tiêu chuẩn chuyên môn nghiêm ngặt
-                    trong mọi khía cạnh của dịch vụ.
-                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <h3>Xuất Sắc</h3>
+                    <img 
+                      src={xuatSacImage}
+                      alt="Xuất sắc"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '35px',
+                        height: '35px',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        border: '2px solid #f8f9fa',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <p>
+                      Chúng tôi cam kết cung cấp dịch vụ chăm sóc y tế chất lượng cao nhất sử dụng các
+                      phương pháp dựa trên bằng chứng và duy trì các tiêu chuẩn chuyên môn nghiêm ngặt
+                      trong mọi khía cạnh của dịch vụ.
+                    </p>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
             <Col lg={4} md={6} sm={12}>
               <Card className="value-card">
                 <Card.Body>
-                  <h3>Lòng Trắc Ẩn</h3>
-                  <p>
-                    Chúng tôi tiếp cận mỗi bệnh nhân với sự đồng cảm, thấu hiểu và tôn trọng, nhận thức
-                    được những thách thức riêng biệt mà những người sống chung với hoặc bị ảnh hưởng bởi HIV
-                    phải đối mặt.
-                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <h3>Lòng Trắc Ẩn</h3>
+                    <img 
+                      src={longTracAnImage}
+                      alt="Lòng trắc ẩn"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '35px',
+                        height: '35px',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        border: '2px solid #f8f9fa',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <p>
+                      Chúng tôi tiếp cận mỗi bệnh nhân với sự đồng cảm, thấu hiểu và tôn trọng, nhận thức
+                      được những thách thức riêng biệt mà những người sống chung với hoặc bị ảnh hưởng bởi HIV
+                      phải đối mặt.
+                    </p>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
             <Col lg={4} md={6} sm={12}>
               <Card className="value-card">
                 <Card.Body>
-                  <h3>Hòa Nhập</h3>
-                  <p>
-                    Chúng tôi chào đón và phục vụ tất cả mọi người bất kể chủng tộc, dân tộc, giới tính,
-                    xu hướng tính dục, tôn giáo, tình trạng kinh tế xã hội hoặc nguồn gốc.
-                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <h3>Hòa Nhập</h3>
+                    <img 
+                      src={hoaNhapImage}
+                      alt="Hòa nhập"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '35px',
+                        height: '35px',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        border: '2px solid #f8f9fa',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <p>
+                      Chúng tôi chào đón và phục vụ tất cả mọi người bất kể chủng tộc, dân tộc, giới tính,
+                      xu hướng tính dục, tôn giáo, tình trạng kinh tế xã hội hoặc nguồn gốc.
+                    </p>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
             <Col lg={4} md={6} sm={12}>
               <Card className="value-card">
                 <Card.Body>
-                  <h3>Đổi Mới</h3>
-                  <p>
-                    Chúng tôi không ngừng tìm cách cải thiện dịch vụ thông qua nghiên cứu, công nghệ và
-                    các phương pháp sáng tạo trong điều trị và hỗ trợ.
-                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <h3>Đổi Mới</h3>
+                    <img 
+                      src={doiMoiImage}
+                      alt="Đổi mới"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '45px',
+                        height: '45px',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        borderRadius: '50%',
+                        border: '2px solid #f8f9fa',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        transform: 'scale(1.1)'
+                      }}
+                    />
+                    <p>
+                      Chúng tôi không ngừng tìm cách cải thiện dịch vụ thông qua nghiên cứu, công nghệ và
+                      các phương pháp sáng tạo trong điều trị và hỗ trợ.
+                    </p>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
             <Col lg={4} md={6} sm={12}>
               <Card className="value-card">
                 <Card.Body>
-                  <h3>Chính Trực</h3>
-                  <p>
-                    Chúng tôi duy trì các tiêu chuẩn đạo đức cao nhất trong chăm sóc, nghiên cứu và hoạt động,
-                    ưu tiên bảo mật và niềm tin của bệnh nhân.
-                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <h3>Chính Trực</h3>
+                    <img 
+                      src={chinhTrucImage}
+                      alt="Chính trực"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '35px',
+                        height: '35px',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        border: '2px solid #f8f9fa',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <p>
+                      Chúng tôi duy trì các tiêu chuẩn đạo đức cao nhất trong chăm sóc, nghiên cứu và hoạt động,
+                      ưu tiên bảo mật và niềm tin của bệnh nhân.
+                    </p>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
             <Col lg={4} md={6} sm={12}>
               <Card className="value-card">
                 <Card.Body>
-                  <h3>Hợp Tác</h3>
-                  <p>
-                    Chúng tôi hợp tác với bệnh nhân, gia đình, tổ chức cộng đồng, nhà nghiên cứu và các
-                    nhà cung cấp dịch vụ chăm sóc sức khỏe khác để cung cấp dịch vụ chăm sóc toàn diện và
-                    thúc đẩy sứ mệnh của chúng tôi.
-                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <h3>Hợp Tác</h3>
+                    <img 
+                      src={hopTacImage}
+                      alt="Hợp tác"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '35px',
+                        height: '35px',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        border: '2px solid #f8f9fa',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <p>
+                      Chúng tôi hợp tác với bệnh nhân, gia đình, tổ chức cộng đồng, nhà nghiên cứu và các
+                      nhà cung cấp dịch vụ chăm sóc sức khỏe khác để cung cấp dịch vụ chăm sóc toàn diện và
+                      thúc đẩy sứ mệnh của chúng tôi.
+                    </p>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
@@ -214,84 +342,6 @@ const About = () => {
         </Container>
       </section>
 
-      {/* Leadership Team */}
-      <section className="section-padding bg-light">
-        <Container>
-          <div className="section-title">
-            <h2>Đội Ngũ Lãnh Đạo Của Chúng Tôi</h2>
-            <p>Dẫn dắt bởi chuyên môn, lòng trắc ẩn và cam kết theo đuổi sự xuất sắc</p>
-          </div>
-          <Row>
-            <Col lg={3} md={6} sm={12}>
-              <div className="leadership-card">
-                <div className="leader-image">
-                  <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "250px", width: "100%"}}>
-                    <FontAwesomeIcon icon={faUserTie} style={{fontSize: "60px", color: "#ccc"}} />
-                  </div>
-                </div>
-                <div className="leader-info">
-                  <h3>Tiến sĩ Elizabeth Morgan</h3>
-                  <p className="leader-position">Giám Đốc Điều Hành</p>
-                  <p className="leader-bio">
-                    Chuyên gia bệnh truyền nhiễm với hơn 25 năm kinh nghiệm trong y học HIV và lãnh đạo y tế.
-                  </p>
-                </div>
-              </div>
-            </Col>
-            <Col lg={3} md={6} sm={12}>
-              <div className="leadership-card">
-                <div className="leader-image">
-                  <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "250px", width: "100%"}}>
-                    <FontAwesomeIcon icon={faUserTie} style={{fontSize: "60px", color: "#ccc"}} />
-                  </div>
-                </div>
-                <div className="leader-info">
-                  <h3>Tiến sĩ David Chen</h3>
-                  <p className="leader-position">Giám Đốc Y Khoa</p>
-                  <p className="leader-bio">
-                    Bác sĩ đã được chứng nhận giám sát các dịch vụ lâm sàng và tiêu chuẩn chất lượng chăm sóc.
-                  </p>
-                </div>
-              </div>
-            </Col>
-            <Col lg={3} md={6} sm={12}>
-              <div className="leadership-card">
-                <div className="leader-image">
-                  <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "250px", width: "100%"}}>
-                    <FontAwesomeIcon icon={faUserTie} style={{fontSize: "60px", color: "#ccc"}} />
-                  </div>
-                </div>
-                <div className="leader-info">
-                  <h3>Tiến sĩ Maya Johnson</h3>
-                  <p className="leader-position">Giám Đốc Nghiên Cứu</p>
-                  <p className="leader-bio">
-                    Nhà nghiên cứu hàng đầu tập trung vào việc cải tiến các phác đồ điều trị HIV và thử nghiệm lâm sàng.
-                  </p>
-                </div>
-              </div>
-            </Col>
-            <Col lg={3} md={6} sm={12}>
-              <div className="leadership-card">
-                <div className="leader-image">
-                  <div className="placeholder-image bg-light d-flex align-items-center justify-content-center" style={{height: "250px", width: "100%"}}>
-                    <FontAwesomeIcon icon={faUserTie} style={{fontSize: "60px", color: "#ccc"}} />
-                  </div>
-                </div>
-                <div className="leader-info">
-                  <h3>Robert Santiago</h3>
-                  <p className="leader-position">Giám Đốc Tiếp Cận Cộng Đồng</p>
-                  <p className="leader-bio">
-                    Chuyên gia y tế cộng đồng dẫn dắt các sáng kiến phòng ngừa, giáo dục và tương tác cộng đồng.
-                  </p>
-                </div>
-              </div>
-            </Col>
-          </Row>
-          <div className="text-center mt-5">
-            <Button variant="outline-primary">Xem Toàn Bộ Đội Ngũ</Button>
-          </div>
-        </Container>
-      </section>
 
       {/* CTA Section */}
       <section className="cta-section">

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { NotificationProvider } from './contexts/NotificationContext';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Components
 import Header from './components/Header/Header';
@@ -31,6 +32,7 @@ function App() {
   return (
     <NotificationProvider>
       <Router>
+        <ScrollToTop />
         <div className="App">
           <Header />
           <Routes>
