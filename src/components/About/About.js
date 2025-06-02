@@ -53,6 +53,7 @@ const About = () => {
                 <div className="section-title text-start">
                   <h2>Câu Chuyện Của Chúng Tôi</h2>
                 </div>
+                <div className='text-start'>
                 <p>
                   Được thành lập vào năm 2003, Trung tâm Điều trị và Dịch vụ Y tế HIV được
                   thiết lập với sứ mệnh rõ ràng: cung cấp dịch vụ chăm sóc toàn diện, tận tâm cho
@@ -69,6 +70,7 @@ const About = () => {
                   sóc lấy bệnh nhân làm trung tâm, xuất sắc về y khoa, và cam kết đối xử với mỗi người một
                   cách tôn trọng và đúng phẩm giá, bất kể nguồn gốc hay hoàn cảnh nào.
                 </p>
+                </div>
               </div>
             </Col>
           </Row>
@@ -97,15 +99,15 @@ const About = () => {
           <Row>
             <Col lg={6} md={12}>
               <div className="mission-box">
-                <div className="section-title text-start">
+                <div className="section-title text-center">
                   <h2>Sứ Mệnh Của Chúng Tôi</h2>
                 </div>
-                <p>
+                <p className='text-start'>
                   Sứ mệnh của chúng tôi là cung cấp dịch vụ chăm sóc sức khỏe toàn diện, xuất sắc cho những
                   người sống chung với HIV, đồng thời thúc đẩy nỗ lực phòng ngừa, nâng cao chất lượng cuộc
                   sống, và hướng tới một thế hệ không còn AIDS.
                 </p>
-                <ul className="mission-list">
+                <ul className="mission-list text-start">
                   <li>
                     <FontAwesomeIcon icon={faStethoscope} className="icon" />
                     <span>Cung cấp tiêu chuẩn chăm sóc y tế cao nhất</span>
@@ -131,10 +133,10 @@ const About = () => {
             </Col>
             <Col lg={6} md={12}>
               <div className="vision-box">
-                <div className="section-title text-start">
+                <div className="section-title text-center">
                   <h2>Tầm Nhìn Của Chúng Tôi</h2>
                 </div>
-                <p>
+                <p className='text-start'>
                   Chúng tôi hình dung một tương lai nơi HIV không còn là mối đe dọa sức khỏe cộng đồng, nơi
                   mà biện pháp phòng ngừa được tiếp cận rộng rãi, và nơi tất cả những người sống chung với HIV
                   đều nhận được sự chăm sóc tối ưu cho phép họ sống một cuộc đời dài lâu, khỏe mạnh và trọn vẹn.
@@ -185,7 +187,7 @@ const About = () => {
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                       }}
                     />
-                    <p>
+                    <p className='text-start'>
                       Chúng tôi cam kết cung cấp dịch vụ chăm sóc y tế chất lượng cao nhất sử dụng các
                       phương pháp dựa trên bằng chứng và duy trì các tiêu chuẩn chuyên môn nghiêm ngặt
                       trong mọi khía cạnh của dịch vụ.
@@ -214,7 +216,7 @@ const About = () => {
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                       }}
                     />
-                    <p>
+                    <p className='text-start'>
                       Chúng tôi tiếp cận mỗi bệnh nhân với sự đồng cảm, thấu hiểu và tôn trọng, nhận thức
                       được những thách thức riêng biệt mà những người sống chung với hoặc bị ảnh hưởng bởi HIV
                       phải đối mặt.
@@ -243,7 +245,7 @@ const About = () => {
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                       }}
                     />
-                    <p>
+                    <p className='text-start'>
                       Chúng tôi chào đón và phục vụ tất cả mọi người bất kể chủng tộc, dân tộc, giới tính,
                       xu hướng tính dục, tôn giáo, tình trạng kinh tế xã hội hoặc nguồn gốc.
                     </p>
@@ -273,7 +275,7 @@ const About = () => {
                         transform: 'scale(1.1)'
                       }}
                     />
-                    <p>
+                    <p className='text-start'>
                       Chúng tôi không ngừng tìm cách cải thiện dịch vụ thông qua nghiên cứu, công nghệ và
                       các phương pháp sáng tạo trong điều trị và hỗ trợ.
                     </p>
@@ -301,7 +303,7 @@ const About = () => {
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                       }}
                     />
-                    <p>
+                    <p className='text-start'>
                       Chúng tôi duy trì các tiêu chuẩn đạo đức cao nhất trong chăm sóc, nghiên cứu và hoạt động,
                       ưu tiên bảo mật và niềm tin của bệnh nhân.
                     </p>
@@ -329,7 +331,7 @@ const About = () => {
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                       }}
                     />
-                    <p>
+                    <p className='text-start'>
                       Chúng tôi hợp tác với bệnh nhân, gia đình, tổ chức cộng đồng, nhà nghiên cứu và các
                       nhà cung cấp dịch vụ chăm sóc sức khỏe khác để cung cấp dịch vụ chăm sóc toàn diện và
                       thúc đẩy sứ mệnh của chúng tôi.
@@ -346,8 +348,8 @@ const About = () => {
       {/* CTA Section */}
       <section className="cta-section">
         <Container>
-          <div className="cta-content text-center">
-            <h2>Tham Gia Cùng Sứ Mệnh Của Chúng Tôi</h2>
+          <div className="cta-content text-start">
+            <h2 className='text-center'>Tham Gia Cùng Sứ Mệnh Của Chúng Tôi</h2>
             <p>
               Cho dù bạn đang tìm kiếm dịch vụ chăm sóc, muốn tình nguyện, xem xét cơ hội nghề nghiệp
               với chúng tôi, hoặc quan tâm đến việc hỗ trợ công việc của chúng tôi, chúng tôi

@@ -66,8 +66,8 @@ const Home = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <h1>Trung Tâm Điều Trị & Chăm Sóc HIV Hàng Đầu</h1>
-                <p>
+                <h1 className="text-start">Trung Tâm Điều Trị & Chăm Sóc HIV Hàng Đầu</h1>
+                <p className="text-start">
                   Chúng tôi cung cấp dịch vụ chăm sóc HIV toàn diện và tận tâm, sử dụng các phương pháp 
                   điều trị và phòng ngừa tiên tiến nhất để cải thiện kết quả sức khỏe và chất lượng cuộc sống.
                 </p>
@@ -138,12 +138,12 @@ const Home = () => {
                   <h2>Về Trung Tâm Điều Trị HIV Của Chúng Tôi</h2>
                 </motion.div>
               
-                <motion.p variants={fadeIn}>
+                <motion.p className="text-start" variants={fadeIn}>
                   Trong hơn 20 năm, trung tâm của chúng tôi đã luôn đi đầu trong điều trị và chăm sóc HIV. 
                   Chúng tôi cung cấp phương pháp tiếp cận toàn diện đối với quản lý HIV, kết hợp các phương pháp 
                   điều trị y tế tiên tiến với dịch vụ hỗ trợ tận tâm.
                 </motion.p>
-                <motion.p variants={fadeIn}>
+                <motion.p className="text-start" variants={fadeIn}>
                   Đội ngũ đa ngành của chúng tôi bao gồm các chuyên gia về bệnh truyền nhiễm, dược sĩ, 
                   chuyên gia dinh dưỡng và các chuyên gia sức khỏe tâm thần cùng làm việc để cung cấp 
                   dịch vụ chăm sóc cá nhân hóa cho từng bệnh nhân.
@@ -179,8 +179,8 @@ const Home = () => {
       <AnimatedSection className="section-padding bg-light">
         <Container>
           <motion.div className="section-title" variants={fadeIn}>
-            <h2>Dịch Vụ Điều Trị HIV Của Chúng Tôi</h2>
-            <p>Chăm sóc và hỗ trợ toàn diện cho người sống chung với HIV</p>
+            <h2 className="text-start">Dịch Vụ Điều Trị HIV Của Chúng Tôi</h2>
+            <p className="text-start">Chăm sóc và hỗ trợ toàn diện cho người sống chung với HIV</p>
           </motion.div>
           <motion.div variants={staggerContainer}>
             <Row>
@@ -217,8 +217,8 @@ const Home = () => {
       <AnimatedSection className="section-padding">
         <Container>
           <motion.div className="section-title" variants={fadeIn}>
-            <h2>Tại Sao Chọn Trung Tâm Điều Trị HIV Của Chúng Tôi</h2>
-            <p>Chăm sóc chuyên nghiệp với phương pháp tiếp cận tận tâm</p>
+            <h2 className="text-start">Tại Sao Chọn Trung Tâm Điều Trị HIV Của Chúng Tôi</h2>
+            <p className="text-start">Chăm sóc chuyên nghiệp với phương pháp tiếp cận tận tâm</p>
           </motion.div>
           <motion.div variants={staggerContainer}>
             <Row>
@@ -275,8 +275,8 @@ const Home = () => {
       <AnimatedSection className="section-padding bg-light">
         <Container>
           <motion.div className="section-title" variants={fadeIn}>
-            <h2>Đội Ngũ Chuyên Gia Của Chúng Tôi</h2>
-            <p>Các bác sĩ chuyên khoa tận tâm với điều trị và chăm sóc HIV</p>
+            <h2 className="text-start">Đội Ngũ Chuyên Gia Của Chúng Tôi</h2>
+            <p className="text-start">Các bác sĩ chuyên khoa tận tâm với điều trị và chăm sóc HIV</p>
           </motion.div>
           <motion.div variants={staggerContainer}>
             <Row>
@@ -298,9 +298,9 @@ const Home = () => {
                     />
                   </div>
                   <div className="card-body">
-                    <h3 className="card-title">Bác sĩ NGUYỄN VĂN AN</h3>
-                    <div className="doctor-specialty">Bác sĩ Chăm sóc và Điều trị HIV</div>
-                    <p className="card-text">Chịu trách nhiệm chẩn đoán và điều trị cho người bị HIV. Tư vấn cá nhân hóa phác đồ điều trị ARV.</p>
+                    <h3 className="card-title text-start">Bác sĩ NGUYỄN VĂN AN</h3>
+                    <div className="doctor-specialty text-start">Bác sĩ Chăm sóc và Điều trị HIV</div>
+                    <p className="card-text text-start">Chịu trách nhiệm chẩn đoán và điều trị cho người bị HIV. Tư vấn cá nhân hóa phác đồ điều trị ARV.</p>
                     <Link to="/doctors/1" className="card-link">
                       Xem Hồ Sơ
                     </Link>
@@ -326,9 +326,9 @@ const Home = () => {
                     />
                   </div>
                   <div className="card-body">
-                    <h3 className="card-title">Bác sĩ TRẦN THỊ MINH</h3>
-                    <div className="doctor-specialty">Dược sĩ Lâm sàng HIV</div>
-                    <p className="card-text">Dược sĩ lâm sàng chuyên về HIV với kinh nghiệm trong tư vấn sử dụng thuốc và theo dõi tương tác thuốc.</p>
+                    <h3 className="card-title text-start">Bác sĩ TRẦN THỊ MINH</h3>
+                    <div className="doctor-specialty text-start">Dược sĩ Lâm sàng HIV</div>
+                    <p className="card-text text-start">Dược sĩ lâm sàng chuyên về HIV với kinh nghiệm trong tư vấn sử dụng thuốc và theo dõi tương tác thuốc.</p>
                     <Link to="/doctors/2" className="card-link">
                       Xem Hồ Sơ
                     </Link>
@@ -353,9 +353,9 @@ const Home = () => {
                     />
                   </div>
                   <div className="card-body">
-                    <h3 className="card-title">Bác sĩ LÊ VĂN PHÚC</h3>
-                    <div className="doctor-specialty">Bác sĩ Chăm sóc chính HIV</div>
-                    <p className="card-text">Chăm sóc chính toàn diện với chuyên môn sâu về HIV, tư vấn điều trị và theo dõi tiến trình bệnh.</p>
+                    <h3 className="card-title text-start">Bác sĩ LÊ VĂN PHÚC</h3>
+                    <div className="doctor-specialty text-start">Bác sĩ Chăm sóc chính HIV</div>
+                    <p className="card-text text-start">Chăm sóc chính toàn diện với chuyên môn sâu về HIV, tư vấn điều trị và theo dõi tiến trình bệnh.</p>
                     <Link to="/doctors/3" className="card-link">
                       Xem Hồ Sơ
                     </Link>
@@ -380,9 +380,9 @@ const Home = () => {
                     />
                   </div>
                   <div className="card-body">
-                    <h3 className="card-title">Bác sĩ NGUYỄN THỊ HÀ</h3>
-                    <div className="doctor-specialty">Bác Sĩ Tâm thần, Sức khỏe Tâm thần HIV</div>
-                    <p className="card-text">Chuyên gia sức khỏe tâm thần với chuyên môn về các thách thức tâm lý liên quan đến HIV.</p>
+                    <h3 className="card-title text-start">Bác sĩ NGUYỄN THỊ HÀ</h3>
+                    <div className="doctor-specialty text-start">Bác Sĩ Tâm thần, Sức khỏe Tâm thần HIV</div>
+                    <p className="card-text text-start">Chuyên gia sức khỏe tâm thần với chuyên môn về các thách thức tâm lý liên quan đến HIV.</p>
                     <Link to="/doctors/4" className="card-link">
                       Xem Hồ Sơ
                     </Link>
@@ -403,8 +403,8 @@ const Home = () => {
       <AnimatedSection className="section-padding">
         <Container>
           <motion.div className="section-title" variants={fadeIn}>
-            <h2>Tin Tức & Bài Viết Mới Nhất</h2>
-            <p>Cập nhật với những thông tin mới nhất về nghiên cứu và điều trị HIV</p>
+            <h2 className="text-start">Tin Tức & Bài Viết Mới Nhất</h2>
+            <p className="text-start">Cập nhật với những thông tin mới nhất về nghiên cứu và điều trị HIV</p>
           </motion.div>
           <motion.div variants={staggerContainer}>
             <Row>
@@ -428,8 +428,8 @@ const Home = () => {
                       </div>
                     </div>
                     <Card.Body>
-                      <Card.Title>Điều Trị HIV Tác Động Dài Mới Được FDA Phê Duyệt</Card.Title>
-                      <Card.Text>
+                      <Card.Title className='text-start'>Điều Trị HIV Tác Động Dài Mới Được FDA Phê Duyệt</Card.Title>
+                      <Card.Text className="text-start">
                         FDA đã phê duyệt một loại thuốc điều trị HIV tác động dài mới, mở ra hy vọng mới cho bệnh nhân.
                       </Card.Text>
                       <Link to="/news/1" className="card-link">
@@ -459,8 +459,8 @@ const Home = () => {
                       </div>
                     </div>
                     <Card.Body>
-                      <Card.Title>Phòng Ngừa HIV: Thông Báo Sự Kiện Tuần Lễ Nâng Cao Nhận Thức về PrEP</Card.Title>
-                      <Card.Text>
+                      <Card.Title className='text-start'>Phòng Ngừa HIV: Thông Báo Sự Kiện Tuần Lễ Nâng Cao Nhận Thức về PrEP</Card.Title>
+                      <Card.Text className="text-start">
                         Tuần lễ nâng cao nhận thức về PrEP sẽ diễn ra với nhiều hoạt động giáo dục và tư vấn.
                       </Card.Text>
                       <Link to="/news/2" className="card-link">
@@ -490,8 +490,8 @@ const Home = () => {
                       </div>
                     </div>
                     <Card.Body>
-                      <Card.Title>Nghiên Cứu: Cần Người Tham Gia cho Thử Nghiệm Tối Ưu Hóa Điều Trị HIV</Card.Title>
-                      <Card.Text>
+                      <Card.Title className='text-start'>Nghiên Cứu: Cần Người Tham Gia cho Thử Nghiệm Tối Ưu Hóa Điều Trị HIV</Card.Title>
+                      <Card.Text className="text-start">
                         Chúng tôi đang tìm kiếm người tham gia cho nghiên cứu mới về tối ưu hóa phác đồ điều trị HIV.
                       </Card.Text>
                       <Link to="/news/3" className="card-link">
@@ -520,8 +520,8 @@ const Home = () => {
                 className="appointment-content"
                 variants={staggerContainer}
               >
-                <motion.h2 variants={fadeIn}>Đặt Lịch Hẹn Ngay Hôm Nay</motion.h2>
-                <motion.p variants={fadeIn}>
+                <motion.h2 className="text-start" variants={fadeIn}>Đặt Lịch Hẹn Ngay Hôm Nay</motion.h2>
+                <motion.p className="text-start" variants={fadeIn}>
                   Các chuyên gia của chúng tôi đã sẵn sàng để cung cấp cho bạn dịch vụ chăm sóc và điều trị HIV tốt nhất.
                   Đặt lịch hẹn trực tuyến hoặc gọi trực tiếp cho chúng tôi.
                 </motion.p>

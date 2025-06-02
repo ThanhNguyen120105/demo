@@ -1,10 +1,11 @@
 import React from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMapMarkerAlt, faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { faFacebookF, faTwitter, faInstagram, faLinkedinIn, faYoutube } from '@fortawesome/free-brands-svg-icons';
 import './Footer.css';
+import logo from '../../assets/images/logo.png';
 
 const Footer = () => {
   return (
@@ -14,8 +15,11 @@ const Footer = () => {
           <Row>
             <Col lg={4} md={6} sm={12}>
               <div className="footer-info">
-                <img src="/logo-white.png" alt="HIV Treatment Center" className="footer-logo" />
-                <p>
+                <div className="d-flex align-items-center mb-3">
+                  <img src={logo} alt="HIV Treatment Center" className="footer-logo me-2" />
+                  <h5 className="mb-0 text-white text-start">HIV Treatment Center</h5>
+                </div>
+                <p className="text-start">
                   Cam kết cung cấp điều trị và chăm sóc HIV toàn diện với tiêu chuẩn cao nhất về chất lượng y tế và hỗ trợ tận tâm.
                 </p>
                 <div className="footer-social">
@@ -30,8 +34,8 @@ const Footer = () => {
             
             <Col lg={2} md={6} sm={12}>
               <div className="footer-links">
-                <h4>Liên kết Nhanh</h4>
-                <ul>
+                <h4 className="text-start">Liên kết Nhanh</h4>
+                <ul className="text-start">
                   <li><Link to="/">Trang chủ</Link></li>
                   <li><Link to="/about">Về chúng tôi</Link></li>
                   <li><Link to="/services">Dịch vụ của chúng tôi</Link></li>
@@ -44,8 +48,8 @@ const Footer = () => {
             
             <Col lg={3} md={6} sm={12}>
               <div className="footer-links">
-                <h4>Dịch vụ của chúng tôi</h4>
-                <ul>
+                <h4 className="text-start">Dịch vụ của chúng tôi</h4>
+                <ul className="text-start">
                   <li><Link to="/services/testing">Xét nghiệm & Sàng lọc HIV</Link></li>
                   <li><Link to="/services/treatment">Liệu pháp Kháng retrovirus</Link></li>
                   <li><Link to="/services/prevention">PrEP & Phòng ngừa</Link></li>
@@ -58,8 +62,8 @@ const Footer = () => {
             
             <Col lg={3} md={6} sm={12}>
               <div className="footer-contact">
-                <h4>Liên hệ với chúng tôi</h4>
-                <div className="contact-info">
+                <h4 className="text-start">Liên hệ với chúng tôi</h4>
+                <div className="contact-info text-start">
                   <p>
                     <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
                     123 Đường Trung tâm Y tế, Phòng 200<br />
@@ -74,9 +78,6 @@ const Footer = () => {
                     <a href="mailto:info@hivtreatmentcenter.org">info@hivtreatmentcenter.org</a>
                   </p>
                 </div>
-                <div className="footer-appointment">
-                  <Button variant="light">Đặt lịch hẹn</Button>
-                </div>
               </div>
             </Col>
           </Row>
@@ -87,12 +88,12 @@ const Footer = () => {
         <Container>
           <Row>
             <Col md={6}>
-              <div className="copyright">
+              <div className="copyright text-start">
                 &copy; {new Date().getFullYear()} HIV Treatment Center. Đã đăng ký Bản quyền
               </div>
             </Col>
             <Col md={6}>
-              <div className="footer-bottom-links">
+              <div className="footer-bottom-links text-start">
                 <a href="#">Chính sách Bảo mật</a>
                 <a href="#">Điều khoản Dịch vụ</a>
                 <a href="#">Sơ đồ trang web</a>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -16,8 +16,11 @@ import {
   faStethoscope
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
+import { useLocation } from 'react-router-dom';
+import { doctorsData } from '../Doctors/Doctors';
 
 const AppointmentForm = () => {
+  const location = useLocation();
   const [formStep, setFormStep] = useState(1);
   const [formData, setFormData] = useState({
     serviceType: '',
@@ -31,6 +34,16 @@ const AppointmentForm = () => {
     registrationType: 'online'
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    // Check if there's a selected doctor in the location state
+    if (location.state?.selectedDoctor) {
+      setFormData(prev => ({
+        ...prev,
+        doctor: location.state.selectedDoctor
+      }));
+    }
+  }, [location]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -63,8 +76,6 @@ const AppointmentForm = () => {
     };
     return serviceTypes[value] || value;
   };
-
-
 
   return (
     <Container>
@@ -275,9 +286,11 @@ const AppointmentForm = () => {
                   className="form-select"
                 >
                   <option value="">Chọn bác sĩ bạn ưa thích</option>
-                  <option value="dr1">Bác sĩ A - Chuyên Gia Bệnh Truyền Nhiễm</option>
-                  <option value="dr2">Bác sĩ B - Chuyên Gia Điều Trị HIV</option>
-                  <option value="dr3">Bác sĩ C - Bác Sĩ Đa Khoa</option>
+                  {doctorsData.map((doctor) => (
+                    <option key={doctor.id} value={doctor.id}>
+                      {doctor.name} - {doctor.position}
+                    </option>
+                  ))}
                 </Form.Select>
               </div>
 
