@@ -515,7 +515,7 @@ const TestResultsLookup = () => {
         <Tab eventKey="test-results" title={
           <span>
             <FontAwesomeIcon icon={faVial} className="me-1" />
-            Kết Quả Xét Nghiệm
+            Kết Quả Xét Nghiệm & Lịch Sử Khám Bệnh
           </span>
         }>
           <Card>
@@ -572,84 +572,6 @@ const TestResultsLookup = () => {
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Tab>
-
-        <Tab eventKey="medical-history" title={
-          <span>
-            <FontAwesomeIcon icon={faHistory} className="me-1" />
-            Lịch Sử Khám Bệnh
-          </span>
-        }>
-          <Card>
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5>Lịch Sử Khám Bệnh</h5>
-                <Button variant="outline-primary" size="sm">
-                  <FontAwesomeIcon icon={faPrint} className="me-1" />
-                  In Báo Cáo
-                </Button>
-              </div>
-              
-              <Table responsive striped hover>
-                <thead>
-                  <tr>
-                    <th>Mã BN</th>
-                    <th>Tên Bệnh Nhân</th>
-                    <th>Ngày Khám</th>
-                    <th>Loại Khám</th>
-                    <th>Viral Load</th>
-                    <th>CD4</th>
-                    <th>Điều Trị</th>
-                    <th>Bác Sĩ</th>
-                    <th>Hẹn Tái Khám</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMedicalHistory.map(visit => (
-                    <tr key={visit.id}>
-                      <td><strong>{visit.patientId}</strong></td>
-                      <td>{visit.patientName}</td>
-                      <td>
-                        <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                        {new Date(visit.visitDate).toLocaleDateString('vi-VN')}
-                      </td>
-                      <td>
-                        <Badge bg="primary">{visit.visitType}</Badge>
-                      </td>
-                      <td>
-                        {visit.viralLoad && (
-                          <span className={`viral-load ${visit.viralLoad === '<50' ? 'undetectable' : 
-                            parseInt(visit.viralLoad) < 1000 ? 'low' : 'high'}`}>
-                            {visit.viralLoad} {visit.viralLoad !== '<50' ? 'copies/mL' : ''}
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        {visit.cd4Count && (
-                          <span className={`cd4-count ${visit.cd4Count > 500 ? 'high' : visit.cd4Count > 200 ? 'medium' : 'low'}`}>
-                            {visit.cd4Count} cells/μL
-                          </span>
-                        )}
-                      </td>
-                      <td className="treatment-cell">{visit.treatment}</td>
-                      <td>
-                        <FontAwesomeIcon icon={faStethoscope} className="me-1" />
-                        {visit.doctor}
-                      </td>
-                      <td>
-                        {visit.nextVisit && (
-                          <span className="next-visit">
-                            <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                            {new Date(visit.nextVisit).toLocaleDateString('vi-VN')}
-                          </span>
-                        )}
                       </td>
                     </tr>
                   ))}
