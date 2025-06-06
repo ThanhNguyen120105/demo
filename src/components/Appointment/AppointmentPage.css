@@ -54,6 +54,12 @@
   background-color: #f0f2f5;
 }
 
+.appointment-header {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 0 15px;
+}
+
 .status-summary {
   margin: 0 auto 30px;
   max-width: 800px;

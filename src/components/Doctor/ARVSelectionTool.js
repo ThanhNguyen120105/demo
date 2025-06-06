@@ -20,6 +20,7 @@ const ARVSelectionTool = () => {
   const [currentRegimen, setCurrentRegimen] = useState([]);
   const [preferredRegimen, setPreferredRegimen] = useState([]);
   const [coMedications, setCoMedications] = useState([]);
+  const [notes, setNotes] = useState('');
   
   // List of comorbidities
   const comorbidityOptions = [
@@ -366,6 +367,24 @@ const ARVSelectionTool = () => {
                     </Row>
                     <Form.Text className="text-muted">
                       Chọn phác đồ ART mà bạn đang cân nhắc cho bệnh nhân này
+                    </Form.Text>
+                  </Form.Group>
+
+                  {/* Notes Section */}
+                  <Form.Group className="mb-4">
+                    <Form.Label className="fw-bold d-flex align-items-center">
+                      <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
+                      Ghi Chú
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={4}
+                      placeholder="Nhập các ghi chú bổ sung về bệnh nhân, lịch sử điều trị, hoặc các cân nhắc đặc biệt khác..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                    <Form.Text className="text-muted">
+                      Ghi chú này sẽ được bao gồm trong báo cáo khuyến nghị điều trị
                     </Form.Text>
                   </Form.Group>
                   

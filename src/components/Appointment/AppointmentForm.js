@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Modal } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Modal, Card } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCalendarAlt, 
@@ -13,27 +13,40 @@ import {
   faPhone,
   faArrowRight,
   faArrowLeft,
-  faStethoscope
+  faStethoscope,
+  faVial,
+  faSyringe,
+  faHospital,
+  faMapMarkerAlt,
+  faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
 import { useLocation } from 'react-router-dom';
 import { doctorsData } from '../Doctors/Doctors';
+import BackButton from '../common/BackButton';
 
 const AppointmentForm = () => {
   const location = useLocation();
   const [formStep, setFormStep] = useState(1);
   const [formData, setFormData] = useState({
-    serviceType: '',
+    serviceType: 'hiv-care',
+    serviceDetail: '',
     doctor: '',
     date: '',
+    time: '',
     healthIssues: '',
     customerId: '',
     phone: '',
     dob: '',
     name: '',
-    registrationType: 'online'
+    registrationType: 'hiv-care',
+    consultationType: 'direct' // direct: khám trực tiếp, anonymous: khám ẩn danh
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState([
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', 
+    '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+  ]);
 
   useEffect(() => {
     // Check if there's a selected doctor in the location state
@@ -56,228 +69,326 @@ const AppointmentForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formStep === 1) {
-      if (!formData.serviceType) {
-        alert('Vui lòng chọn loại dịch vụ');
+      if (!formData.serviceDetail) {
+        alert('Vui lòng chọn chi tiết dịch vụ');
         return;
       }
       setFormStep(2);
     } else if (formStep === 2) {
+      if (!formData.consultationType) {
+        alert('Vui lòng chọn loại hình khám');
+        return;
+      }
+      setFormStep(3);
+    } else if (formStep === 3) {
+      if (!formData.date || !formData.time) {
+        alert('Vui lòng chọn ngày và giờ khám');
+        return;
+      }
+      setFormStep(4);
+    } else if (formStep === 4) {
+      if (!formData.name || !formData.phone || !formData.dob) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+        return;
+      }
       setShowSuccessModal(true);
       console.log('Form submitted:', formData);
     }
   };
 
+  const handlePreviousStep = () => {
+    if (formStep > 1) {
+      setFormStep(formStep - 1);
+    }
+  };
+
   const getServiceTypeName = (value) => {
-    const serviceTypes = {
-      'hiv-test': 'Xét nghiệm và điều trị HIV',
-      'counseling': 'Tư vấn tâm lý và hỗ trợ tinh thần',
-      'prevention': 'Tư vấn phòng ngừa và an toàn',
-      'treatment-support': 'Hỗ trợ điều trị và theo dõi'
+    return 'Khám & Điều trị HIV';
+  };
+
+  const getServiceDetailName = (type, value) => {
+    const serviceDetails = {
+      'hiv-testing': 'Tư vấn và xét nghiệm HIV',
+      'viral-load-monitoring': 'Theo dõi tải lượng virus',
+      'routine-checkup': 'Khám định kỳ'
     };
-    return serviceTypes[value] || value;
+    return serviceDetails[value] || value;
   };
 
   return (
     <Container>
       <style jsx>{`
+        .hospital-header {
+          background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+          color: white;
+          padding: 2rem;
+          border-radius: 15px;
+          margin-bottom: 2rem;
+          text-align: center;
+        }
+        
+
+        
         .booking-options {
           display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-bottom: 2rem;
+          flex-wrap: nowrap;
+        }
+        
+        .booking-option {
+          border: 2px solid #e9ecef;
+          border-radius: 12px;
+          padding: 1.2rem 0.8rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          background: white;
+          text-align: center;
+          flex: 1;
+          min-width: 0;
+        }
+        
+        .booking-option:hover {
+          border-color: #007bff;
+          box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+          transform: translateY(-5px);
+        }
+        
+        .booking-option.active {
+          border-color: #007bff;
+          background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+          box-shadow: 0 8px 25px rgba(0,123,255,0.2);
+          transform: translateY(-5px);
+        }
+        
+        .option-icon {
+          font-size: 2rem;
+          color: #007bff;
+          margin-bottom: 0.75rem;
+          display: block;
+          text-align: center;
+          width: 100%;
+        }
+        
+        .option-title {
+          font-weight: bold;
+          font-size: 0.95rem;
+          color: #2c3e50;
+          margin-bottom: 0.5rem;
+          line-height: 1.3;
+        }
+        
+
+        
+        .service-detail-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 1rem;
           margin-bottom: 2rem;
         }
         
-        .booking-option {
-          flex: 1;
+        .service-detail-option {
           border: 2px solid #e9ecef;
           border-radius: 10px;
           padding: 1.5rem;
           cursor: pointer;
           transition: all 0.3s ease;
           background: white;
+          text-align: center;
         }
         
-        .booking-option:hover {
+        .service-detail-option:hover {
           border-color: #007bff;
-          box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+          box-shadow: 0 4px 15px rgba(0,123,255,0.15);
         }
         
-        .booking-option.active {
+        .service-detail-option.active {
           border-color: #007bff;
           background: #f8f9ff;
-          box-shadow: 0 4px 12px rgba(0,123,255,0.2);
+          box-shadow: 0 4px 15px rgba(0,123,255,0.2);
         }
         
-        .option-header {
+        .time-slots {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+          gap: 0.75rem;
+          margin-top: 1rem;
+        }
+        
+        .time-slot {
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          padding: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          background: white;
           text-align: center;
-          margin-bottom: 1rem;
+          font-weight: 500;
         }
         
-        .option-icon {
-          font-size: 2rem;
-          color: #007bff;
-          margin-bottom: 0.5rem;
+        .time-slot:hover {
+          border-color: #007bff;
+          background: #f8f9ff;
         }
         
-        .option-header h6 {
-          font-weight: bold;
-          margin: 0;
-          color: #2c3e50;
+        .time-slot.active {
+          border-color: #007bff;
+          background: #007bff;
+          color: white;
         }
         
-        .option-description {
-          font-size: 0.9rem;
+        .time-slot.unavailable {
+          background: #f8f9fa;
           color: #6c757d;
-          text-align: center;
-          margin-bottom: 1rem;
+          cursor: not-allowed;
+          border-color: #dee2e6;
         }
         
-        .option-features {
-          list-style: none;
-          padding: 0;
+        .consultation-type-options .form-check {
+          border: 2px solid #e9ecef;
+          border-radius: 12px;
+          padding: 1rem;
           margin: 0;
+          flex: 1;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          background: white;
         }
         
-        .option-features li {
-          font-size: 0.85rem;
-          color: #495057;
-          padding: 0.25rem 0;
-          position: relative;
-          padding-left: 1.5rem;
+        .consultation-type-options .form-check:hover {
+          border-color: #007bff;
+          box-shadow: 0 4px 15px rgba(0,123,255,0.15);
         }
         
-        .option-features li:before {
-          content: "✓";
-          position: absolute;
-          left: 0;
-          color: #28a745;
-          font-weight: bold;
+        .consultation-type-options .form-check-input:checked + .form-check-label {
+          color: #007bff;
         }
         
+        .consultation-type-options .form-check-input:checked ~ * {
+          border-color: #007bff;
+          background: #f8f9ff;
+          box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+        }
+
+
         @media (max-width: 768px) {
           .booking-options {
             flex-direction: column;
+            gap: 0.75rem;
           }
+          
+          .booking-option {
+            padding: 1rem;
+          }
+          
+          .option-title {
+            font-size: 1rem;
+          }
+          
+
         }
         
-        @media (max-width: 992px) {
-          .booking-options {
-            flex-wrap: wrap;
+        @media (max-width: 992px) and (min-width: 769px) {
+          
+          .service-detail-grid {
+            grid-template-columns: 1fr;
           }
-          .booking-option {
-            flex: 1 1 calc(50% - 0.5rem);
+          
+          .time-slots {
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+          }
+          
+
+          
+          .hospital-header {
+            padding: 1.5rem;
           }
         }
       `}</style>
+
+      {/* Hospital Header */}
+      <div className="hospital-header">
+        <FontAwesomeIcon icon={faHospital} size="3x" className="mb-3" />
+        <h1>Đặt Lịch Khám & Điều Trị HIV</h1>
+        <p className="mb-0">Hệ thống đặt lịch khám chữa bệnh HIV trực tuyến</p>
+      </div>
+
+
+
+
+        
       <div className="simple-form-container">
         <div className="form-header">
-          <div className="form-icon">
-            <FontAwesomeIcon icon={faHeartbeat} />
-          </div>
-          <h2 className="simple-form-title">Đặt Lịch Hẹn Khám</h2>
-          <p className="form-subtitle">Lên lịch hẹn với các chuyên gia y tế của chúng tôi</p>
+          <h2 className="simple-form-title">Đặt Lịch Khám & Điều Trị HIV</h2>
+          <p className="form-subtitle">Vui lòng làm theo các bước để hoàn tất đặt lịch khám HIV</p>
         </div>
         
         <div className="form-progress">
           <div className={`progress-step ${formStep >= 1 ? 'active' : ''}`}>
             <div className="step-number">1</div>
-            <div className="step-label">Thông Tin Cơ Bản</div>
+            <div className="step-label">Chi Tiết Dịch Vụ HIV</div>
           </div>
           <div className="progress-connector"></div>
           <div className={`progress-step ${formStep >= 2 ? 'active' : ''}`}>
             <div className="step-number">2</div>
+            <div className="step-label">Loại Hình Khám</div>
+          </div>
+          <div className="progress-connector"></div>
+          <div className={`progress-step ${formStep >= 3 ? 'active' : ''}`}>
+            <div className="step-number">3</div>
+            <div className="step-label">Chọn Lịch Khám</div>
+          </div>
+          <div className="progress-connector"></div>
+          <div className={`progress-step ${formStep >= 4 ? 'active' : ''}`}>
+            <div className="step-number">4</div>
             <div className="step-label">Thông Tin Cá Nhân</div>
           </div>
         </div>
         
         <Form onSubmit={handleSubmit}>
+          {/* Bước 1: Chọn chi tiết dịch vụ HIV */}
           {formStep === 1 && (
             <div className="form-step-container animated fadeIn">
-              <div className="booking-type-selection">
-                <h5 className="mb-3 text-center">Chọn loại hỗ trợ</h5>
-                <Row>
-                  <Col xs={12}>
-                    <div className="booking-options">
-                      <div 
-                        className={`booking-option ${formData.registrationType === 'direct' ? 'active' : ''}`}
-                        onClick={() => setFormData({...formData, registrationType: 'direct'})}
-                      >
-                        <div className="option-header">
-                          <FontAwesomeIcon icon={faCalendarAlt} className="option-icon" />
-                          <h6>Đăng ký trực tiếp</h6>
-                        </div>
-                        <p className="option-description">
-                          Đến trực tiếp cơ sở y tế để đăng ký và khám. Thích hợp cho những ai muốn gặp trực tiếp bác sĩ.
-                        </p>
-                        <ul className="option-features">
-                          <li>Gặp bác sĩ trực tiếp</li>
-                          <li>Thăm khám ngay lập tức</li>
-                          <li>Không cần đặt lịch trước</li>
-                        </ul>
-                      </div>
-
-                      <div 
-                        className={`booking-option ${formData.registrationType === 'online' ? 'active' : ''}`}
-                        onClick={() => setFormData({...formData, registrationType: 'online'})}
-                      >
-                        <div className="option-header">
-                          <FontAwesomeIcon icon={faStethoscope} className="option-icon" />
-                          <h6>Đăng ký trực tuyến</h6>
-                        </div>
-                        <p className="option-description">
-                          Đặt lịch hẹn với thông tin cá nhân đầy đủ. Phù hợp cho việc theo dõi điều trị và quản lý hồ sơ y tế.
-                        </p>
-                        <ul className="option-features">
-                          <li>Lưu trữ hồ sơ y tế</li>
-                          <li>Theo dõi lịch sử điều trị</li>
-                          <li>Nhắc nhở tái khám</li>
-                        </ul>
-                      </div>
-                      
-                      <div 
-                        className={`booking-option ${formData.registrationType === 'anonymous' ? 'active' : ''}`}
-                        onClick={() => setFormData({...formData, registrationType: 'anonymous'})}
-                      >
-                        <div className="option-header">
-                          <FontAwesomeIcon icon={faUser} className="option-icon" />
-                          <h6>Ẩn danh</h6>
-                        </div>
-                        <p className="option-description">
-                          Đăng ký với thông tin tối thiểu, bảo vệ danh tính. Phù hợp nếu bạn lo ngại về kỳ thị hoặc muốn giữ bí mật.
-                        </p>
-                        <ul className="option-features">
-                          <li>Bảo vệ danh tính</li>
-                          <li>Thông tin tối thiểu</li>
-                          <li>Tuyệt đối bảo mật</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
+              <h4 className="text-center mb-4">Bước 1: Chọn loại dịch vụ HIV</h4>
+              <div className="alert alert-info mb-4">
+                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                Dịch vụ: <strong>{getServiceTypeName(formData.registrationType)}</strong>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">
-                  <FontAwesomeIcon icon={faStethoscope} className="label-icon" />
-                   Dịch vụ hỗ trợ
-                </label>
-                <Form.Select
-                  name="serviceType"
-                  value={formData.serviceType}
-                  onChange={handleInputChange}
-                  className="form-select"
-                  required
-                > 
-          
-                  <option value="hiv-test">🧪 Xét nghiệm và điều trị HIV</option>
-     
-                </Form.Select>
-            
+              <div className="service-detail-grid">
+                <div 
+                  className={`service-detail-option ${formData.serviceDetail === 'hiv-testing' ? 'active' : ''}`}
+                  onClick={() => setFormData({...formData, serviceDetail: 'hiv-testing'})}
+                >
+                  <div className="mb-2">🧪</div>
+                  <strong>Tư vấn và xét nghiệm HIV</strong>
+                  <small className="d-block text-muted mt-1">Xét nghiệm sàng lọc, xét nghiệm khẳng định</small>
+                </div>
+
+                <div 
+                  className={`service-detail-option ${formData.serviceDetail === 'viral-load-monitoring' ? 'active' : ''}`}
+                  onClick={() => setFormData({...formData, serviceDetail: 'viral-load-monitoring'})}
+                >
+                  <div className="mb-2">📊</div>
+                  <strong>Theo dõi tải lượng virus</strong>
+                  <small className="d-block text-muted mt-1">Xét nghiệm định kỳ, đánh giá hiệu quả điều trị</small>
+                </div>
+
+                <div 
+                  className={`service-detail-option ${formData.serviceDetail === 'routine-checkup' ? 'active' : ''}`}
+                  onClick={() => setFormData({...formData, serviceDetail: 'routine-checkup'})}
+                >
+                  <div className="mb-2">🩺</div>
+                  <strong>Khám định kỳ</strong>
+                  <small className="d-block text-muted mt-1">Theo dõi sức khỏe tổng quát</small>
+                </div>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faUserMd} className="label-icon" />
-                  Chọn bác sĩ
+                  Chọn bác sĩ (tùy chọn)
                 </label>
                 <Form.Select
                   name="doctor"
@@ -285,7 +396,7 @@ const AppointmentForm = () => {
                   onChange={handleInputChange}
                   className="form-select"
                 >
-                  <option value="">Chọn bác sĩ bạn ưa thích</option>
+                  <option value="">Bác sĩ bất kỳ</option>
                   {doctorsData.map((doctor) => (
                     <option key={doctor.id} value={doctor.id}>
                       {doctor.name} - {doctor.position}
@@ -294,28 +405,186 @@ const AppointmentForm = () => {
                 </Form.Select>
               </div>
 
+              <div className="form-submit">
+                <Button variant="primary" type="submit" className="submit-button">
+                  <FontAwesomeIcon icon={faArrowRight} className="me-2" />
+                  Tiếp Theo
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Bước 2: Chọn loại hình khám */}
+          {formStep === 2 && (
+            <div className="form-step-container animated fadeIn">
+              <h4 className="text-center mb-4">Bước 2: Chọn loại hình khám</h4>
+              <div className="alert alert-info mb-4">
+                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong>
+              </div>
+
+              <div className="form-group">
+                <Form.Label>
+                  <FontAwesomeIcon icon={faUserMd} className="me-1" />
+                  Loại hình khám *
+                </Form.Label>
+                <div className="consultation-type-options">
+                  <div className="d-flex gap-3">
+                    <div 
+                      className={`consultation-card ${formData.consultationType === 'direct' ? 'active' : ''}`}
+                      onClick={() => setFormData({...formData, consultationType: 'direct'})}
+                      style={{
+                        border: '2px solid #e9ecef',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        background: formData.consultationType === 'direct' ? '#f8f9ff' : 'white',
+                        borderColor: formData.consultationType === 'direct' ? '#007bff' : '#e9ecef',
+                        boxShadow: formData.consultationType === 'direct' ? '0 4px 15px rgba(0,123,255,0.2)' : 'none',
+                        flex: 1,
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Form.Check
+                        type="radio"
+                        id="direct-consultation"
+                        name="consultationType"
+                        value="direct"
+                        checked={formData.consultationType === 'direct'}
+                        onChange={handleInputChange}
+                        style={{ display: 'none' }}
+                      />
+                      <FontAwesomeIcon icon={faUser} size="2x" className="mb-3" style={{ color: '#007bff' }} />
+                      <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                        Khám trực tiếp
+                      </div>
+                    </div>
+
+                    <div 
+                      className={`consultation-card ${formData.consultationType === 'anonymous' ? 'active' : ''}`}
+                      onClick={() => setFormData({...formData, consultationType: 'anonymous'})}
+                      style={{
+                        border: '2px solid #e9ecef',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        background: formData.consultationType === 'anonymous' ? '#f8f9ff' : 'white',
+                        borderColor: formData.consultationType === 'anonymous' ? '#007bff' : '#e9ecef',
+                        boxShadow: formData.consultationType === 'anonymous' ? '0 4px 15px rgba(0,123,255,0.2)' : 'none',
+                        flex: 1,
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Form.Check
+                        type="radio"
+                        id="anonymous-consultation"
+                        name="consultationType"
+                        value="anonymous"
+                        checked={formData.consultationType === 'anonymous'}
+                        onChange={handleInputChange}
+                        style={{ display: 'none' }}
+                      />
+                      <FontAwesomeIcon icon={faInfoCircle} size="2x" className="mb-3" style={{ color: '#007bff' }} />
+                      <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                        Khám ẩn danh
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <small className="text-muted">
+                  {formData.consultationType === 'anonymous' 
+                    ? 'Chế độ ẩn danh: Thông tin cá nhân sẽ được mã hóa và bảo mật tuyệt đối'
+                    : 'Chế độ trực tiếp: Thông tin sẽ được lưu trữ trong hệ thống để theo dõi quá trình điều trị'
+                  }
+                </small>
+              </div>
+
+              <div className="form-submit">
+                <div className="d-flex gap-3">
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={handlePreviousStep}
+                    className="flex-fill"
+                  >
+                    <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+                    Quay lại
+                  </Button>
+                  <Button variant="primary" type="submit" className="flex-fill">
+                    <FontAwesomeIcon icon={faArrowRight} className="me-2" />
+                    Tiếp theo
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bước 3: Chọn ngày và giờ khám */}
+          {formStep === 3 && (
+            <div className="form-step-container animated fadeIn">
+              <h4 className="text-center mb-4">Bước 3: Chọn ngày và giờ khám</h4>
+              <div className="alert alert-info mb-4">
+                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong> - 
+                Loại khám: <strong>{formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}</strong>
+                {formData.doctor && (
+                  <span> - Bác sĩ: <strong>{doctorsData.find(d => d.id === formData.doctor)?.name}</strong></span>
+                )}
+              </div>
+
               <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faCalendarAlt} className="label-icon" />
-                  Chọn ngày và giờ
+                  Chọn ngày khám
                 </label>
                 <div className="date-input-wrapper">
                   <Form.Control
-                    type="datetime-local"
+                    type="date"
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
                     className="form-control date-input"
+                    min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
+                <small className="text-muted">Chọn ngày từ hôm nay trở đi</small>
               </div>
 
+              {formData.date && (
+                <div className="form-group">
+                  <label className="form-label">
+                    <FontAwesomeIcon icon={faClock} className="label-icon" />
+                    Chọn giờ khám
+                  </label>
+                  <div className="time-slots">
+                    {availableTimes.map((time, index) => (
+                      <div
+                        key={time}
+                        className={`time-slot ${formData.time === time ? 'active' : ''} ${Math.random() > 0.8 ? 'unavailable' : ''}`}
+                        onClick={() => {
+                          if (Math.random() <= 0.8) { // Giả lập slot khả dụng
+                            setFormData({...formData, time});
+                          }
+                        }}
+                      >
+                        {time}
+                      </div>
+                    ))}
+                  </div>
+                  <small className="text-muted">Chọn khung giờ phù hợp. Slot màu xám không khả dụng.</small>
+                </div>
+              )}
+
               <div className="form-group">
-                <label className="form-label">Nhập vấn đề sức khỏe của bạn</label>
+                <label className="form-label">
+                  <FontAwesomeIcon icon={faCommentMedical} className="label-icon" />
+                  Lý do khám bệnh (tùy chọn)
+                </label>
                 <Form.Control
                   as="textarea"
                   rows={3}
-                  placeholder="Nhập các vấn đề sức khỏe, câu hỏi cho bác sĩ và các vấn đề sức khỏe bạn cần kiểm tra"
+                  placeholder="Mô tả triệu chứng, lý do khám bệnh hoặc yêu cầu đặc biệt..."
                   name="healthIssues"
                   value={formData.healthIssues}
                   onChange={handleInputChange}
@@ -324,80 +593,88 @@ const AppointmentForm = () => {
               </div>
 
               <div className="form-submit">
-                <Button variant="primary" type="submit" className="submit-button">
-                  Tiếp Theo
-                </Button>
+                <div className="d-flex gap-3">
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={handlePreviousStep}
+                    className="flex-fill"
+                  >
+                    <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+                    Quay lại
+                  </Button>
+                  <Button variant="primary" type="submit" className="flex-fill">
+                    <FontAwesomeIcon icon={faArrowRight} className="me-2" />
+                    Tiếp theo
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
-          {formStep === 2 && (
+          {/* Bước 4: Thông tin cá nhân */}
+          {formStep === 4 && (
             <div className="form-step-container animated fadeIn">
-              {formData.registrationType === 'direct' && (
-                <div className="direct-notice mb-3">
-                  <div className="alert alert-info">
-                    <FontAwesomeIcon icon={faUser} className="me-2" />
-                    <strong>Đăng ký trực tiếp</strong><br/>
-                    <small>Bạn đã chọn đến trực tiếp cơ sở y tế. Vui lòng cung cấp thông tin liên lạc để chúng tôi có thể hướng dẫn bạn.</small>
-                  </div>
-                </div>
-              )}
-              
-              {formData.registrationType === 'online' && (
-                <div className="online-notice mb-3">
-                  <div className="alert alert-primary">
-                    <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                    <strong>Đăng ký trực tuyến</strong><br/>
-                    <small>Bạn đã chọn đặt lịch trực tuyến. Vui lòng điền đầy đủ thông tin để hoàn tất việc đăng ký.</small>
-                  </div>
-                </div>
-              )}
+              <h4 className="text-center mb-4">Bước 4: Thông tin cá nhân</h4>
+              <div className="alert alert-success mb-4">
+                <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                <strong>Thông tin đặt lịch:</strong><br/>
+                <small>
+                  • Dịch vụ: {getServiceDetailName(formData.registrationType, formData.serviceDetail)}<br/>
+                  • Loại khám: {formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}<br/>
+                  • Ngày khám: {formData.date ? new Date(formData.date).toLocaleDateString('vi-VN') : ''}<br/>
+                  • Giờ khám: {formData.time}<br/>
+                  {formData.doctor && `• Bác sĩ: ${doctorsData.find(d => d.id === formData.doctor)?.name}`}
+                </small>
+              </div>
 
-              {formData.registrationType === 'anonymous' && (
-                <div className="anonymous-notice mb-3">
-                  <div className="alert alert-success">
-                    <FontAwesomeIcon icon={faUser} className="me-2" />
-                    <strong>Đặt lịch ẩn danh</strong><br/>
-                    <small>Bạn đã chọn đặt lịch ẩn danh. Chúng tôi chỉ cần thông tin cơ bản để liên lạc và xác nhận lịch hẹn.</small>
-                  </div>
+              <div className="patient-info-notice mb-4">
+                <div className="alert alert-primary">
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  <strong>Thông tin bệnh nhân</strong><br/>
+                  <small>Vui lòng cung cấp thông tin chính xác để chúng tôi có thể liên lạc và xác nhận lịch hẹn với bạn.</small>
                 </div>
-              )}
+              </div>
 
               <div className="form-group">
                 <Form.Label>
-                  <FontAwesomeIcon icon={faPhone} className="me-1" />
-                  Số Điện Thoại *
+                  <FontAwesomeIcon icon={faUser} className="me-1" />
+                  Họ và Tên *
                 </Form.Label>
                 <Form.Control
                   type="text"
-                  name="phone"
-                  value={formData.phone}
+                  name="name"
+                  value={formData.name}
                   onChange={handleInputChange}
                   required
-                  placeholder="Nhập số điện thoại để liên lạc"
+                  placeholder="Nhập họ và tên đầy đủ"
                 />
-                <small className="text-muted">Số điện thoại để xác nhận lịch hẹn và liên lạc khẩn cấp</small>
+                <small className="text-muted">Họ tên như trong CMND/CCCD</small>
               </div>
 
-              {formData.registrationType !== 'anonymous' && (
-                <>
+              <Row>
+                <Col md={6}>
                   <div className="form-group">
                     <Form.Label>
-                      <FontAwesomeIcon icon={faUser} className="me-1" />
-                      Họ Tên Đầy Đủ *
+                      <FontAwesomeIcon icon={faPhone} className="me-1" />
+                      Số Điện Thoại *
                     </Form.Label>
                     <Form.Control
-                      type="text"
-                      name="name"
-                      value={formData.name}
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleInputChange}
                       required
-                      placeholder="Nhập họ tên đầy đủ"
+                      placeholder="Nhập số điện thoại"
                     />
+                    <small className="text-muted">Để xác nhận lịch hẹn và thông báo</small>
                   </div>
-
+                </Col>
+                <Col md={6}>
                   <div className="form-group">
-                    <Form.Label>Ngày Sinh *</Form.Label>
+                    <Form.Label>
+                      <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
+                      Ngày Sinh *
+                    </Form.Label>
                     <Form.Control
                       type="date"
                       name="dob"
@@ -406,55 +683,68 @@ const AppointmentForm = () => {
                       required
                     />
                   </div>
+                </Col>
+              </Row>
 
-                  <div className="form-group">
-                    <Form.Label>Mã Khách Hàng (nếu có)</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="customerId"
-                      value={formData.customerId}
-                      onChange={handleInputChange}
-                      placeholder="Nhập mã khách hàng (nếu có)"
-                    />
-                  </div>
-                </>
-              )}
+              <div className="form-group">
+                <Form.Label>
+                  <FontAwesomeIcon icon={faUser} className="me-1" />
+                  Số BHYT/Mã Bệnh Nhân (nếu có)
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="customerId"
+                  value={formData.customerId}
+                  onChange={handleInputChange}
+                  placeholder="Nhập số BHYT hoặc mã bệnh nhân (nếu có)"
+                />
+                <small className="text-muted">Để tra cứu hồ sơ bệnh án (nếu đã từng khám)</small>
+              </div>
 
-              {formData.registrationType === 'anonymous' && (
-                <div className="form-group">
-                  <Form.Label>
-                    <FontAwesomeIcon icon={faUser} className="me-1" />
-                    Tên gọi (tùy chọn)
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Tên bạn muốn được gọi (có thể là tên giả)"
-                  />
-                  <small className="text-muted">Để bác sĩ có thể xưng hô một cách thân thiện trong buổi tư vấn</small>
-                </div>
-              )}
-
-              <div className="privacy-assurance">
+              <div className="privacy-notice">
                 <div className="alert alert-info">
                   <FontAwesomeIcon icon={faUser} className="me-2" />
-                  <strong>Cam kết bảo mật</strong><br/>
+                  <strong>Cam kết bảo mật thông tin</strong><br/>
                   <small>
-                    • Thông tin của bạn được mã hóa và bảo mật tuyệt đối<br/>
-                    • Chúng tôi không chia sẻ thông tin với bên thứ ba<br/>
-                    • Đội ngũ y tế được đào tạo về tính bảo mật và không phán xét<br/>
-                    • Bạn có quyền yêu cầu xóa thông tin bất kỳ lúc nào
+                    • Thông tin cá nhân được bảo mật theo quy định của Bộ Y tế<br/>
+                    • Chỉ được sử dụng cho mục đích khám chữa bệnh<br/>
+                    • Không chia sẻ với bên thứ ba khi chưa có sự đồng ý<br/>
+                    • Bạn có quyền yêu cầu chỉnh sửa hoặc xóa thông tin
                   </small>
                 </div>
               </div>
 
               <div className="form-submit">
-                <Button variant="primary" type="submit" className="w-100">
-                  <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
-                  {formData.registrationType === 'anonymous' ? 'Hoàn Tất Đặt Lịch Ẩn Danh' : 'Hoàn Tất Đặt Lịch'}
-                </Button>
+                <div className="d-flex gap-3">
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={handlePreviousStep}
+                    className="flex-fill"
+                    style={{
+                      borderColor: '#6c757d',
+                      color: '#6c757d',
+                      fontWeight: '500',
+                      padding: '12px 20px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+                    Quay lại
+                  </Button>
+                  <Button 
+                    variant="primary" 
+                    type="submit" 
+                    className="flex-fill" 
+                    style={{
+                      fontWeight: '600',
+                      padding: '12px 20px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                    Hoàn Tất Đặt Lịch
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -469,73 +759,76 @@ const AppointmentForm = () => {
               className="text-success me-2"
               size="2x"
             />
-            Đăng Ký Thành Công
+            <br />
+            Đặt Lịch Thành Công
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
-          <p>
-            Cảm ơn bạn đã đăng ký dịch vụ <strong>{getServiceTypeName(formData.serviceType)}</strong>
-            {formData.registrationType === 'anonymous' && <span className="text-success"> (Đặt lịch ẩn danh)</span>}.
-          </p>
-          
-          {formData.registrationType === 'anonymous' ? (
-            <div className="alert alert-success text-start">
-              <FontAwesomeIcon icon={faUser} className="me-2" />
-              <strong>Đặt lịch ẩn danh thành công!</strong><br/>
-              <small>
-                • Thông tin của bạn được bảo mật hoàn toàn<br/>
-                • Chúng tôi sẽ liên lạc qua số điện thoại đã cung cấp<br/>
-                • Bạn có thể sử dụng tên gọi đã chọn khi đến khám<br/>
-                • Mọi thông tin y tế sẽ được giữ bí mật tuyệt đối
-              </small>
-            </div>
-          ) : (
-            <p>
-              Vui lòng kiểm tra{' '}
-              <a 
-                href="/appointment-history" 
-                className="text-primary fw-bold"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.location.href = '/appointment-history';
-                }}
-              >
-                Lịch Sử Cuộc Hẹn
-              </a>{' '}
-              để xác nhận trạng thái.
+          <div className="alert alert-success">
+            <h5 className="mb-3">Cảm ơn bạn đã đặt lịch khám!</h5>
+            <p className="mb-2">
+              <strong>Dịch vụ:</strong> {getServiceTypeName(formData.registrationType)}
             </p>
-          )}
+            {formData.serviceDetail && (
+              <p className="mb-2">
+                <strong>Chi tiết:</strong> {getServiceDetailName(formData.registrationType, formData.serviceDetail)}
+              </p>
+            )}
+            {formData.date && (
+              <p className="mb-2">
+                <strong>Ngày khám:</strong> {new Date(formData.date).toLocaleDateString('vi-VN')}
+                {formData.time && <span> - <strong>Giờ:</strong> {formData.time}</span>}
+              </p>
+            )}
+            <p className="mb-0">
+              <strong>Liên hệ:</strong> {formData.phone}
+            </p>
+          </div>
 
-          {formData.serviceType && (
-            <div className="mt-3 p-3 bg-light rounded">
-              <small className="text-muted">
-                <strong>Dịch vụ:</strong> {getServiceTypeName(formData.serviceType)}<br/>
-                <strong>Loại đặt lịch:</strong> {
-                  formData.registrationType === 'anonymous' ? 'Ẩn danh (Bảo mật)' : 
-                  formData.registrationType === 'direct' ? 'Đăng ký trực tiếp' :
-                  'Đăng ký trực tuyến'
-                }<br/>
-                {formData.date && (
-                  <>
-                    <strong>Ngày hẹn:</strong> {new Date(formData.date).toLocaleString('vi-VN')}
-                  </>
-                )}
-                {formData.phone && (
-                  <>
-                    <br/><strong>Liên lạc:</strong> {formData.phone}
-                  </>
-                )}
-              </small>
-            </div>
-          )}
+          <div className="alert alert-info">
+            <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+            <strong>Thông báo quan trọng:</strong><br/>
+            <small>
+              • Lịch hẹn của bạn đang được xử lý<br/>
+              • Chúng tôi sẽ gọi điện xác nhận trong vòng 24h<br/>
+              • Vui lòng mang theo CMND/CCCD và thẻ BHYT (nếu có)<br/>
+              • Đến trước giờ hẹn 30 phút để làm thủ tục
+            </small>
+          </div>
+
+          <div className="contact-reminder">
+            <p className="mb-1"><strong>Hotline hỗ trợ:</strong></p>
+            <h4 className="text-primary mb-2">1900.888.866</h4>
+            <small className="text-muted">
+              Thời gian làm việc: T2-T6 (7:30-21:00) | T7-CN (7:30-16:30)
+            </small>
+          </div>
         </Modal.Body>
         <Modal.Footer className="border-0 justify-content-center">
           <Button 
             variant="primary" 
-            onClick={() => setShowSuccessModal(false)}
+            onClick={() => {
+              setShowSuccessModal(false);
+              // Reset form
+              setFormData({
+                serviceType: 'hiv-care',
+                serviceDetail: '',
+                doctor: '',
+                date: '',
+                time: '',
+                healthIssues: '',
+                customerId: '',
+                phone: '',
+                dob: '',
+                name: '',
+                registrationType: 'hiv-care',
+                consultationType: 'direct'
+              });
+              setFormStep(1);
+            }}
             className="px-4"
           >
-            OK
+            Đặt Lịch Mới
           </Button>
         </Modal.Footer>
       </Modal>
