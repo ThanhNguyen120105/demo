@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserMd,
   faClipboardList, faCog, faSignOutAlt, faFileAlt,
-  faPrescriptionBottleAlt, faQuestionCircle
+  faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unansweredCount = 5 }) => {
@@ -54,15 +54,6 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           {unansweredCount > 0 && (
             <Badge bg="danger" className="ms-auto">{unansweredCount}</Badge>
           )}
-        </ListGroup.Item>
-        <ListGroup.Item 
-          action 
-          active={activeTab === 'arv-tool'} 
-          onClick={() => setActiveTab('arv-tool')}
-          as={Link} to="/doctor/arv-tool"
-        >
-          <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="menu-icon" />
-          Công Cụ Chọn ARV
         </ListGroup.Item>
         <ListGroup.Item 
           action 

@@ -9,13 +9,14 @@ import {
   faChevronLeft, faChevronRight, faSearch, faPlus, faTimes, faCheck, faClock,
   faPhone, faVideo, faNotesMedical, faVial, faPrescriptionBottleAlt,
   faStethoscope, faUserFriends, faBaby, faSlidersH, faHeartbeat, 
-  faUpload, faFilePdf
+  faUpload, faFilePdf, faEye, faEdit, faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
+import ARVSelectionTool from './ARVSelectionTool';
 
-// Dữ liệu lịch hẹn (dữ liệu mẫu)
-const appointments = [
+// Dữ liệu lịch hẹn mẫu
+const initialAppointments = [
   // May 1, 2025
   { id: 101, date: '2025-05-01', time: '09:00 AM', patient: 'John Smith', patientId: 'P1001', age: 45, 
     type: 'Khám định kỳ', status: 'completed', symptoms: 'Sốt, mệt mỏi', notes: 'Theo dõi chỉ số CD4' },
@@ -38,29 +39,15 @@ const appointments = [
   { id: 110, date: '2025-05-15', time: '03:00 PM', patient: 'Daniel Garcia', patientId: 'P1010', age: 44, 
     type: 'Tái khám', status: 'completed', symptoms: 'Mệt mỏi', notes: 'Theo dõi điều trị' },
   { id: 111, date: '2025-05-19', time: '09:00 AM', patient: 'Maria Rodriguez', patientId: 'P1011', age: 32, 
-    type: 'Khám thai', status: 'completed', symptoms: 'Không có', notes: 'Quản lý HIV trong thời kỳ mang thai' },
+    type: 'Khám thai', status: 'pending', symptoms: 'Không có', notes: 'Quản lý HIV trong thời kỳ mang thai' },
   { id: 112, date: '2025-05-19', time: '11:30 AM', patient: 'Thomas Anderson', patientId: 'P1012', age: 47, 
-    type: 'Kết quả xét nghiệm', status: 'completed', symptoms: 'Không có', notes: 'Theo dõi cải thiện chỉ số CD4' },
+    type: 'Kết quả xét nghiệm', status: 'pending', symptoms: 'Không có', notes: 'Theo dõi cải thiện chỉ số CD4' },
   { id: 113, date: '2025-05-21', time: '02:30 PM', patient: 'Patricia Moore', patientId: 'P1013', age: 39, 
     type: 'Tư vấn', status: 'pending', symptoms: 'Đau đầu, vấn đề về thị lực', notes: 'Đánh giá các vấn đề thần kinh' },
   { id: 114, date: '2025-05-22', time: '10:15 AM', patient: 'James Williams', patientId: 'P1014', age: 51, 
-    type: 'Điều chỉnh điều trị', status: 'completed', symptoms: 'Buồn nôn với thuốc hiện tại', notes: 'Xem xét phác đồ thay thế' },
+    type: 'Điều chỉnh điều trị', status: 'pending', symptoms: 'Buồn nôn với thuốc hiện tại', notes: 'Xem xét phác đồ thay thế' },
   { id: 115, date: '2025-05-22', time: '01:45 PM', patient: 'Linda Martinez', patientId: 'P1015', age: 34, 
-    type: 'Tái khám', status: 'completed', symptoms: 'Không có', notes: 'Theo dõi đáp ứng điều trị' },
-  { id: 116, date: '2025-05-26', time: '09:30 AM', patient: 'Robert Thompson', patientId: 'P1016', age: 58, 
-    type: 'Khám định kỳ', status: 'cancelled', symptoms: 'Mệt mỏi, sụt cân', notes: 'Đánh giá sức khỏe toàn diện' },
-  { id: 117, date: '2025-05-28', time: '08:30 AM', patient: 'Elizabeth Martin', patientId: 'P1017', age: 42, 
-    type: 'Kết quả xét nghiệm', status: 'completed', symptoms: 'Không có', notes: 'Xem xét kết quả CD4 và tải lượng virus' },
-  { id: 118, date: '2025-05-28', time: '10:00 AM', patient: 'Charles Wilson', patientId: 'P1018', age: 37, 
-    type: 'Kế hoạch điều trị', status: 'completed', symptoms: 'Không có', notes: 'Thảo luận bắt đầu điều trị' },
-  { id: 119, date: '2025-05-28', time: '11:30 AM', patient: 'Susan Garcia', patientId: 'P1019', age: 29, 
-    type: 'Tư vấn', status: 'completed', symptoms: 'Lo âu, trầm cảm', notes: 'Hỗ trợ sức khỏe tâm thần' },
-  { id: 120, date: '2025-05-28', time: '02:00 PM', patient: 'Joseph Martinez', patientId: 'P1020', age: 46, 
-    type: 'Tái khám', status: 'pending', symptoms: 'Phát ban nhẹ ở cánh tay', notes: 'Đánh giá tác dụng phụ của thuốc' },
-  { id: 121, date: '2025-05-29', time: '09:15 AM', patient: 'Margaret Robinson', patientId: 'P1021', age: 53, 
-    type: 'Đánh giá thuốc', status: 'completed', symptoms: 'Chóng mặt', notes: 'Điều chỉnh liều lượng thuốc' },
-  { id: 122, date: '2025-05-29', time: '11:45 AM', patient: 'Richard Clark', patientId: 'P1022', age: 40, 
-    type: 'Khám định kỳ', status: 'completed', symptoms: 'Không có', notes: 'Theo dõi định kỳ' },
+    type: 'Tái khám', status: 'pending', symptoms: 'Không có', notes: 'Theo dõi đáp ứng điều trị' }
 ];
 
 // Biểu tượng cho các loại lịch hẹn để hiển thị tốt hơn
@@ -78,7 +65,7 @@ const appointmentTypeIcons = {
 };
 
 // Tạo các ngày trong lịch
-const generateCalendarDays = (year, month) => {
+const generateCalendarDays = (year, month, appointments) => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
 
@@ -108,12 +95,11 @@ const generateCalendarDays = (year, month) => {
 
 const DoctorAppointments = () => {
   const [activeTab, setActiveTab] = useState('appointments');
-  const [currentMonth, setCurrentMonth] = useState(4); // Tháng 5 (0-indexed)
-  const [currentYear, setCurrentYear] = useState(2025); // Đặt là 2025
-  const [selectedDate, setSelectedDate] = useState('2025-05-28'); // Mặc định là 28/05/2025
-  const [todayDate, setTodayDate] = useState('2025-05-28'); // Giả định hôm nay là 28/05/2025
-  
-  // State để quản lý modal báo cáo y tế
+  const [currentMonth, setCurrentMonth] = useState(4);
+  const [currentYear, setCurrentYear] = useState(2025);
+  const [selectedDate, setSelectedDate] = useState('2025-05-28');
+  const [todayDate, setTodayDate] = useState('2025-05-28');
+  const [appointments, setAppointments] = useState(initialAppointments);
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [medicalReport, setMedicalReport] = useState({
@@ -160,13 +146,17 @@ const DoctorAppointments = () => {
       date: ''
     }
   });
+  const [showPdfViewer, setShowPdfViewer] = useState(false);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
+  const [showARVTool, setShowARVTool] = useState(false);
+  const [selectedAppointmentForARV, setSelectedAppointmentForARV] = useState(null);
   
   const monthNames = [
     'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
   ];
   
-  const days = generateCalendarDays(currentYear, currentMonth);
+  const days = generateCalendarDays(currentYear, currentMonth, appointments);
   const selectedDateAppointments = appointments.filter(a => a.date === selectedDate);
   
   // Xử lý điều hướng
@@ -204,171 +194,47 @@ const DoctorAppointments = () => {
     });
   };
   
-  // Hiển thị modal với báo cáo y tế
-  const handleShowReportModal = (appointment) => {
-    setSelectedAppointment(appointment);
-    
-    // Khởi tạo báo cáo y tế cho lịch hẹn đã chọn
-    let initialReport;
-    
-    // Nếu lịch hẹn đã hoàn thành, thêm dữ liệu giả
-    if (appointment.status === 'completed') {
-      initialReport = {
-        patientInfo: {
-          name: appointment.patient,
-          dob: "1985-06-12",
-          gender: "Nam",
-          patientId: appointment.patientId
-        },
-        visitDate: appointment.date,
-        vitalSigns: {
-          weight: '72 kg',
-          height: '175 cm',
-          bmi: '23.5',
-          temperature: '36.7°C',
-          bloodPressure: '120/80 mmHg',
-          heartRate: '72 bpm'
-        },
-        labResults: {
-          cd4Count: `${Math.floor(Math.random() * 300) + 400} tế bào/mm³`,
-          viralLoad: 'Không phát hiện (<20 bản sao/mL)',
-          hematology: {
-            hgb: '14.2 g/dL',
-            wbc: '5.8 × 10³/μL',
-            platelets: '230 × 10³/μL'
-          },
-          chemistry: {
-            glucose: '92 mg/dL',
-            creatinine: '0.9 mg/dL',
-            alt: '28 U/L',
-            ast: '26 U/L'
-          },
-          lipidPanel: {
-            totalCholesterol: '180 mg/dL',
-            ldl: '105 mg/dL',
-            hdl: '48 mg/dL',
-            triglycerides: '130 mg/dL'
-          }
-        },
-        medications: [
-          {
-            name: 'Biktarvy',
-            dosage: '1 viên',
-            frequency: 'Ngày 1 lần',
-            status: 'Tiếp tục'
-          },
-          {
-            name: 'Đa vitamin',
-            dosage: '1 viên',
-            frequency: 'Ngày 1 lần',
-            status: 'Mới'
-          }
-        ],
-        assessment: generateAssessment(appointment),
-        plan: 'Tiếp tục liệu pháp kháng virus hiện tại. Tái khám sau 3 tháng với xét nghiệm CD4 và tải lượng virus. Khuyến khích thực hành tình dục an toàn.',
-        recommendations: [
-          'Duy trì chế độ ăn uống lành mạnh và tập thể dục thường xuyên',
-          'Tránh uống rượu bia',
-          'Quay lại tái khám sau 3 tháng',
-          'Gọi ngay nếu có bất kỳ triệu chứng đáng lo ngại nào'
-        ],
-        arvResultFile: {
-          name: `Báo_cáo_ARV_${appointment.patientId}.pdf`,
-          size: '1.2 MB',
-          date: appointment.date
-        },
-        doctorInfo: {
-          name: 'Dr. John Doe',
-          specialty: 'Chuyên gia điều trị HIV',
-          signature: 'J. Doe, MD',
-          date: appointment.date
-        }
-      };
-    } else {
-      // Nếu lịch hẹn có trạng thái đang chờ, khởi tạo với biểu mẫu trống
-      initialReport = {
-        patientInfo: {
-          name: appointment.patient,
-          dob: "1985-06-12", // Giả định
-          gender: "Nam", // Giả định
-          patientId: appointment.patientId
-        },
-        visitDate: appointment.date,
-        vitalSigns: {
-          weight: '',
-          height: '',
-          bmi: '',
-          temperature: '',
-          bloodPressure: '',
-          heartRate: ''
-        },
-        labResults: {
-          cd4Count: '',
-          viralLoad: '',
-          hematology: {
-            hgb: '',
-            wbc: '',
-            platelets: ''
-          },
-          chemistry: {
-            glucose: '',
-            creatinine: '',
-            alt: '',
-            ast: ''
-          },
-          lipidPanel: {
-            totalCholesterol: '',
-            ldl: '',
-            hdl: '',
-            triglycerides: ''
-          }
-        },
-        medications: [
-          {
-            name: '',
-            dosage: '',
-            frequency: '',
-            status: 'Mới'
-          }
-        ],
-        assessment: '',
-        plan: '',
-        recommendations: ['', '', '', ''],
-        arvResultFile: null,
-        doctorInfo: {
-          name: 'Dr. John Doe',
-          specialty: 'Chuyên gia điều trị HIV',
-          signature: 'J. Doe, MD',
-          date: new Date().toISOString().split('T')[0]
-        }
-      };
+  // Modify handleViewPdf to use base64 data
+  const handleViewPdf = (pdfFile) => {
+    if (pdfFile && pdfFile.data) {
+      setCurrentPdfUrl(pdfFile.data);
+      setShowPdfViewer(true);
     }
-    
-    setMedicalReport(initialReport);
-    setShowReportModal(true);
   };
-  
-  // Hàm trợ giúp để tạo nội dung đánh giá dựa trên loại lịch hẹn
-  const generateAssessment = (appointment) => {
-    const assessments = {
-      'Khám định kỳ': 'Bệnh nhân ổn định về mặt lâm sàng. Chỉ số CD4 đã cải thiện so với lần khám trước. Tải lượng virus vẫn không phát hiện được. Không có tác dụng phụ đáng kể từ phác đồ kháng virus hiện tại. Bệnh nhân báo cáo tuân thủ tốt với thuốc.',
-      'Tái khám': 'Bệnh nhân tiếp tục phản ứng tốt với liệu pháp kháng virus hiện tại. Tất cả các giá trị xét nghiệm đều trong giới hạn bình thường. Bệnh nhân không báo cáo triệu chứng hay lo ngại mới.',
-      'Kết quả xét nghiệm': 'Chỉ số CD4 và tải lượng virus cho thấy đáp ứng điều trị rất tốt. Bệnh nhân đã duy trì ức chế virus hơn 12 tháng. Không có dấu hiệu thất bại điều trị hoặc kháng thuốc.',
-      'Kế hoạch điều trị': 'Bệnh nhân đã bắt đầu liệu pháp kháng virus thành công. Dung nạp thuốc tốt với tác dụng phụ tối thiểu. Đáp ứng xét nghiệm ban đầu khả quan.',
-      'Đánh giá thuốc': 'Phác đồ thuốc hiện tại có hiệu quả mà không có tác dụng phụ đáng kể. Bệnh nhân hiểu tầm quan trọng của việc tuân thủ và báo cáo đã uống thuốc theo chỉ định.',
-      'Tư vấn': 'Đã hoàn thành đánh giá toàn diện. Bệnh nhân có nhiễm HIV được kiểm soát với phác đồ hiện tại. Không phát hiện nhiễm trùng cơ hội hoặc biến chứng liên quan đến HIV.'
-    };
-    
-    return assessments[appointment.type] || 'Bệnh nhân ổn định về mặt lâm sàng với đáp ứng virus học và miễn dịch tốt đối với liệu pháp kháng virus hiện tại.';
+
+  // Modify handleClosePdfViewer to not revoke URL
+  const handleClosePdfViewer = () => {
+    setCurrentPdfUrl(null);
+    setShowPdfViewer(false);
   };
-  
-  // Đóng modal 
-  const handleCloseReportModal = () => {
-    setShowReportModal(false);
-    setSelectedAppointment(null);
+
+  // Add function to save form progress
+  const handleSaveFormProgress = (report) => {
+    if (selectedAppointment) {
+      localStorage.setItem(`appointment_${selectedAppointment.id}_progress`, JSON.stringify(report));
+    }
   };
-  
-  // Cập nhật giá trị trong báo cáo y tế
+
+  // Add function to load form progress
+  const handleLoadFormProgress = (appointment) => {
+    const savedProgress = localStorage.getItem(`appointment_${appointment.id}_progress`);
+    if (savedProgress) {
+      try {
+        const parsedProgress = JSON.parse(savedProgress);
+        // Ensure recommendations is an array
+        if (!Array.isArray(parsedProgress.recommendations)) {
+          parsedProgress.recommendations = ['', '', '', ''];
+        }
+        return parsedProgress;
+      } catch (error) {
+        console.error('Error parsing saved progress:', error);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Add back handleReportChange function
   const handleReportChange = (field, value) => {
     setMedicalReport(prevReport => {
       // Xử lý các trường lồng nhau (nested fields)
@@ -392,8 +258,176 @@ const DoctorAppointments = () => {
       };
     });
   };
+
+  // Modify existing handleShowReportModal
+  const handleShowReportModal = (appointment) => {
+    setSelectedAppointment(appointment);
+    
+    // Try to load saved progress first
+    const savedProgress = handleLoadFormProgress(appointment);
+    if (savedProgress) {
+      setMedicalReport(savedProgress);
+    } else {
+      // If no saved progress, initialize with default values
+      let initialReport;
+      if (appointment.status === 'completed') {
+        initialReport = {
+          patientInfo: {
+            name: appointment.patient,
+            dob: "1985-06-12",
+            gender: "Nam",
+            patientId: appointment.patientId
+          },
+          visitDate: appointment.date,
+          vitalSigns: {
+            weight: '72 kg',
+            height: '175 cm',
+            bmi: '23.5',
+            temperature: '36.7°C',
+            bloodPressure: '120/80 mmHg',
+            heartRate: '72 bpm'
+          },
+          labResults: {
+            cd4Count: `${Math.floor(Math.random() * 300) + 400} tế bào/mm³`,
+            viralLoad: 'Không phát hiện (<20 bản sao/mL)',
+            hematology: {
+              hgb: '14.2 g/dL',
+              wbc: '5.8 × 10³/μL',
+              platelets: '230 × 10³/μL'
+            },
+            chemistry: {
+              glucose: '92 mg/dL',
+              creatinine: '0.9 mg/dL',
+              alt: '28 U/L',
+              ast: '26 U/L'
+            },
+            lipidPanel: {
+              totalCholesterol: '180 mg/dL',
+              ldl: '105 mg/dL',
+              hdl: '48 mg/dL',
+              triglycerides: '130 mg/dL'
+            }
+          },
+          medications: [
+            {
+              name: 'Biktarvy',
+              dosage: '1 viên',
+              frequency: 'Ngày 1 lần',
+              status: 'Tiếp tục'
+            },
+            {
+              name: 'Đa vitamin',
+              dosage: '1 viên',
+              frequency: 'Ngày 1 lần',
+              status: 'Mới'
+            }
+          ],
+          assessment: generateAssessment(appointment),
+          plan: 'Tiếp tục liệu pháp kháng virus hiện tại. Tái khám sau 3 tháng với xét nghiệm CD4 và tải lượng virus. Khuyến khích thực hành tình dục an toàn.',
+          recommendations: [
+            'Duy trì chế độ ăn uống lành mạnh và tập thể dục thường xuyên',
+            'Tránh uống rượu bia',
+            'Quay lại tái khám sau 3 tháng',
+            'Gọi ngay nếu có bất kỳ triệu chứng đáng lo ngại nào'
+          ],
+          arvResultFile: {
+            name: `Báo_cáo_ARV_${appointment.patientId}.pdf`,
+            size: '1.2 MB',
+            date: appointment.date
+          },
+          doctorInfo: {
+            name: 'Dr. John Doe',
+            specialty: 'Chuyên gia điều trị HIV',
+            signature: 'J. Doe, MD',
+            date: appointment.date
+          }
+        };
+      } else {
+        initialReport = {
+          patientInfo: {
+            name: appointment.patient,
+            dob: "1985-06-12",
+            gender: "Nam",
+            patientId: appointment.patientId
+          },
+          visitDate: appointment.date,
+          vitalSigns: {
+            weight: '',
+            height: '',
+            bmi: '',
+            temperature: '',
+            bloodPressure: '',
+            heartRate: ''
+          },
+          labResults: {
+            cd4Count: '',
+            viralLoad: '',
+            hematology: {
+              hgb: '',
+              wbc: '',
+              platelets: ''
+            },
+            chemistry: {
+              glucose: '',
+              creatinine: '',
+              alt: '',
+              ast: ''
+            },
+            lipidPanel: {
+              totalCholesterol: '',
+              ldl: '',
+              hdl: '',
+              triglycerides: ''
+            }
+          },
+          medications: [
+            {
+              name: '',
+              dosage: '',
+              frequency: '',
+              status: 'Mới'
+            }
+          ],
+          assessment: '',
+          plan: '',
+          recommendations: ['', '', '', ''],
+          arvResultFile: null,
+          doctorInfo: {
+            name: 'Dr. John Doe',
+            specialty: 'Chuyên gia điều trị HIV',
+            signature: 'J. Doe, MD',
+            date: new Date().toISOString().split('T')[0]
+          }
+        };
+      }
+      setMedicalReport(initialReport);
+    }
+    
+    setShowReportModal(true);
+  };
   
-  // Lưu báo cáo y tế
+  // Hàm trợ giúp để tạo nội dung đánh giá dựa trên loại lịch hẹn
+  const generateAssessment = (appointment) => {
+    const assessments = {
+      'Khám định kỳ': 'Bệnh nhân ổn định về mặt lâm sàng. Chỉ số CD4 đã cải thiện so với lần khám trước. Tải lượng virus vẫn không phát hiện được. Không có tác dụng phụ đáng kể từ phác đồ kháng virus hiện tại. Bệnh nhân báo cáo tuân thủ tốt với thuốc.',
+      'Tái khám': 'Bệnh nhân tiếp tục phản ứng tốt với liệu pháp kháng virus hiện tại. Tất cả các giá trị xét nghiệm đều trong giới hạn bình thường. Bệnh nhân không báo cáo triệu chứng hay lo ngại mới.',
+      'Kết quả xét nghiệm': 'Chỉ số CD4 và tải lượng virus cho thấy đáp ứng điều trị rất tốt. Bệnh nhân đã duy trì ức chế virus hơn 12 tháng. Không có dấu hiệu thất bại điều trị hoặc kháng thuốc.',
+      'Kế hoạch điều trị': 'Bệnh nhân đã bắt đầu liệu pháp kháng virus thành công. Dung nạp thuốc tốt với tác dụng phụ tối thiểu. Đáp ứng xét nghiệm ban đầu khả quan.',
+      'Đánh giá thuốc': 'Phác đồ thuốc hiện tại có hiệu quả mà không có tác dụng phụ đáng kể. Bệnh nhân hiểu tầm quan trọng của việc tuân thủ và báo cáo đã uống thuốc theo chỉ định.',
+      'Tư vấn': 'Đã hoàn thành đánh giá toàn diện. Bệnh nhân có nhiễm HIV được kiểm soát với phác đồ hiện tại. Không phát hiện nhiễm trùng cơ hội hoặc biến chứng liên quan đến HIV.'
+    };
+    
+    return assessments[appointment.type] || 'Bệnh nhân ổn định về mặt lâm sàng với đáp ứng virus học và miễn dịch tốt đối với liệu pháp kháng virus hiện tại.';
+  };
+  
+  // Modify existing handleCloseReportModal
+  const handleCloseReportModal = () => {
+    handleSaveFormProgress(medicalReport);
+    setShowReportModal(false);
+    setSelectedAppointment(null);
+  };
+  
+  // Modify existing handleSaveReport
   const handleSaveReport = () => {
     // Ở đây có thể xử lý việc lưu báo cáo vào cơ sở dữ liệu
     console.log('Đang lưu báo cáo y tế:', medicalReport);
@@ -406,29 +440,87 @@ const DoctorAppointments = () => {
       return apt;
     });
     
-    // Đóng modal sau khi lưu
+    // Clear saved progress after successful save
+    if (selectedAppointment) {
+      localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
+    }
+    
     handleCloseReportModal();
   };
-  
+
+  // Hàm chuyển trạng thái lịch hẹn từ đang chờ sang hoàn thành
+  const handleCompleteAppointment = (appointmentId) => {
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    if (!appointment) return;
+
+    // Kiểm tra xem đã có đánh giá và thuốc chưa
+    const hasAssessment = medicalReport.assessment && medicalReport.assessment.trim() !== '';
+    const hasMedications = medicalReport.medications && medicalReport.medications.length > 0 && 
+                          medicalReport.medications.some(med => med.name.trim() !== '');
+
+    if (!hasAssessment || !hasMedications) {
+      alert('Vui lòng thêm đánh giá và thuốc trước khi hoàn thành lịch hẹn');
+      return;
+    }
+
+    setAppointments(prevAppointments => {
+      const updatedAppointments = prevAppointments.map(apt => {
+        if (apt.id === appointmentId) {
+          return { ...apt, status: 'completed' };
+        }
+        return apt;
+      });
+      return updatedAppointments;
+    });
+  };
+
+  // Lọc lịch hẹn đã hoàn thành cho ngày được chọn
+  const getCompletedAppointmentsForDate = (date) => {
+    return appointments.filter(apt => apt.date === date && apt.status === 'completed');
+  };
+
+  // Modify to only get pending appointments for the selected date
+  const getPendingAppointmentsForDate = (date) => {
+    return appointments.filter(apt => apt.date === date && apt.status === 'pending');
+  };
+
+  // Add back ARV tool related functions
+  const handleOpenARVTool = (appointment) => {
+    setSelectedAppointmentForARV(appointment);
+    setShowARVTool(true);
+  };
+
+  const handleCloseARVTool = () => {
+    setShowARVTool(false);
+    setSelectedAppointmentForARV(null);
+  };
+
+  const handleARVResult = (result) => {
+    if (selectedAppointmentForARV) {
+      setMedicalReport(prev => ({
+        ...prev,
+        arvResultFile: result
+      }));
+    }
+    handleCloseARVTool();
+  };
+
   return (
     <div className="doctor-dashboard">
       <Container fluid>
         <Row>
-          {/* Sử dụng component thanh bên chung */}
           <DoctorSidebar 
             activeTab={activeTab} 
             setActiveTab={setActiveTab} 
             appointmentsCount={appointments.length}
           />
           
-          {/* Nội dung chính */}
           <Col md={9} lg={10} className="main-content">
             <div className="content-header">
               <h2>Lịch hẹn</h2>
               <p>Quản lý lịch hẹn bệnh nhân</p>
             </div>
             
-            {/* Xem lịch */}
             <Row>
               <Col lg={8}>
                 <Card className="calendar-card mb-4">
@@ -487,7 +579,6 @@ const DoctorAppointments = () => {
                 </Card>
               </Col>
               
-              {/* Lịch trình ngày */}
               <Col lg={4}>
                 <Card className="daily-schedule-card">
                   <Card.Header>
@@ -496,9 +587,9 @@ const DoctorAppointments = () => {
                     </h5>
                   </Card.Header>
                   <Card.Body className="p-0">
-                    {selectedDateAppointments.length > 0 ? (
+                    {getPendingAppointmentsForDate(selectedDate).length > 0 ? (
                       <div className="appointment-list">
-                        {selectedDateAppointments.map(appointment => (
+                        {getPendingAppointmentsForDate(selectedDate).map(appointment => (
                           <div 
                             key={appointment.id} 
                             className={`appointment-item status-${appointment.status}`}
@@ -527,13 +618,15 @@ const DoctorAppointments = () => {
                               )}
                             </div>
                             <div className="appointment-status">
-                              <Badge bg={
-                                appointment.status === 'completed' ? 'success' : 
-                                appointment.status === 'pending' ? 'warning' : 'danger'
-                              }>
-                                {appointment.status === 'completed' ? 'Hoàn thành' : 
-                                 appointment.status === 'pending' ? 'Đang chờ' : 'Đã hủy'}
-                              </Badge>
+                              <Button 
+                                variant="outline-success" 
+                                size="sm" 
+                                className="action-btn"
+                                onClick={() => handleCompleteAppointment(appointment.id)}
+                              >
+                                <FontAwesomeIcon icon={faCheck} className="me-1" />
+                                Hoàn thành
+                              </Button>
                             </div>
                             
                             <div className="examination-form mt-3">
@@ -598,10 +691,9 @@ const DoctorAppointments = () => {
               </Col>
             </Row>
             
-            {/* Lịch hẹn gần đây */}
             <Card className="mt-4">
               <Card.Header className="d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Lịch hẹn gần đây</h5>
+                <h5 className="mb-0">Lịch hẹn đã hoàn thành hôm nay</h5>
                 <Button variant="outline-primary" size="sm">
                   Xem tất cả
                 </Button>
@@ -613,33 +705,21 @@ const DoctorAppointments = () => {
                       <tr>
                         <th>Ngày và giờ</th>
                         <th>Bệnh nhân</th>
-                        <th>Trạng thái</th>
+                        <th>Loại khám</th>
                         <th>Hành động</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {appointments.slice(0, 5).map(appointment => (
+                      {getCompletedAppointmentsForDate(selectedDate).map(appointment => (
                         <tr key={appointment.id}>
-                          <td>{new Date(appointment.date).toLocaleDateString('vi-VN', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })} lúc {appointment.time}</td>
+                          <td>{appointment.time}</td>
                           <td>
                             <div className="d-flex flex-column">
                               <span>{appointment.patient}</span>
                               <small className="text-muted">ID: {appointment.patientId}</small>
                             </div>
                           </td>
-                          <td>
-                            <Badge bg={
-                              appointment.status === 'completed' ? 'success' : 
-                              appointment.status === 'pending' ? 'warning' : 'danger'
-                            }>
-                              {appointment.status === 'completed' ? 'Hoàn thành' : 
-                               appointment.status === 'pending' ? 'Đang chờ' : 'Đã hủy'}
-                            </Badge>
-                          </td>
+                          <td>{appointment.type}</td>
                           <td>
                             <Button 
                               variant="outline-primary" 
@@ -659,7 +739,6 @@ const DoctorAppointments = () => {
               </Card.Body>
             </Card>
             
-            {/* Modal chi tiết lịch hẹn */}
             <MedicalReportModal
               show={showReportModal}
               onHide={handleCloseReportModal}
@@ -668,16 +747,90 @@ const DoctorAppointments = () => {
               onSave={handleSaveReport}
               appointment={selectedAppointment}
               readOnly={selectedAppointment?.status === 'completed'}
+              onOpenARVTool={handleOpenARVTool}
+              onViewPdf={handleViewPdf}
             />
           </Col>
         </Row>
       </Container>
+
+      {/* Add back ARV Tool Modal */}
+      <Modal 
+        show={showARVTool} 
+        onHide={handleCloseARVTool} 
+        size="xl" 
+        centered
+        fullscreen
+        className="arv-tool-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Công cụ lựa chọn ARV
+            {selectedAppointmentForARV && (
+              <div className="text-muted fs-6">
+                Bệnh nhân: {selectedAppointmentForARV.patient} - {selectedAppointmentForARV.date} {selectedAppointmentForARV.time}
+              </div>
+            )}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0">
+          <ARVSelectionTool 
+            onSelect={handleARVResult}
+            appointment={selectedAppointmentForARV}
+          />
+        </Modal.Body>
+      </Modal>
+
+      {/* Keep PDF Viewer Modal */}
+      <Modal 
+        show={showPdfViewer} 
+        onHide={handleClosePdfViewer}
+        size="xl"
+        centered
+        fullscreen
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Xem Báo Cáo ARV</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0">
+          {currentPdfUrl && (
+            <iframe
+              src={`${currentPdfUrl}#toolbar=0&navpanes=0`}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              title="PDF Viewer"
+            />
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
 
-// Component Modal báo cáo y tế
-const MedicalReportModal = ({ show, onHide, report, onChange, onSave, appointment, readOnly }) => {
+// Modify MedicalReportModal component to include ARV tool functionality
+const MedicalReportModal = ({ show, onHide, report, onChange, onSave, appointment, readOnly, onOpenARVTool, onViewPdf }) => {
+  // Add data validation
+  const validateReport = (report) => {
+    // Ensure recommendations is always an array
+    if (!Array.isArray(report.recommendations)) {
+      report.recommendations = ['', '', '', ''];
+    }
+    return report;
+  };
+
+  // Validate report when component mounts or report changes
+  useEffect(() => {
+    if (report) {
+      validateReport(report);
+    }
+  }, [report]);
+
+  // Add function to handle recommendation changes
+  const handleRecommendationChange = (index, value) => {
+    const newRecommendations = [...(report.recommendations || ['', '', '', ''])];
+    newRecommendations[index] = value;
+    onChange('recommendations', newRecommendations);
+  };
+
   // Thêm một thuốc vào danh sách
   const handleAddMedicine = () => {
     const newMedications = [...report.medications, {
@@ -701,21 +854,6 @@ const MedicalReportModal = ({ show, onHide, report, onChange, onSave, appointmen
     const newMedications = [...report.medications];
     newMedications[index][field] = value;
     onChange('medications', newMedications);
-  };
-
-  // Cập nhật khuyến nghị
-  const handleRecommendationChange = (index, value) => {
-    const newRecommendations = [...report.recommendations];
-    newRecommendations[index] = value;
-    onChange('recommendations', newRecommendations);
-  };
-
-  // Xử lý tải tập tin từ công cụ lựa chọn ARV
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      onChange('arvResultFile', file);
-    }
   };
 
   return (
@@ -963,37 +1101,52 @@ const MedicalReportModal = ({ show, onHide, report, onChange, onSave, appointmen
             </Card.Body>
           </Card>
 
-          {/* Tải kết quả công cụ lựa chọn ARV */}
+          {/* Công cụ lựa chọn ARV */}
           <Card className="mb-3">
             <Card.Header className="bg-danger text-white py-2">
               <FontAwesomeIcon icon={faFilePdf} className="me-2" />
-              Kết quả công cụ lựa chọn ARV
+              Công cụ lựa chọn ARV
             </Card.Header>
             <Card.Body>
-              <Form.Group className="mb-3">
-                <Form.Label>Tải báo cáo công cụ lựa chọn ARV (PDF)</Form.Label>
-                {!readOnly ? (
-                  <Form.Control 
-                    type="file" 
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    disabled={readOnly}
-                  />
-                ) : report.arvResultFile ? (
-                  <div className="d-flex align-items-center">
+              {!report.arvResultFile ? (
+                <Button 
+                  variant="outline-primary" 
+                  onClick={() => onOpenARVTool(appointment)}
+                  className="mb-3"
+                >
+                  <FontAwesomeIcon icon={faSlidersH} className="me-2" />
+                  Mở công cụ lựa chọn ARV
+                </Button>
+              ) : (
+                <div className="arv-file-management">
+                  <div className="d-flex align-items-center mb-3">
                     <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
-                    <span>{report.arvResultFile.name}</span>
-                    <Button variant="link" size="sm" className="ms-2">
-                      Xem
-                    </Button>
+                    <span className="me-3">{report.arvResultFile.name}</span>
+                    <div className="btn-group">
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={() => onViewPdf(report.arvResultFile)}
+                      >
+                        <FontAwesomeIcon icon={faEye} className="me-1" />
+                        Xem
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm('Bạn có chắc muốn xóa báo cáo ARV này?')) {
+                            onChange('arvResultFile', null);
+                          }
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="me-1" />
+                        Xóa
+                      </Button>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-muted mb-0">Chưa tải báo cáo ARV</p>
-                )}
-                <Form.Text className="text-muted">
-                  Tải báo cáo PDF được tạo từ công cụ lựa chọn ARV cho bệnh nhân này
-                </Form.Text>
-              </Form.Group>
+                </div>
+              )}
             </Card.Body>
           </Card>
 
@@ -1119,7 +1272,7 @@ const MedicalReportModal = ({ show, onHide, report, onChange, onSave, appointmen
               
               <Form.Group>
                 <Form.Label>Khuyến nghị</Form.Label>
-                {report.recommendations.map((rec, index) => (
+                {(report.recommendations || ['', '', '', '']).map((rec, index) => (
                   <Form.Control 
                     key={index}
                     type="text" 
