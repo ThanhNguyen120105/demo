@@ -5,10 +5,10 @@ import StaffSidebar from './StaffSidebar';
 import StaffOverview from './StaffOverview';
 import AppointmentApproval from './AppointmentApproval';
 import QuestionApproval from './QuestionApproval';
+import CreateDoctorAccount from './CreateDoctorAccount';
 
 const StaffDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -17,6 +17,8 @@ const StaffDashboard = () => {
         return <AppointmentApproval />;
       case 'questions':
         return <QuestionApproval />;
+      case 'createDoctor':
+        return <CreateDoctorAccount />;
       default:
         return <StaffOverview />;
     }

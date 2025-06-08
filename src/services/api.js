@@ -289,11 +289,165 @@ export const authAPI = {
       } catch (altError) {
         console.error('Alternative endpoint also failed:', altError);
       }
-      
-      return { 
+        return { 
         success: false, 
         message: 'Could not fetch user profile',
         error: error.response?.data || error.message 
+      };
+    }
+  },
+
+  // Đăng ký tài khoản doctor (chỉ staff có thể thực hiện)
+  registerAsDoctor: async (doctorData) => {
+    try {
+      console.log('Calling registerAsDoctor API with data:', doctorData);
+      const response = await api.post('/auth/registerAsDoctor', {
+        email: doctorData.email,
+        password: doctorData.password,
+        fullName: doctorData.fullName,
+        phoneNumber: doctorData.phoneNumber
+      });
+      
+      console.log('RegisterAsDoctor API response:', response.data);
+      return {
+        success: true,
+        data: response.data,
+        message: 'Tạo tài khoản bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('RegisterAsDoctor API error:', error);
+      
+      let errorMessage = 'Đã xảy ra lỗi khi tạo tài khoản bác sĩ';
+      
+      if (error.response?.status === 409) {
+        errorMessage = 'Email này đã được sử dụng';
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Thông tin không hợp lệ';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Bạn không có quyền thực hiện thao tác này';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Đăng nhập cho doctor
+  loginAsDoctor: async (credentials) => {
+    try {
+      console.log('Calling loginAsDoctor API with credentials:', credentials);
+      const response = await api.post('/auth/loginAsDoctor', {
+        email: credentials.email,
+        password: credentials.password
+      });
+        console.log('LoginAsDoctor API response:', response.data);
+      console.log('Full response object:', response);
+      console.log('Response data keys:', response.data ? Object.keys(response.data) : 'No data');
+      
+      // Parse dữ liệu từ response - thử nhiều format khác nhau
+      let token = null;
+      let userData = null;
+      
+      // Backend Java thường trả về format: {status: {...}, data: {...}}
+      if (response.data?.data) {
+        const data = response.data.data;
+        console.log('LoginAsDoctor - Parsing data object:', data);
+        
+        // Token có thể nằm trong data hoặc response.data
+        token = data.token || data.accessToken || response.data.token;
+        
+        // User data có thể là data object hoặc data.user
+        userData = data.user || data;
+        
+        console.log('LoginAsDoctor - Extracted token:', token);
+        console.log('LoginAsDoctor - Extracted userData:', userData);
+      } else if (response.data?.token) {
+        // Nếu token nằm trực tiếp trong response.data
+        token = response.data.token;
+        userData = response.data.user || response.data;
+      } else {
+        // Thử parse theo format khác
+        console.log('LoginAsDoctor - Trying alternative parsing...');
+        token = response.data?.accessToken || response.data?.jwt;
+        userData = response.data;
+      }
+      
+      if (token) {
+        localStorage.setItem('token', token);
+        console.log('Doctor token saved to localStorage:', token);
+      } else {
+        console.warn('LoginAsDoctor - Warning: No token found in response');
+        console.log('Available response fields:', Object.keys(response.data || {}));
+      }
+      
+      if (userData && (typeof userData === 'object')) {
+        console.log('LoginAsDoctor - Processing userData:', userData);
+        
+        // Đảm bảo userData có format đúng
+        const userToSave = {
+          id: userData.id,
+          email: userData.email,
+          fullName: userData.fullName || userData.name || userData.username,
+          phoneNumber: userData.phoneNumber || userData.phone,
+          role: userData.role || 'DOCTOR', // Đảm bảo role là DOCTOR
+          ...userData
+        };
+        
+        console.log('LoginAsDoctor - Final userToSave:', userToSave);
+        localStorage.setItem('user', JSON.stringify(userToSave));
+        
+        return {
+          success: true,
+          data: userToSave,
+          message: 'Đăng nhập thành công'
+        };
+      } else if (token) {
+        // Có token nhưng không có user data, tạo user data cơ bản
+        console.log('LoginAsDoctor - Creating basic user data from token');
+        const basicUser = {
+          email: credentials.email,
+          role: 'DOCTOR',
+          fullName: 'Doctor User'
+        };
+        
+        localStorage.setItem('user', JSON.stringify(basicUser));
+        
+        return {
+          success: true,
+          data: basicUser,
+          message: 'Đăng nhập thành công'
+        };
+      }
+      
+      console.error('LoginAsDoctor - Failed to parse response:', response.data);
+      return {
+        success: false,
+        message: 'Không thể lấy thông tin người dùng từ server'
+      };
+    } catch (error) {
+      console.error('LoginAsDoctor API error:', error);
+      
+      let errorMessage = 'Đã xảy ra lỗi khi đăng nhập';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Email hoặc mật khẩu không đúng';
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Thông tin đăng nhập không hợp lệ';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Tài khoản không có quyền truy cập';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
       };
     }
   }

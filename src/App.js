@@ -20,6 +20,7 @@ import TestResultsLookup from './components/Appointment/TestResultsLookup';
 import NavigationDemo from './components/common/NavigationDemo';
 import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
+import DoctorLogin from './components/Auth/DoctorLogin';
 import Signup from './components/Auth/Signup';
 import QnA from './components/QA/QnA';
 
@@ -29,9 +30,14 @@ import DoctorAppointments from './components/Doctor/DoctorAppointments';
 import ARVSelectionTool from './components/Doctor/ARVSelectionTool';
 import UnansweredQuestions from './components/Doctor/UnansweredQuestions';
 import ApiTestDemo from './components/Demo/ApiTestDemo';
+import StaffTestLogin from './components/Demo/StaffTestLogin';
 
 // Staff Components
 import StaffDashboard from './components/Staff/StaffDashboard';
+
+// Route Guards
+import DoctorRoute from './components/common/DoctorRoute';
+import StaffRoute from './components/common/StaffRoute';
 
 function App() {
   return (
@@ -49,24 +55,23 @@ function App() {
             <Route path="/appointment" element={<AppointmentPage />} />
         
             <Route path="/test-results" element={<TestResultsLookup />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/qna" element={<QnA />} />
+            <Route path="/doctors" element={<Doctors />} />            <Route path="/qna" element={<QnA />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/navigation" element={<NavigationDemo />} />
+            <Route path="/doctor/login" element={<DoctorLogin />} />
+            <Route path="/signup" element={<Signup />} />            <Route path="/navigation" element={<NavigationDemo />} />
             <Route path="/api-test" element={<ApiTestDemo />} />
-            
-            {/* Staff Routes */}
-            <Route path="/staff" element={<StaffDashboard />} />
-            <Route path="/staff/dashboard" element={<StaffDashboard />} />
-            <Route path="/staff/doctor-management" element={<StaffDoctorManagement />} />
+            <Route path="/staff-test-login" element={<StaffTestLogin />} />
+              {/* Staff Routes */}
+            <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
+            <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
+            <Route path="/staff/doctor-management" element={<StaffRoute><StaffDoctorManagement /></StaffRoute>} />
             
             {/* Doctor Routes */}
-            <Route path="/doctor" element={<DoctorDashboard />} />
-            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-            <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-            <Route path="/doctor/arv-tool" element={<ARVSelectionTool />} />
-            <Route path="/doctor/unanswered-questions" element={<UnansweredQuestions />} />
+            <Route path="/doctor" element={<DoctorRoute><DoctorDashboard /></DoctorRoute>} />
+            <Route path="/doctor/dashboard" element={<DoctorRoute><DoctorDashboard /></DoctorRoute>} />
+            <Route path="/doctor/appointments" element={<DoctorRoute><DoctorAppointments /></DoctorRoute>} />
+            <Route path="/doctor/arv-tool" element={<DoctorRoute><ARVSelectionTool /></DoctorRoute>} />
+            <Route path="/doctor/unanswered-questions" element={<DoctorRoute><UnansweredQuestions /></DoctorRoute>} />
           </Routes>
           <Footer />
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Card, InputGroup, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock, faSignInAlt, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faSignInAlt, faUser, faUserMd } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
 
@@ -170,15 +170,19 @@ const Login = () => {
                       </>
                     )}
                   </Button>
-                </Form>
-
-                <div className="text-center mt-4">
+                </Form>                <div className="text-center mt-4">
                   <p className="auth-switch-text">
                     Bạn chưa có tài khoản?{' '}
                     <Link to="/signup" className="auth-link">
                       Đăng ký
                     </Link>
                   </p>
+                    <div className="mt-2">
+                    <Link to="/doctor/login" className="text-primary text-decoration-none">
+                      <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                      Đăng nhập dành cho Bác sĩ
+                    </Link>
+                  </div>
                 </div>
               </Card.Body>
             </Card>
