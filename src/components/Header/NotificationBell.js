@@ -1,35 +1,50 @@
 import React, { useState } from 'react';
 import { Button, Badge, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBell, 
-  faCalendarAlt, 
-  faCheckCircle, 
-  faExclamationTriangle,
-  faClock,
-  faMapMarkerAlt,
-  faHospital
-} from '@fortawesome/free-solid-svg-icons';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { faBell, faCalendarAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 const NotificationBell = () => {
   const [show, setShow] = useState(false);
-  const {
-    getPendingCount,
-    getTodayReminders,
-    getOverdueReminders,
-    getUpcomingReminders,
-    markReminderCompleted
-  } = useNotifications();
+  
+  // Dữ liệu thông báo mẫu
+  const notifications = [
+    {
+      id: 1,
+      title: 'Lịch hẹn sắp tới',
+      message: 'Bạn có lịch hẹn với bác sĩ vào 15:30 ngày mai',
+      time: '2 giờ trước',
+      type: 'appointment',
+      isRead: false
+    },
+    {
+      id: 2,
+      title: 'Kết quả xét nghiệm',
+      message: 'Kết quả xét nghiệm HIV của bạn đã có',
+      time: '5 giờ trước',
+      type: 'test-result',
+      isRead: false
+    },
+    {
+      id: 3,
+      title: 'Nhắc nhở uống thuốc',
+      message: 'Đến giờ uống thuốc ARV',
+      time: '1 ngày trước',
+      type: 'reminder',
+      isRead: true
+    }
+  ];
 
-  const pendingCount = getPendingCount();
-  const todayReminders = getTodayReminders();
-  const overdueReminders = getOverdueReminders();
-  const upcomingReminders = getUpcomingReminders();
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const handleMarkComplete = (e, reminderId) => {
-    e.stopPropagation();
-    markReminderCompleted(reminderId);
+  const getIcon = (type) => {
+    switch(type) {
+      case 'appointment':
+        return faCalendarAlt;
+      case 'reminder':
+        return faExclamationTriangle;
+      default:
+        return faBell;
+    }
   };
 
   return (
@@ -38,191 +53,76 @@ const NotificationBell = () => {
         as={Button}
         variant="link" 
         id="notification-dropdown"
-        className="position-relative notification-toggle p-0"
+        className="position-relative p-0"
       >
-        <div className="notification-icon-wrapper">
-          <FontAwesomeIcon 
-            icon={faBell} 
-            className={`notification-icon ${pendingCount > 0 ? 'has-notifications' : ''}`}
-          />
-          {pendingCount > 0 && (
-            <>
-              <Badge 
-                bg="danger" 
-                pill 
-                className="position-absolute notification-badge"
-              >
-                {pendingCount > 99 ? '99+' : pendingCount}
-              </Badge>
-              <div className="notification-pulse"></div>
-            </>
-          )}
-        </div>
+        <FontAwesomeIcon 
+          icon={faBell} 
+          size="lg" 
+          className="text-primary"
+        />
+        {unreadCount > 0 && (
+          <Badge 
+            bg="danger" 
+            pill 
+            className="position-absolute top-0 start-100 translate-middle"
+            style={{ fontSize: '0.6rem' }}
+          >
+            {unreadCount}
+          </Badge>
+        )}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu align="end" className="notification-menu">
-        <div className="notification-header">
-          <div className="header-content">
-            <FontAwesomeIcon icon={faBell} className="header-icon" />
-            <h6 className="mb-0">Thông Báo</h6>
+      <Dropdown.Menu align="end" style={{ minWidth: '300px' }}>
+        <Dropdown.Header>
+          <div className="d-flex justify-content-between align-items-center">
+            <span className="fw-bold">Thông báo</span>
+            {unreadCount > 0 && (
+              <Badge bg="primary" pill>{unreadCount} mới</Badge>
+            )}
           </div>
-          {pendingCount > 0 && (
-            <span className="notification-count-badge">{pendingCount}</span>
-          )}
-        </div>
+        </Dropdown.Header>
         
-        <div className="notification-body">
-          {/* Overdue reminders */}
-          {overdueReminders.length > 0 && (
-            <div className="notification-section">
-              <div className="section-header overdue">
-                <FontAwesomeIcon icon={faExclamationTriangle} className="section-icon" />
-                <span>Quá Hạn ({overdueReminders.length})</span>
-              </div>
-              {overdueReminders.slice(0, 3).map(reminder => (
-                <div key={reminder.id} className="notification-item overdue-item">
-                  <div className="item-content">
-                    <div className="item-header">
-                      <span className="patient-name">{reminder.patientName}</span>
-                      <button
-                        className="complete-btn overdue"
-                        onClick={(e) => handleMarkComplete(e, reminder.id)}
-                        title="Đánh dấu hoàn thành"
-                      >
-                        <FontAwesomeIcon icon={faCheckCircle} />
-                      </button>
-                    </div>
-                    <div className="item-title">{reminder.title}</div>
-                    <div className="item-description">{reminder.description}</div>
-                    <div className="item-details">
-                      <span className="detail-item date">
-                        <FontAwesomeIcon icon={faCalendarAlt} />
-                        {new Date(reminder.dueDate).toLocaleDateString('vi-VN')}
-                      </span>
-                      {reminder.location && (
-                        <span className="detail-item location">
-                          <FontAwesomeIcon icon={faMapMarkerAlt} />
-                          {reminder.location}
-                        </span>
-                      )}
-                      {reminder.appointmentId && (
-                        <span className="detail-item appointment">
-                          <FontAwesomeIcon icon={faHospital} />
-                          {reminder.appointmentId}
-                        </span>
-                      )}
-                    </div>
+        {notifications.length > 0 ? (
+          notifications.map((notification) => (
+            <Dropdown.Item
+              key={notification.id}
+              className={`py-3 ${!notification.isRead ? 'bg-light' : ''}`}
+            >
+              <div className="d-flex">
+                <div className="me-3">
+                  <FontAwesomeIcon 
+                    icon={getIcon(notification.type)} 
+                    className="text-primary"
+                  />
+                </div>
+                <div className="flex-grow-1">
+                  <div className="fw-bold small">{notification.title}</div>
+                  <div className="text-muted small mb-1">{notification.message}</div>
+                  <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                    {notification.time}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Today's reminders */}
-          {todayReminders.length > 0 && (
-            <div className="notification-section">
-              <div className="section-header today">
-                <FontAwesomeIcon icon={faClock} className="section-icon" />
-                <span>Hôm Nay ({todayReminders.length})</span>
-              </div>
-              {todayReminders.slice(0, 3).map(reminder => (
-                <div key={reminder.id} className="notification-item today-item">
-                  <div className="item-content">
-                    <div className="item-header">
-                      <span className="patient-name">{reminder.patientName}</span>
-                      <button
-                        className="complete-btn today"
-                        onClick={(e) => handleMarkComplete(e, reminder.id)}
-                        title="Đánh dấu hoàn thành"
-                      >
-                        <FontAwesomeIcon icon={faCheckCircle} />
-                      </button>
-                    </div>
-                    <div className="item-title">{reminder.title}</div>
-                    <div className="item-description">{reminder.description}</div>
-                    <div className="item-details">
-                      {reminder.dueTime && (
-                        <span className="detail-item time">
-                          <FontAwesomeIcon icon={faClock} />
-                          {reminder.dueTime}
-                        </span>
-                      )}
-                      {reminder.location && (
-                        <span className="detail-item location">
-                          <FontAwesomeIcon icon={faMapMarkerAlt} />
-                          {reminder.location}
-                        </span>
-                      )}
-                      {reminder.appointmentId && (
-                        <span className="detail-item appointment">
-                          <FontAwesomeIcon icon={faHospital} />
-                          {reminder.appointmentId}
-                        </span>
-                      )}
-                    </div>
+                {!notification.isRead && (
+                  <div className="ms-2">
+                    <span className="badge bg-primary rounded-pill" style={{ width: '8px', height: '8px' }}></span>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Upcoming reminders */}
-          {upcomingReminders.length > 0 && (
-            <div className="notification-section">
-              <div className="section-header upcoming">
-                <FontAwesomeIcon icon={faCalendarAlt} className="section-icon" />
-                <span>Sắp Tới ({upcomingReminders.length})</span>
+                )}
               </div>
-              {upcomingReminders.slice(0, 2).map(reminder => (
-                <div key={reminder.id} className="notification-item upcoming-item">
-                  <div className="item-content">
-                    <div className="item-header">
-                      <span className="patient-name">{reminder.patientName}</span>
-                    </div>
-                    <div className="item-title">{reminder.title}</div>
-                    <div className="item-description">{reminder.description}</div>
-                    <div className="item-details">
-                      <span className="detail-item date">
-                        <FontAwesomeIcon icon={faCalendarAlt} />
-                        {new Date(reminder.dueDate).toLocaleDateString('vi-VN')}
-                      </span>
-                      {reminder.location && (
-                        <span className="detail-item location">
-                          <FontAwesomeIcon icon={faMapMarkerAlt} />
-                          {reminder.location}
-                        </span>
-                      )}
-                      {reminder.appointmentId && (
-                        <span className="detail-item appointment">
-                          <FontAwesomeIcon icon={faHospital} />
-                          {reminder.appointmentId}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            </Dropdown.Item>
+          ))
+        ) : (
+          <Dropdown.Item disabled>
+            <div className="text-center text-muted py-3">
+              <FontAwesomeIcon icon={faBell} size="2x" className="mb-2" />
+              <div>Không có thông báo mới</div>
             </div>
-          )}
-
-          {pendingCount === 0 && (
-            <div className="empty-state">
-              <div className="empty-icon">
-                <FontAwesomeIcon icon={faBell} />
-              </div>
-              <div className="empty-text">Không có thông báo mới</div>
-              <div className="empty-subtext">Bạn đã xem hết tất cả thông báo</div>
-            </div>
-          )}
-        </div>
-
-        {pendingCount > 0 && (
-          <div className="notification-footer">
-            <button className="view-all-btn">
-              Xem tất cả thông báo
-            </button>
-          </div>
+          </Dropdown.Item>
         )}
+        
+        <Dropdown.Divider />
+        <Dropdown.Item className="text-center text-primary">
+          <small>Xem tất cả thông báo</small>
+        </Dropdown.Item>
       </Dropdown.Menu>
     </Dropdown>
   );

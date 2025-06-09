@@ -354,36 +354,36 @@ const AppointmentForm = () => {
               <div className="alert alert-info mb-4">
                 <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
                 Dịch vụ: <strong>{getServiceTypeName(formData.registrationType)}</strong>
-              </div>
+                      </div>
 
               <div className="service-detail-grid">
-                <div 
+                      <div 
                   className={`service-detail-option ${formData.serviceDetail === 'hiv-testing' ? 'active' : ''}`}
                   onClick={() => setFormData({...formData, serviceDetail: 'hiv-testing'})}
-                >
+                      >
                   <div className="mb-2">🧪</div>
                   <strong>Tư vấn và xét nghiệm HIV</strong>
                   <small className="d-block text-muted mt-1">Xét nghiệm sàng lọc, xét nghiệm khẳng định</small>
-                </div>
-
-                <div 
+                      </div>
+                      
+                      <div 
                   className={`service-detail-option ${formData.serviceDetail === 'viral-load-monitoring' ? 'active' : ''}`}
                   onClick={() => setFormData({...formData, serviceDetail: 'viral-load-monitoring'})}
-                >
+                      >
                   <div className="mb-2">📊</div>
                   <strong>Theo dõi tải lượng virus</strong>
                   <small className="d-block text-muted mt-1">Xét nghiệm định kỳ, đánh giá hiệu quả điều trị</small>
-                </div>
+                      </div>
 
-                <div 
+                      <div 
                   className={`service-detail-option ${formData.serviceDetail === 'routine-checkup' ? 'active' : ''}`}
                   onClick={() => setFormData({...formData, serviceDetail: 'routine-checkup'})}
-                >
+                      >
                   <div className="mb-2">🩺</div>
                   <strong>Khám định kỳ</strong>
                   <small className="d-block text-muted mt-1">Theo dõi sức khỏe tổng quát</small>
-                </div>
-              </div>
+                      </div>
+                    </div>
 
               <div className="form-group">
                 <label className="form-label">
@@ -458,7 +458,7 @@ const AppointmentForm = () => {
                       <FontAwesomeIcon icon={faUser} size="2x" className="mb-3" style={{ color: '#007bff' }} />
                       <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
                         Khám trực tiếp
-                      </div>
+                    </div>
                     </div>
 
                     <div 
@@ -489,10 +489,10 @@ const AppointmentForm = () => {
                       <FontAwesomeIcon icon={faInfoCircle} size="2x" className="mb-3" style={{ color: '#007bff' }} />
                       <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
                         Khám ẩn danh
-                      </div>
                     </div>
-                  </div>
-                </div>
+                    </div>
+                    </div>
+                    </div>
                 <small className="text-muted">
                   {formData.consultationType === 'anonymous' 
                     ? 'Chế độ ẩn danh: Thông tin cá nhân sẽ được mã hóa và bảo mật tuyệt đối'
