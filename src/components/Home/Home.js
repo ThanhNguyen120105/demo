@@ -1,16 +1,17 @@
 import React from 'react';
-import { Container, Row, Col, Button, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   faStethoscope, faUsers, faHeartbeat, faBriefcaseMedical, 
   faMicroscope, faHandHoldingMedical, faCalendarCheck, faUserMd,
-  faImage, faPhone, faHistory, faTrophy, faStar, faCheckCircle
+  faPhone, faHistory, faTrophy
 } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import './Home.css';
 import AnimatedSection from '../common/AnimatedSection';
-import { stats, services, news } from '../../data/demoData';
+import { stats, services } from '../../data/demoData';
 import homepageImage from '../../assets/images/homepage.jpg';
 import homepage2Image from '../../assets/images/homepage2.jpg';
 import appointmentImage from '../../assets/images/appoinment_with_doctor.jpg';
@@ -53,8 +54,37 @@ const counterIcons = [
 ];
 
 const Home = () => {
+  const { user, isAuthenticated } = useAuth();
+
   return (
     <main>
+      {/* Welcome Message for Logged In User */}
+      {isAuthenticated && user && (
+        <section className="welcome-section">
+          <Container>
+            <Alert variant="info" className="welcome-alert">
+              <div className="d-flex align-items-center">
+                <FontAwesomeIcon icon={faHeartbeat} className="me-3" style={{ fontSize: '1.5rem' }} />
+                <div>
+                  <h5 className="mb-1">Chào mừng trở lại, {
+                    user?.fullName && user.fullName !== 'User' 
+                      ? user.fullName 
+                      : user?.name && user.name !== 'User'
+                        ? user.name
+                        : user?.username && user.username !== 'User'
+                          ? user.username
+                          : user?.email && !user.email.includes('@example.com')
+                            ? user.email.split('@')[0]
+                            : 'Người dùng'
+                  }!</h5>
+                  <p className="mb-0">Chúng tôi rất vui được phục vụ bạn. Hãy khám phá các dịch vụ chăm sóc sức khỏe của chúng tôi.</p>
+                </div>
+              </div>
+            </Alert>
+          </Container>
+        </section>
+      )}
+
       {/* Hero Section */}
       <section className="hero-section">
         <Container>

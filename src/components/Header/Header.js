@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Navbar, Nav, Container, Button, Dropdown, Form } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faPhone, 
@@ -19,14 +19,51 @@ import {
   faUserPlus,
   faUserTie,
   faVial,
-  faBell
+  faSignOutAlt,
+  faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../contexts/AuthContext';
 import './Header.css';
 import logo from '../../assets/images/logo.png';
 import NotificationBell from './NotificationBell';
 
 const Header = () => {
   const [expanded, setExpanded] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const dropdownRef = useRef(null);
+
+  // Debug: Log user data
+  console.log('Header - User data:', user);
+  console.log('Header - isAuthenticated:', isAuthenticated);
+  console.log('Header - localStorage user:', localStorage.getItem('user'));
+
+  const handleLogout = () => {
+    logout();
+    setExpanded(false);
+    setDropdownOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  // Đóng dropdown khi click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   return (
     <header className="header">
@@ -80,15 +117,63 @@ const Header = () => {
                   <span>Hỏi & Đáp</span>
                 </Link>
               </div>
+              <div className="action-item">
+                <Link to="/api-test" className="action-link">
+                  <FontAwesomeIcon icon={faVial} />
+                  <span>API Test</span>
+                </Link>
+              </div>
               <div className="top-auth-buttons">
-                <Link to="/login" className="top-auth-link login-link">
-                  <FontAwesomeIcon icon={faSignInAlt} />
-                  <span>Đăng nhập</span>
-                </Link>
-                <Link to="/signup" className="top-auth-link signup-link">
-                  <FontAwesomeIcon icon={faUserPlus} />
-                  <span>Đăng ký</span>
-                </Link>
+                {isAuthenticated ? (
+                  <div className="user-dropdown" ref={dropdownRef}>
+                    <div 
+                      className="top-auth-link user-link"
+                      onClick={toggleDropdown}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <FontAwesomeIcon icon={faUserCircle} />
+                      <span>Xin chào, {
+                        user?.fullName && user.fullName !== 'User' 
+                          ? user.fullName 
+                          : user?.name && user.name !== 'User'
+                            ? user.name
+                            : user?.username && user.username !== 'User'
+                              ? user.username
+                              : user?.email && !user.email.includes('@example.com')
+                                ? user.email.split('@')[0]
+                                : 'Người dùng'
+                      }</span>
+                    </div>
+                    {dropdownOpen && (
+                      <div className="dropdown-menu show">
+                        <Link to="/profile" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                          <FontAwesomeIcon icon={faUser} className="me-2" />
+                          Thông tin cá nhân
+                        </Link>
+                        <Link to="/appointments" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                          <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                          Lịch hẹn của tôi
+                        </Link>
+                        <div className="dropdown-divider"></div>
+                        <div className="dropdown-item" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+                          <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
+                          Đăng xuất
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <Link to="/login" className="top-auth-link login-link">
+                      <FontAwesomeIcon icon={faSignInAlt} />
+                      <span>Đăng nhập</span>
+                    </Link>
+                    <Link to="/signup" className="top-auth-link signup-link">
+                      <FontAwesomeIcon icon={faUserPlus} />
+                      <span>Đăng ký</span>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

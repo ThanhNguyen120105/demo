@@ -8,8 +8,7 @@ import {
   faExclamationTriangle,
   faClock,
   faMapMarkerAlt,
-  faHospital,
-  faTimes
+  faHospital
 } from '@fortawesome/free-solid-svg-icons';
 import { useNotifications } from '../../contexts/NotificationContext';
 

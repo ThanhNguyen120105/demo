@@ -1,29 +1,73 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, InputGroup } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Card, InputGroup, Alert, Spinner } from 'react-bootstrap';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faSignInAlt, faUser } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  
   const [formData, setFormData] = useState({
-    email: '',
+    email: location.state?.email || '',
     password: ''
   });
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
 
   const { email, password } = formData;
+
+  // Chuyển hướng nếu đã đăng nhập
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location.state?.from?.pathname]);
+
+  // Xóa lỗi khi component unmount
+  useEffect(() => {
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    
+    // Xóa lỗi khi người dùng nhập
+    if (error) {
+      clearError();
+    }
+    
+    // Xóa success message khi người dùng nhập
+    if (successMessage) {
+      setSuccessMessage('');
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login data:', formData);
-    // Add actual login functionality here
+    
+    if (!email || !password) {
+      return;
+    }
+    
+    try {
+      const result = await login({ email, password });
+      
+      if (result.success) {
+        // Chuyển hướng được xử lý trong useEffect
+        console.log('Login successful');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   return (
@@ -41,6 +85,22 @@ const Login = () => {
                   <p className="auth-subtitle">Đăng nhập để tiếp tục</p>
                 </div>
                 
+                {/* Hiển thị thông báo thành công */}
+                {successMessage && (
+                  <Alert variant="success" className="mb-4">
+                    <FontAwesomeIcon icon={faUser} className="me-2" />
+                    {successMessage}
+                  </Alert>
+                )}
+                
+                {/* Hiển thị thông báo lỗi */}
+                {error && (
+                  <Alert variant="danger" className="mb-4">
+                    <FontAwesomeIcon icon={faUser} className="me-2" />
+                    {error}
+                  </Alert>
+                )}
+                
                 <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-4">
                     <Form.Label>Địa chỉ Email</Form.Label>
@@ -56,6 +116,7 @@ const Login = () => {
                         placeholder="Nhập địa chỉ email của bạn"
                         className="auth-input"
                         required
+                        disabled={isLoading}
                       />
                     </InputGroup>
                   </Form.Group>
@@ -74,6 +135,7 @@ const Login = () => {
                         placeholder="Nhập mật khẩu của bạn"
                         className="auth-input"
                         required
+                        disabled={isLoading}
                       />
                     </InputGroup>
                   </Form.Group>
@@ -94,9 +156,19 @@ const Login = () => {
                     variant="primary" 
                     type="submit" 
                     className="auth-button w-100"
+                    disabled={isLoading}
                   >
-                    <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
-                    Đăng Nhập
+                    {isLoading ? (
+                      <>
+                        <Spinner animation="border" size="sm" className="me-2" />
+                        Đang đăng nhập...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
+                        Đăng Nhập
+                      </>
+                    )}
                   </Button>
                 </Form>
 

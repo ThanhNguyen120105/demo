@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { AuthProvider } from './contexts/AuthContext';
 import ScrollToTop from './components/common/ScrollToTop';
 
 // Components
@@ -27,15 +28,17 @@ import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import DoctorAppointments from './components/Doctor/DoctorAppointments';
 import ARVSelectionTool from './components/Doctor/ARVSelectionTool';
 import UnansweredQuestions from './components/Doctor/UnansweredQuestions';
+import ApiTestDemo from './components/Demo/ApiTestDemo';
 
 function App() {
   return (
-    <NotificationProvider>
-      <Router>
-        <ScrollToTop />
-        <div className="App">
-          <Header />
-          <Routes>
+    <AuthProvider>
+      <NotificationProvider>
+        <Router>
+          <ScrollToTop />
+          <div className="App">
+            <Header />
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />
             <Route path="/about" element={<About />} />
@@ -48,6 +51,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/navigation" element={<NavigationDemo />} />
+            <Route path="/api-test" element={<ApiTestDemo />} />
             
             {/* Staff Routes */}
             <Route path="/staff/doctor-management" element={<StaffDoctorManagement />} />
@@ -63,6 +67,7 @@ function App() {
         </div>
       </Router>
     </NotificationProvider>
+    </AuthProvider>
   );
 }
 
