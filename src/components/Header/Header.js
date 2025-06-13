@@ -100,8 +100,10 @@ const Header = () => {
             </div>
             <div className="top-bar-actions">
               <div className="action-item">
-                <FontAwesomeIcon icon={faUser} />
-                <span>Bệnh nhân</span>
+                <Link to="/patient/dashboard" className="action-link">
+                  <FontAwesomeIcon icon={faUser} />
+                  <span>Bệnh nhân</span>
+                </Link>
               </div>
               <div className="action-item">
                 <FontAwesomeIcon icon={faHeartbeat} />
