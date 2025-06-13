@@ -43,62 +43,80 @@ const AppointmentForm = () => {
     consultationType: 'direct' // direct: khám trực tiếp, anonymous: khám ẩn danh
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // useState hook để lưu trữ array of objects chứa thông tin slot thời gian
   const [availableTimes, setAvailableTimes] = useState([
-    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', 
-    '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+    { id: 'slot1', label: 'Slot 1', time: '7:00-9:15' },
+    { id: 'slot2', label: 'Slot 2', time: '9:30-11:45' },
+    { id: 'slot3', label: 'Slot 3', time: '12:30-14:45' },
+    { id: 'slot4', label: 'Slot 4', time: '15:00-17:15' }
   ]);
 
+  // useEffect hook để kiểm tra và set doctor từ location state khi component mount
   useEffect(() => {
-    // Check if there's a selected doctor in the location state
+    // Sử dụng optional chaining (?.) để tránh lỗi nếu location.state null/undefined
     if (location.state?.selectedDoctor) {
+      // Cập nhật formData bằng spread operator và callback function để tránh stale closure
       setFormData(prev => ({
-        ...prev,
-        doctor: location.state.selectedDoctor
+        ...prev, // Giữ lại các giá trị cũ
+        doctor: location.state.selectedDoctor // Ghi đè giá trị doctor
       }));
     }
-  }, [location]);
+  }, [location]); // Dependency array chỉ chứa location để re-run khi location thay đổi
 
+  // Event handler để xử lý thay đổi input/select values
   const handleInputChange = (e) => {
+    // Destructuring assignment để lấy name và value từ event target
     const { name, value } = e.target;
+    // Cập nhật state bằng spread operator để immutable update
     setFormData({
-      ...formData,
-      [name]: value
+      ...formData, // Copy tất cả properties hiện tại
+      [name]: value // Computed property name để update dynamic key
     });
   };
 
+  // Form submit handler với validation logic cho từng step
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Ngăn default form submission behavior
+    
+    // Switch case logic dựa trên current step để validate và navigate
     if (formStep === 1) {
+      // Validation: kiểm tra serviceDetail có được chọn không
       if (!formData.serviceDetail) {
         alert('Vui lòng chọn chi tiết dịch vụ');
-        return;
+        return; // Early return để dừng execution
       }
-      setFormStep(2);
+      setFormStep(2); // Navigate to next step
     } else if (formStep === 2) {
+      // Validation: kiểm tra consultationType
       if (!formData.consultationType) {
         alert('Vui lòng chọn loại hình khám');
         return;
       }
       setFormStep(3);
     } else if (formStep === 3) {
+      // Validation: kiểm tra cả date và time bằng logical OR
       if (!formData.date || !formData.time) {
         alert('Vui lòng chọn ngày và giờ khám');
         return;
       }
       setFormStep(4);
     } else if (formStep === 4) {
+      // Final validation: kiểm tra các required fields
       if (!formData.name || !formData.phone || !formData.dob) {
         alert('Vui lòng điền đầy đủ thông tin bắt buộc');
         return;
       }
+      // Hiển thị success modal và log data
       setShowSuccessModal(true);
       console.log('Form submitted:', formData);
     }
   };
 
+  // Handler để navigate về step trước đó
   const handlePreviousStep = () => {
+    // Guard clause: chỉ cho phép quay lại nếu không phải step đầu tiên
     if (formStep > 1) {
-      setFormStep(formStep - 1);
+      setFormStep(formStep - 1); // Decrement step counter
     }
   };
 
@@ -109,8 +127,7 @@ const AppointmentForm = () => {
   const getServiceDetailName = (type, value) => {
     const serviceDetails = {
       'hiv-testing': 'Tư vấn và xét nghiệm HIV',
-      'viral-load-monitoring': 'Theo dõi tải lượng virus',
-      'routine-checkup': 'Khám định kỳ'
+      'viral-load-monitoring': 'Theo dõi tải lượng virus'
     };
     return serviceDetails[value] || value;
   };
@@ -211,7 +228,7 @@ const AppointmentForm = () => {
         
         .time-slots {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
           gap: 0.75rem;
           margin-top: 1rem;
         }
@@ -219,7 +236,7 @@ const AppointmentForm = () => {
         .time-slot {
           border: 2px solid #e9ecef;
           border-radius: 8px;
-          padding: 0.75rem;
+          padding: 1rem;
           cursor: pointer;
           transition: all 0.3s ease;
           background: white;
@@ -243,6 +260,21 @@ const AppointmentForm = () => {
           color: #6c757d;
           cursor: not-allowed;
           border-color: #dee2e6;
+        }
+        
+        .slot-label {
+          font-weight: bold;
+          font-size: 0.9rem;
+          margin-bottom: 0.25rem;
+        }
+        
+        .slot-time {
+          font-size: 0.8rem;
+          opacity: 0.8;
+        }
+        
+        .time-slot.active .slot-time {
+          opacity: 1;
         }
         
         .consultation-type-options .form-check {
@@ -374,15 +406,6 @@ const AppointmentForm = () => {
                   <strong>Theo dõi tải lượng virus</strong>
                   <small className="d-block text-muted mt-1">Xét nghiệm định kỳ, đánh giá hiệu quả điều trị</small>
                       </div>
-
-                      <div 
-                  className={`service-detail-option ${formData.serviceDetail === 'routine-checkup' ? 'active' : ''}`}
-                  onClick={() => setFormData({...formData, serviceDetail: 'routine-checkup'})}
-                      >
-                  <div className="mb-2">🩺</div>
-                  <strong>Khám định kỳ</strong>
-                  <small className="d-block text-muted mt-1">Theo dõi sức khỏe tổng quát</small>
-                      </div>
                     </div>
 
               <div className="form-group">
@@ -396,7 +419,7 @@ const AppointmentForm = () => {
                   onChange={handleInputChange}
                   className="form-select"
                 >
-                  <option value="">Bác sĩ bất kỳ</option>
+                  <option value="" disabled>Hãy chọn bác sĩ</option>
                   {doctorsData.map((doctor) => (
                     <option key={doctor.id} value={doctor.id}>
                       {doctor.name} - {doctor.position}
@@ -418,6 +441,9 @@ const AppointmentForm = () => {
           {formStep === 2 && (
             <div className="form-step-container animated fadeIn">
               <h4 className="text-center mb-4">Bước 2: Chọn loại hình khám</h4>
+              
+
+
               <div className="alert alert-info mb-4">
                 <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
                 Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong>
@@ -524,6 +550,9 @@ const AppointmentForm = () => {
           {formStep === 3 && (
             <div className="form-step-container animated fadeIn">
               <h4 className="text-center mb-4">Bước 3: Chọn ngày và giờ khám</h4>
+              
+
+
               <div className="alert alert-info mb-4">
                 <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
                 Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong> - 
@@ -558,17 +587,23 @@ const AppointmentForm = () => {
                     Chọn giờ khám
                   </label>
                   <div className="time-slots">
-                    {availableTimes.map((time, index) => (
+                    {/* Array.map() để render các time slot từ availableTimes state */}
+                    {availableTimes.map((slot, index) => (
                       <div
-                        key={time}
-                        className={`time-slot ${formData.time === time ? 'active' : ''} ${Math.random() > 0.8 ? 'unavailable' : ''}`}
+                        key={slot.id} // React key prop để optimize re-rendering
+                        // Template literal để combine multiple class names với conditional logic
+                        className={`time-slot ${formData.time === slot.id ? 'active' : ''} ${Math.random() > 0.8 ? 'unavailable' : ''}`}
+                        // Arrow function trong onClick để handle slot selection
                         onClick={() => {
-                          if (Math.random() <= 0.8) { // Giả lập slot khả dụng
-                            setFormData({...formData, time});
+                          if (Math.random() <= 0.8) { // Conditional logic để simulate availability
+                            // Spread operator để immutable state update
+                            setFormData({...formData, time: slot.id});
                           }
                         }}
                       >
-                        {time}
+                        {/* JSX expression để hiển thị slot properties */}
+                        <div className="slot-label">{slot.label}</div>
+                        <div className="slot-time">{slot.time}</div>
                       </div>
                     ))}
                   </div>
@@ -615,25 +650,117 @@ const AppointmentForm = () => {
           {formStep === 4 && (
             <div className="form-step-container animated fadeIn">
               <h4 className="text-center mb-4">Bước 4: Thông tin cá nhân</h4>
-              <div className="alert alert-success mb-4">
-                <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
-                <strong>Thông tin đặt lịch:</strong><br/>
-                <small>
-                  • Dịch vụ: {getServiceDetailName(formData.registrationType, formData.serviceDetail)}<br/>
-                  • Loại khám: {formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}<br/>
-                  • Ngày khám: {formData.date ? new Date(formData.date).toLocaleDateString('vi-VN') : ''}<br/>
-                  • Giờ khám: {formData.time}<br/>
-                  {formData.doctor && `• Bác sĩ: ${doctorsData.find(d => d.id === formData.doctor)?.name}`}
-                </small>
-              </div>
+              
+              {/* Conditional rendering: chỉ hiển thị khi tất cả required fields có giá trị */}
+              {/* Logical AND (&&) operator để check multiple conditions */}
+              {formData.serviceDetail && formData.consultationType && formData.date && formData.time && (
+                <div className="mb-4">
+                  <Row>
+                    <Col md={6}>
+                      <Form.Label className="text-success fw-bold">
+                        <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                        Dịch vụ đã chọn:
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        // Function call với parameters để get display name
+                        value={getServiceDetailName(formData.registrationType, formData.serviceDetail)}
+                        readOnly // HTML attribute để prevent editing
+                        className="mb-2"
+                        // Inline style object với CSS properties
+                        style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Form.Label className="text-success fw-bold">
+                        <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                        Loại khám đã chọn:
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        // Ternary operator để conditional value based on consultationType
+                        value={formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}
+                        readOnly
+                        className="mb-2"
+                        style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                      />
+                    </Col>
+                  </Row>
 
-              <div className="patient-info-notice mb-4">
-                <div className="alert alert-primary">
-                  <FontAwesomeIcon icon={faUser} className="me-2" />
-                  <strong>Thông tin bệnh nhân</strong><br/>
-                  <small>Vui lòng cung cấp thông tin chính xác để chúng tôi có thể liên lạc và xác nhận lịch hẹn với bạn.</small>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Label className="text-success fw-bold">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                        Ngày khám đã chọn:
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        // Date constructor + toLocaleDateString() method để format date
+                        value={new Date(formData.date).toLocaleDateString('vi-VN')}
+                        readOnly
+                        className="mb-2"
+                        style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Form.Label className="text-success fw-bold">
+                        <FontAwesomeIcon icon={faClock} className="me-2" />
+                        Giờ khám đã chọn:
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        // Template literal + Array.find() method + optional chaining để get slot info
+                        value={`${availableTimes.find(slot => slot.id === formData.time)?.label} (${availableTimes.find(slot => slot.id === formData.time)?.time})`}
+                        readOnly
+                        className="mb-2"
+                        style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                      />
+                    </Col>
+                  </Row>
+
+                  {formData.doctor && (
+                    <Row>
+                      <Col md={6}>
+                        <Form.Label className="text-success fw-bold">
+                          <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                          Bác sĩ đã chọn:
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={doctorsData.find(d => d.id === formData.doctor)?.name}
+                          readOnly
+                          className="mb-2"
+                          style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                        />
+                      </Col>
+                      <Col md={6}></Col>
+                    </Row>
+                  )}
+
+                  {formData.healthIssues && (
+                    <Row>
+                      <Col md={12}>
+                        <Form.Label className="text-success fw-bold">
+                          <FontAwesomeIcon icon={faCommentMedical} className="me-2" />
+                          Lý do khám đã nhập:
+                        </Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={2}
+                          value={formData.healthIssues}
+                          readOnly
+                          className="mb-2"
+                          style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                        />
+                      </Col>
+                    </Row>
+                  )}
                 </div>
-              </div>
+              )}
+
+
+
+
 
               <div className="form-group">
                 <Form.Label>
@@ -777,7 +904,7 @@ const AppointmentForm = () => {
             {formData.date && (
               <p className="mb-2">
                 <strong>Ngày khám:</strong> {new Date(formData.date).toLocaleDateString('vi-VN')}
-                {formData.time && <span> - <strong>Giờ:</strong> {formData.time}</span>}
+                {formData.time && <span> - <strong>Giờ:</strong> {availableTimes.find(slot => slot.id === formData.time)?.label} ({availableTimes.find(slot => slot.id === formData.time)?.time})</span>}
               </p>
             )}
             <p className="mb-0">

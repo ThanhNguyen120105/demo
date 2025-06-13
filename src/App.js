@@ -30,6 +30,9 @@ import ARVSelectionTool from './components/Doctor/ARVSelectionTool';
 import UnansweredQuestions from './components/Doctor/UnansweredQuestions';
 import ApiTestDemo from './components/Demo/ApiTestDemo';
 
+// Staff Components
+import StaffDashboard from './components/Staff/StaffDashboard';
+
 function App() {
   return (
     <AuthProvider>
@@ -54,6 +57,8 @@ function App() {
             <Route path="/api-test" element={<ApiTestDemo />} />
             
             {/* Staff Routes */}
+            <Route path="/staff" element={<StaffDashboard />} />
+            <Route path="/staff/dashboard" element={<StaffDashboard />} />
             <Route path="/staff/doctor-management" element={<StaffDoctorManagement />} />
             
             {/* Doctor Routes */}

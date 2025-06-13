@@ -582,101 +582,410 @@ const TestResultsLookup = () => {
         </Tab>
       </Tabs>
 
-      {/* Detail Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+      {/* Medical Report Modal - y chang như DoctorAppointments */}
+      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            <FontAwesomeIcon icon={faFileAlt} className="me-2" />
-            Chi Tiết Kết Quả Xét Nghiệm
+            Xem báo cáo y tế
+            <div className="text-muted fs-6">
+              {selectedTest?.patientName} - {selectedTest?.testDate}
+            </div>
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="px-4 py-3">
           {selectedTest && (
-            <Row>
-              <Col md={6}>
-                <h6><FontAwesomeIcon icon={faUser} className="me-1" />Thông Tin Bệnh Nhân</h6>
-                <p><strong>Mã BN:</strong> {selectedTest.patientId}</p>
-                <p><strong>Tên:</strong> {selectedTest.patientName}</p>
-                <p><strong>Mã Lịch Hẹn:</strong> {selectedTest.appointmentId}</p>
-                <p><strong>Ngày XN:</strong> {new Date(selectedTest.testDate).toLocaleDateString('vi-VN')}</p>
-                <p><strong>Bác sĩ:</strong> {selectedTest.doctor}</p>
-                
-                <h6 className="mt-3"><FontAwesomeIcon icon={faVial} className="me-1" />Kết Quả Xét Nghiệm</h6>
-                <p><strong>Loại XN:</strong> {selectedTest.testType}</p>
-                <p><strong>Viral Load:</strong> 
-                  <span className={`ms-2 viral-load ${selectedTest.viralLoad === '<50' ? 'undetectable' : 
-                    parseInt(selectedTest.viralLoad) < 1000 ? 'low' : 'high'}`}>
-                    {selectedTest.viralLoad} {selectedTest.viralLoad !== '<50' ? 'copies/mL' : ''}
-                  </span>
-                </p>
-                <p><strong>CD4 Count:</strong> 
-                  <span className={`ms-2 cd4-count ${selectedTest.cd4Count > 500 ? 'high' : selectedTest.cd4Count > 200 ? 'medium' : 'low'}`}>
-                    {selectedTest.cd4Count} cells/μL
-                  </span>
-                </p>
-                <p><strong>HLA-B5701:</strong> {selectedTest.hlaB5701}</p>
-                <p><strong>Tropism:</strong> {selectedTest.tropism}</p>
-                
-                <h6 className="mt-3"><FontAwesomeIcon icon={faHeartbeat} className="me-1" />Bệnh Đi Kèm</h6>
-                <div className="comorbidities-list">
-                  {selectedTest.comorbidities && selectedTest.comorbidities.length > 0 ? (
-                    selectedTest.comorbidities.map((condition, index) => (
-                      <Badge key={index} bg="warning" className="me-1 mb-1">
-                        {condition}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className="text-muted">Không có</span>
-                  )}
-                </div>
-              </Col>
-              <Col md={6}>
-                <h6><FontAwesomeIcon icon={faPills} className="me-1" />Phác Đồ ARV Hiện Tại</h6>
-                <div className="arv-detail">
-                  {selectedTest.arvRegimen.map((arvCode, index) => {
+            <div className="medical-report-form">
+              {/* Phần thông tin bệnh nhân */}
+              <Card className="mb-3">
+                <Card.Header className="bg-primary text-white py-2">
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Thông tin bệnh nhân
+                </Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>ID bệnh nhân</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          value={selectedTest.patientId || ''} 
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Tên bệnh nhân</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          value={selectedTest.patientName || ''} 
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Ngày sinh</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          value="1985-06-12" 
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Giới tính</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          value="Nam" 
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Phần kết quả xét nghiệm */}
+              <Card className="mb-3">
+                <Card.Header className="bg-warning text-dark py-2">
+                  <FontAwesomeIcon icon={faVial} className="me-2" />
+                  Kết quả xét nghiệm
+                </Card.Header>
+                <Card.Body>
+                  <h6 className="mb-3">Xét nghiệm HIV</h6>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Chỉ số CD4</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 650 tế bào/mm³" 
+                          value={`${selectedTest.cd4Count} cells/μL`}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Tải lượng virus</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: < 20 bản sao/mL" 
+                          value={`${selectedTest.viralLoad} ${selectedTest.viralLoad !== '<50' ? 'copies/mL' : ''}`}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <h6 className="mb-3 mt-4">Huyết học</h6>
+                  <Row>
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Hemoglobin</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 14.2 g/dL" 
+                          value={selectedTest.labValues?.hemoglobin || ''}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Bạch cầu</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 5.6 × 10³/μL" 
+                          value="5.8 × 10³/μL"
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Tiểu cầu</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 235 × 10³/μL" 
+                          value="230 × 10³/μL"
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <h6 className="mb-3 mt-4">Sinh hóa</h6>
+                  <Row>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Đường huyết</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 95 mg/dL" 
+                          value={selectedTest.labValues?.glucose || '92 mg/dL'}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Creatinine</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 0.9 mg/dL" 
+                          value={selectedTest.labValues?.creatinine || '0.9 mg/dL'}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>ALT</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 25 U/L" 
+                          value={selectedTest.labValues?.alt || '28 U/L'}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>AST</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 28 U/L" 
+                          value="26 U/L"
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <h6 className="mb-3 mt-4">Chỉ số mỡ máu</h6>
+                  <Row>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Cholesterol toàn phần</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 185 mg/dL" 
+                          value={selectedTest.labValues?.cholesterol || '180 mg/dL'}
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>LDL</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 110 mg/dL" 
+                          value="105 mg/dL"
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>HDL</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 45 mg/dL" 
+                          value="48 mg/dL"
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Triglycerides</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          placeholder="vd: 150 mg/dL" 
+                          value="130 mg/dL"
+                          readOnly
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Phần thuốc */}
+              <Card className="mb-3">
+                <Card.Header className="bg-success text-white py-2">
+                  <FontAwesomeIcon icon={faPills} className="me-2" />
+                  Thuốc
+                </Card.Header>
+                <Card.Body>
+                  {selectedTest.arvRegimen && selectedTest.arvRegimen.map((arvCode, index) => {
                     const med = arvMedications.find(m => m.code === arvCode);
                     return (
-                      <div key={index} className="arv-item mb-2">
-                        <Badge bg="secondary" className="me-2">{arvCode}</Badge>
-                        {med && (
-                          <span>
-                            <strong>{med.name}</strong>
-                            <br />
-                            <small className="text-muted">Nhóm: {med.category}</small>
-                          </span>
-                        )}
-                      </div>
+                      <Row key={index} className="mb-3">
+                        <Col md={3}>
+                          <Form.Group>
+                            <Form.Label>Tên thuốc</Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              placeholder="vd: Biktarvy" 
+                              value={med ? med.name : arvCode}
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={3}>
+                          <Form.Group>
+                            <Form.Label>Liều lượng</Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              placeholder="vd: 1 viên" 
+                              value="1 viên"
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={3}>
+                          <Form.Group>
+                            <Form.Label>Tần suất</Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              placeholder="vd: Ngày 1 lần" 
+                              value="Ngày 1 lần"
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={3}>
+                          <Form.Group>
+                            <Form.Label>Trạng thái</Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              value="Tiếp tục"
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
                     );
                   })}
-                </div>
-                
-                <h6 className="mt-3"><FontAwesomeIcon icon={faStethoscope} className="me-1" />Thuốc Đi Kèm</h6>
-                <div className="co-medications">
-                  {selectedTest.coMedications && selectedTest.coMedications.length > 0 ? (
-                    selectedTest.coMedications.map((med, index) => (
-                      <Badge key={index} bg="info" className="me-1 mb-1">
-                        {med}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className="text-muted">Không có</span>
-                  )}
-                </div>
-                
-                <h6 className="mt-3">Tác Dụng Phụ</h6>
-                <p className="side-effects">{selectedTest.sideEffects}</p>
-                
-                <h6 className="mt-3">Ghi Chú Bác Sĩ</h6>
-                <p className="doctor-notes">{selectedTest.notes}</p>
-              </Col>
-            </Row>
+                  
+                  {selectedTest.coMedications && selectedTest.coMedications.map((medication, index) => (
+                    <Row key={`co-${index}`} className="mb-3">
+                      <Col md={3}>
+                        <Form.Group>
+                          <Form.Label>Tên thuốc</Form.Label>
+                          <Form.Control 
+                            type="text" 
+                            value={medication}
+                            readOnly
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={3}>
+                        <Form.Group>
+                          <Form.Label>Liều lượng</Form.Label>
+                          <Form.Control 
+                            type="text" 
+                            value="1 viên"
+                            readOnly
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={3}>
+                        <Form.Group>
+                          <Form.Label>Tần suất</Form.Label>
+                          <Form.Control 
+                            type="text" 
+                            value="Ngày 1 lần"
+                            readOnly
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={3}>
+                        <Form.Group>
+                          <Form.Label>Trạng thái</Form.Label>
+                          <Form.Control 
+                            type="text" 
+                            value="Tiếp tục"
+                            readOnly
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                  ))}
+                </Card.Body>
+              </Card>
+
+              {/* Đánh giá & kế hoạch */}
+              <Card className="mb-3">
+                <Card.Header className="bg-secondary text-white py-2">
+                  <FontAwesomeIcon icon={faStethoscope} className="me-2" />
+                  Đánh giá & Kế hoạch
+                </Card.Header>
+                <Card.Body>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Đánh giá</Form.Label>
+                    <Form.Control 
+                      as="textarea" 
+                      rows={3} 
+                      placeholder="Nhập đánh giá bệnh nhân" 
+                      value={selectedTest.notes || 'Bệnh nhân ổn định với phản ứng điều trị tốt với liệu pháp kháng virus hiện tại.'}
+                      readOnly
+                    />
+                  </Form.Group>
+                  
+                  <Form.Group className="mb-3">
+                    <Form.Label>Kế hoạch</Form.Label>
+                    <Form.Control 
+                      as="textarea" 
+                      rows={3} 
+                      placeholder="Nhập kế hoạch điều trị" 
+                      value="Tiếp tục liệu pháp kháng virus hiện tại. Tái khám sau 3 tháng với xét nghiệm CD4 và tải lượng virus."
+                      readOnly
+                    />
+                  </Form.Group>
+                  
+                  <Form.Group>
+                    <Form.Label>Khuyến nghị</Form.Label>
+                    <Form.Control 
+                      type="text" 
+                      className="mb-2"
+                      placeholder="Khuyến nghị 1" 
+                      value="Duy trì chế độ ăn uống lành mạnh và tập thể dục thường xuyên"
+                      readOnly
+                    />
+                    <Form.Control 
+                      type="text" 
+                      className="mb-2"
+                      placeholder="Khuyến nghị 2" 
+                      value="Tránh sử dụng rượu bia"
+                      readOnly
+                    />
+                    <Form.Control 
+                      type="text" 
+                      className="mb-2"
+                      placeholder="Khuyến nghị 3" 
+                      value="Trở lại khám nếu có triệu chứng bất thường"
+                      readOnly
+                    />
+                    <Form.Control 
+                      type="text" 
+                      className="mb-2"
+                      placeholder="Khuyến nghị 4" 
+                      value="Thực hành quan hệ tình dục an toàn"
+                      readOnly
+                    />
+                  </Form.Group>
+                </Card.Body>
+              </Card>
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-primary">
-            <FontAwesomeIcon icon={faDownload} className="me-1" />
-            Tải PDF
-          </Button>
           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
             Đóng
           </Button>
