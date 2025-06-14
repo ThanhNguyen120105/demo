@@ -582,7 +582,7 @@ const TestResultsLookup = () => {
         </Tab>
       </Tabs>
 
-      {/* Medical Report Modal - y chang như DoctorAppointments */}
+      {/* Medical Report Modal  */}
       <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>

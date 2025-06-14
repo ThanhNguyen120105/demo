@@ -165,8 +165,8 @@ const Login = () => {
                       </>
                     ) : (
                       <>
-                        <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
-                        Đăng Nhập
+                    <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
+                    Đăng Nhập
                       </>
                     )}
                   </Button>

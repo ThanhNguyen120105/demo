@@ -298,8 +298,8 @@ const Signup = () => {
                       </>
                     ) : (
                       <>
-                        <FontAwesomeIcon icon={faUserPlus} className="me-2" />
-                        Tạo Tài Khoản
+                    <FontAwesomeIcon icon={faUserPlus} className="me-2" />
+                    Tạo Tài Khoản
                       </>
                     )}
                   </Button>
