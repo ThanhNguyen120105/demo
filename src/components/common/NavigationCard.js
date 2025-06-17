@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCalendarAlt, 
-  faUserMd, 
   faClipboardList, 
   faHistory,
   faUserTie,
@@ -26,16 +25,8 @@ const NavigationCard = ({ title = "Truy cập nhanh", showStaffOptions = false }
     {
       path: '/appointment-history',
       icon: faHistory,
-      title: 'Lịch sử hẹn',
-      description: 'Xem lịch sử các cuộc hẹn',
+      title: 'Lịch sử hẹn',      description: 'Xem lịch sử các cuộc hẹn',
       color: 'info'
-    },
-    {
-      path: '/doctors',
-      icon: faUserMd,
-      title: 'Bác sĩ',
-      description: 'Tìm hiểu về đội ngũ bác sĩ',
-      color: 'success'
     },
     {
       path: '/qna',

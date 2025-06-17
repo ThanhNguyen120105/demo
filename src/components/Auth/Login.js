@@ -4,12 +4,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faSignInAlt, faUser, faUserMd } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDashboardRoute } from '../../constants/userRoles';
 import './Auth.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated, user } = useAuth();
   
   const [formData, setFormData] = useState({
     email: location.state?.email || '',
@@ -18,14 +19,22 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
 
   const { email, password } = formData;
-
-  // Chuyển hướng nếu đã đăng nhập
+  // Chuyển hướng nếu đã đăng nhập - redirect dựa trên role
   useEffect(() => {
-    if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/';
-      navigate(from, { replace: true });
+    if (isAuthenticated && user) {
+      // Ưu tiên redirect đến trang đích (nếu có)
+      const from = location.state?.from?.pathname;
+      
+      if (from && from !== '/login') {
+        navigate(from, { replace: true });
+      } else {
+        // Auto-redirect dựa trên role của user
+        const dashboardRoute = getDashboardRoute(user);
+        console.log('Login - Auto-redirecting to:', dashboardRoute, 'for user role:', user.role);
+        navigate(dashboardRoute, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, location.state?.from?.pathname]);
+  }, [isAuthenticated, user, navigate, location.state?.from?.pathname]);
 
   // Xóa lỗi khi component unmount
   useEffect(() => {

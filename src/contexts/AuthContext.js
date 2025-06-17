@@ -97,15 +97,15 @@ export const AuthProvider = ({ children }) => {
         }
         
         console.log('AuthContext - Raw userData from login result:', userData);
-        
-        if (userData) {
-          // Đảm bảo userData có đầy đủ thông tin
+          if (userData) {
+          // Đảm bảo userData có đầy đủ thông tin và ưu tiên role_id
           const processedUser = {
             id: userData?.id,
             email: userData?.email,
             fullName: userData?.fullName || userData?.name || userData?.username,
             phoneNumber: userData?.phoneNumber || userData?.phone,
-            role: userData?.role,
+            role: userData?.role_id || userData?.role, // Ưu tiên role_id
+            role_id: userData?.role_id, // Giữ lại role_id gốc
             ...userData
           };
           

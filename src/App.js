@@ -36,6 +36,7 @@ import StaffTestLogin from './components/Demo/StaffTestLogin'; // From HEAD
 
 // Staff Components
 import StaffDashboard from './components/Staff/StaffDashboard'; // From HEAD
+import AppointmentApproval from './components/Staff/AppointmentApproval'; // Added for appointment approval
 
 // Route Guards
 import DoctorRoute from './components/common/DoctorRoute'; // From HEAD
@@ -65,12 +66,11 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/navigation" element={<NavigationDemo />} />
               <Route path="/api-test" element={<ApiTestDemo />} />
-              <Route path="/staff-test-login" element={<StaffTestLogin />} /> {/* From HEAD */}
-
-              {/* Staff Routes - Using StaffRoute from HEAD */}
+              <Route path="/staff-test-login" element={<StaffTestLogin />} /> {/* From HEAD */}              {/* Staff Routes - Using StaffRoute from HEAD */}
               <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/doctor-management" element={<StaffRoute><StaffDoctorManagement /></StaffRoute>} />
+              <Route path="/staff/appointment-approval" element={<StaffRoute><AppointmentApproval /></StaffRoute>} />
             
               {/* Doctor Routes - Using DoctorRoute from HEAD */}
               <Route path="/doctor" element={<DoctorRoute><DoctorDashboard /></DoctorRoute>} />

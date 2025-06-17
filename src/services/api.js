@@ -132,14 +132,13 @@ export const authAPI = {
       if (userData && Object.keys(userData).length > 1) {
         // Có user data thực sự (không chỉ token)
         console.log('API - Original userData from backend:', userData);
-        
-        // Đảm bảo userData có format đúng
+          // Đảm bảo userData có format đúng
         const userToSave = {
           id: userData.id,
           email: userData.email,
           fullName: userData.fullName || userData.name || userData.username,
           phoneNumber: userData.phoneNumber || userData.phone,
-          role: userData.role,
+          role: userData.role_id || userData.role,
           ...userData
         };
         
@@ -158,14 +157,13 @@ export const authAPI = {
           
           const tokenPayload = JSON.parse(jsonPayload);
           console.log('API - Decoded token payload:', tokenPayload);
-          
-          // Tạo user object từ token payload
+            // Tạo user object từ token payload
           const userFromToken = {
             id: tokenPayload.sub, // 'sub' là user ID trong trường hợp này
             email: tokenPayload.email || tokenPayload.username || tokenPayload.sub + '@example.com',
             fullName: tokenPayload.name || tokenPayload.fullName || tokenPayload.given_name || tokenPayload.preferred_username || 'User',
             phoneNumber: tokenPayload.phoneNumber || tokenPayload.phone_number,
-            role: tokenPayload.role || tokenPayload.authorities?.[0] || 'USER'
+            role: tokenPayload.role_id || tokenPayload.role || tokenPayload.authorities?.[0] || 'USER'
           };
           
           console.log('API - User info from token:', userFromToken);
@@ -244,8 +242,7 @@ export const authAPI = {
       const response = await api.get('/auth/me'); // hoặc /user/profile
       
       console.log('User profile response:', response.data);
-      
-      if (response.data?.data) {
+        if (response.data?.data) {
         const userData = response.data.data;
         
         // Lưu user data đầy đủ
@@ -254,7 +251,7 @@ export const authAPI = {
           email: userData.email,
           fullName: userData.fullName || userData.name,
           phoneNumber: userData.phoneNumber,
-          role: userData.role,
+          role: userData.role_id || userData.role,
           ...userData
         };
         
@@ -270,8 +267,7 @@ export const authAPI = {
       try {
         console.log('Trying alternative endpoint /user/profile...');
         const response = await api.get('/user/profile');
-        
-        if (response.data?.data) {
+          if (response.data?.data) {
           const userData = response.data.data;
           
           const userToSave = {
@@ -279,7 +275,7 @@ export const authAPI = {
             email: userData.email,
             fullName: userData.fullName || userData.name,
             phoneNumber: userData.phoneNumber,
-            role: userData.role,
+            role: userData.role_id || userData.role,
             ...userData
           };
           
@@ -453,4 +449,251 @@ export const authAPI = {
   }
 };
 
-export default api; 
+// Appointment API
+export const appointmentAPI = {  // Tạo appointment mới (customer)
+  createAppointment: async (appointmentData) => {
+    try {
+      console.log('Creating appointment:', appointmentData);
+      const response = await api.post('/appointment/bookAnAppointment', appointmentData);
+      
+      console.log('Create appointment response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Đặt lịch hẹn thành công! Lịch hẹn đang chờ được duyệt.'
+      };
+    } catch (error) {
+      console.error('Create appointment error:', error);
+      
+      let errorMessage = 'Đã xảy ra lỗi khi đặt lịch hẹn';
+      
+      if (error.response?.status === 400) {
+        errorMessage = 'Thông tin đặt lịch không hợp lệ';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Khung giờ này đã được đặt, vui lòng chọn giờ khác';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
+      };
+    }
+  },
+  // Lấy danh sách appointments cần duyệt (staff)
+  getPendingAppointments: async () => {
+    try {
+      const response = await api.get('/appointment/pending');
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Lấy danh sách lịch hẹn chờ duyệt thành công'
+      };
+    } catch (error) {
+      console.error('Get pending appointments error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách lịch hẹn chờ duyệt',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Duyệt appointment (staff)
+  approveAppointment: async (appointmentId, approvalData) => {
+    try {
+      console.log('Approving appointment:', appointmentId, approvalData);
+      const response = await api.put(`/appointment/${appointmentId}/approve`, approvalData);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Duyệt lịch hẹn thành công! Lịch hẹn đã được thêm vào lịch làm việc của bác sĩ.'
+      };
+    } catch (error) {
+      console.error('Approve appointment error:', error);
+      
+      let errorMessage = 'Đã xảy ra lỗi khi duyệt lịch hẹn';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy lịch hẹn';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Lịch hẹn đã được duyệt hoặc từ chối trước đó';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Từ chối appointment (staff)
+  rejectAppointment: async (appointmentId, rejectionData) => {
+    try {
+      console.log('Rejecting appointment:', appointmentId, rejectionData);
+      const response = await api.put(`/appointment/${appointmentId}/reject`, rejectionData);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Từ chối lịch hẹn thành công'
+      };
+    } catch (error) {
+      console.error('Reject appointment error:', error);
+      
+      let errorMessage = 'Đã xảy ra lỗi khi từ chối lịch hẹn';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy lịch hẹn';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Lấy lịch hẹn của bác sĩ (doctor)
+  getDoctorAppointments: async (doctorId, status = 'approved') => {
+    try {
+      const response = await api.get(`/appointment/doctor/${doctorId}?status=${status}`);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Lấy lịch hẹn của bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('Get doctor appointments error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy lịch hẹn của bác sĩ',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Lấy lịch hẹn của customer (patient)
+  getCustomerAppointments: async (customerId) => {
+    try {
+      const response = await api.get(`/appointment/customer/${customerId}`);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Lấy lịch hẹn của bệnh nhân thành công'
+      };
+    } catch (error) {
+      console.error('Get customer appointments error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy lịch hẹn của bệnh nhân',
+        error: error.response?.data || error.message
+      };
+    }
+  }
+};
+
+// Slot API - để lấy danh sách slots khám
+export const slotAPI = {
+  // Lấy tất cả slots
+  getAllSlots: async () => {
+    try {
+      console.log('Getting all slots...');
+      const response = await api.get('/slot-entity/getAllSlotEntity');
+      
+      console.log('Get slots response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách slots thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu slots',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get slots error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách slots',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  }
+};
+
+// Doctor API - để lấy danh sách bác sĩ
+export const doctorAPI = {  // Lấy tất cả bác sĩ
+  getAllDoctors: async () => {
+    try {
+      console.log('Getting all doctors...');
+      // Thử các endpoint khác nhau tùy theo backend implementation
+      let response;
+      try {
+        response = await api.get('/doctor/getAllDoctors');
+      } catch (error) {
+        if (error.response?.status === 403 || error.response?.status === 404) {
+          // Thử endpoint khác
+          try {
+            response = await api.get('/doctors');
+          } catch (error2) {
+            // Thử endpoint khác nữa
+            response = await api.get('/api/doctors');
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      console.log('Get doctors response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách bác sĩ thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu bác sĩ',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get doctors error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách bác sĩ',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  }
+};
+
+export default api;

@@ -60,39 +60,36 @@ const ProfileInfo = ({ profile, onUpdateProfile }) => {
           >
             Chỉnh sửa
           </Button>
-        </div>
-
-        <div className="profile-details">
+        </div>        <div className="profile-details">
           <div className="row">
             <div className="col-md-6 mb-3">
               <p className="mb-1 text-muted">Họ và tên</p>
-              <p className="mb-3">{profile.fullName}</p>
+              <p className="mb-3">{profile.fullName || <em className="text-muted">Chưa cập nhật</em>}</p>
             </div>
             <div className="col-md-6 mb-3">
               <p className="mb-1 text-muted">Email</p>
-              <p className="mb-3">{profile.email}</p>
+              <p className="mb-3">{profile.email || <em className="text-muted">Chưa cập nhật</em>}</p>
             </div>
           </div>
 
-          <div className="row">
-            <div className="col-md-6 mb-3">
+          <div className="row">            <div className="col-md-6 mb-3">
               <p className="mb-1 text-muted">Số điện thoại</p>
-              <p className="mb-3">{profile.phone}</p>
+              <p className="mb-3">{profile.phone || <em className="text-muted">Chưa cập nhật</em>}</p>
             </div>
             <div className="col-md-6 mb-3">
               <p className="mb-1 text-muted">Ngày sinh</p>
-              <p className="mb-3">{profile.dateOfBirth}</p>
+              <p className="mb-3"><em className="text-muted">Chưa cập nhật</em></p>
             </div>
           </div>
 
           <div className="row">
             <div className="col-md-6 mb-3">
               <p className="mb-1 text-muted">Giới tính</p>
-              <p className="mb-3">{profile.gender}</p>
+              <p className="mb-3"><em className="text-muted">Chưa cập nhật</em></p>
             </div>
             <div className="col-12 mb-3">
               <p className="mb-1 text-muted">Địa chỉ</p>
-              <p className="mb-3">{profile.address}</p>
+              <p className="mb-3"><em className="text-muted">Chưa cập nhật</em></p>
             </div>
           </div>
         </div>

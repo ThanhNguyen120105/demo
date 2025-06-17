@@ -13,17 +13,15 @@ import {
   faInfoCircle,
   faNewspaper,
   faEnvelope,
-  faHeartbeat,
-  faUserMd,
   faLocationArrow,
   faUserPlus,
-  faUserTie,
   faVial,
   faSignOutAlt,
   faUserCircle,
   faBell
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDashboardRoute } from '../../constants/userRoles';
 import './Header.css';
 import logo from '../../assets/images/logo.png';
 import NotificationBell from './NotificationBell';
@@ -96,43 +94,7 @@ const Header = () => {
               <div className="contact-item">
                 <FontAwesomeIcon icon={faLocationArrow} />
                 <span>123 Đường Trung tâm Y tế</span>
-              </div>
-            </div>
-            <div className="top-bar-actions">
-              <div className="action-item">
-                <Link to="/patient/dashboard" className="action-link">
-                  <FontAwesomeIcon icon={faUser} />
-                  <span>Bệnh nhân</span>
-                </Link>
-              </div>
-              <div className="action-item">
-                <FontAwesomeIcon icon={faHeartbeat} />
-                <span>Dịch vụ</span>
-              </div>
-              <div className="action-item">
-                <Link to="/doctor/dashboard" className="action-link">
-                  <FontAwesomeIcon icon={faUserMd} />
-                  <span>Bác sĩ</span>
-                </Link>
-              </div>
-              <div className="action-item">
-                <Link to="/staff/doctor-management" className="action-link">
-                  <FontAwesomeIcon icon={faUserTie} />
-                  <span>Staff</span>
-                </Link>
-              </div>
-              <div className="action-item">
-                <Link to="/test-results" className="action-link">
-                  <FontAwesomeIcon icon={faVial} />
-                  <span>Kết quả XN</span>
-                </Link>
-              </div>
-              <div className="action-item">
-                <Link to="/qna" className="action-link">
-                  <FontAwesomeIcon icon={faQuestionCircle} />
-                  <span>Hỏi & Đáp</span>
-                </Link>
-              </div>
+              </div>            </div>            <div className="top-bar-actions">
               <div className="action-item">
                 <Link to="/api-test" className="action-link">
                   <FontAwesomeIcon icon={faVial} />
@@ -162,10 +124,9 @@ const Header = () => {
                                 ? user.email.split('@')[0]
                                 : 'Người dùng'
                       }</span>
-                    </div>
-                    {dropdownOpen && (
+                    </div>                    {dropdownOpen && (
                       <div className="dropdown-menu show">
-                        <Link to="/profile" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                        <Link to={getDashboardRoute(user)} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <FontAwesomeIcon icon={faUser} className="me-2" />
                           Thông tin cá nhân
                         </Link>
@@ -220,8 +181,7 @@ const Header = () => {
             />
 
             <Navbar.Collapse id="main-navbar-nav">
-              {/* Phần 2: Navigation Options */}
-              <div className="navbar-section navbar-navigation">
+              {/* Phần 2: Navigation Options */}              <div className="navbar-section navbar-navigation">
                 <Nav className="main-nav">
                   <Nav.Link as={Link} to="/" onClick={() => setExpanded(false)}>
                     <div className={`nav-item ${isActive('/') ? 'active' : ''}`}>

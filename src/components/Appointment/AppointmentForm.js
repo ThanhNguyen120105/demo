@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Modal, Card } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Modal, Card, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCalendarAlt, 
@@ -18,16 +18,20 @@ import {
   faSyringe,
   faHospital,
   faMapMarkerAlt,
-  faInfoCircle
+  faInfoCircle,
+  faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
 import { useLocation } from 'react-router-dom';
-import { doctorsData } from '../Doctors/Doctors';
 import BackButton from '../common/BackButton';
+import { useAuth } from '../../contexts/AuthContext';
+import { appointmentAPI, slotAPI, doctorAPI } from '../../services/api';
 
 const AppointmentForm = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const [formStep, setFormStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     serviceType: 'hiv-care',
     serviceDetail: '',
@@ -41,16 +45,13 @@ const AppointmentForm = () => {
     name: '',
     registrationType: 'hiv-care',
     consultationType: 'direct' // direct: khám trực tiếp, anonymous: khám ẩn danh
-  });
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  // useState hook để lưu trữ array of objects chứa thông tin slot thời gian
-  const [availableTimes, setAvailableTimes] = useState([
-    { id: 'slot1', label: 'Slot 1', time: '7:00-9:15' },
-    { id: 'slot2', label: 'Slot 2', time: '9:30-11:45' },
-    { id: 'slot3', label: 'Slot 3', time: '12:30-14:45' },
-    { id: 'slot4', label: 'Slot 4', time: '15:00-17:15' }
-  ]);
-
+  });  const [showSuccessModal, setShowSuccessModal] = useState(false);  const [errorMessage, setErrorMessage] = useState('');
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  // useState hook để lưu trữ array of objects chứa thông tin slot thời gian từ database
+  const [availableTimes, setAvailableTimes] = useState([]);
+  // useState hook để lưu trữ array of objects chứa thông tin bác sĩ từ database
+  const [availableDoctors, setAvailableDoctors] = useState([]);
   // useEffect hook để kiểm tra và set doctor từ location state khi component mount
   useEffect(() => {
     // Sử dụng optional chaining (?.) để tránh lỗi nếu location.state null/undefined
@@ -61,7 +62,121 @@ const AppointmentForm = () => {
         doctor: location.state.selectedDoctor // Ghi đè giá trị doctor
       }));
     }
-  }, [location]); // Dependency array chỉ chứa location để re-run khi location thay đổi
+  }, [location]); // Dependency array chỉ chứa location để re-run khi location thay đổi  // useEffect để auto-fill thông tin user khi component mount
+  useEffect(() => {
+    if (user) {
+      console.log('Auto-filling user name from user object:', user);
+      
+      const nameToFill = user.fullName || user.name || '';
+      
+      console.log('Name to fill:', nameToFill);
+      
+      setFormData(prev => {
+        const newData = {
+          ...prev,
+          name: nameToFill // Chỉ auto-fill họ tên, phone để user tự nhập
+        };
+        console.log('Updated formData with user name:', newData);
+        return newData;
+      });
+    }
+  }, [user]); // Dependency array chứa user để re-run khi user thay đổi
+
+  // useEffect để load slots từ database
+  useEffect(() => {
+    const loadSlots = async () => {
+      setLoadingSlots(true);
+      try {
+        console.log('Loading slots from database...');
+        const result = await slotAPI.getAllSlots();
+        
+        if (result.success && result.data) {
+          console.log('Slots loaded successfully:', result.data);
+          
+          // Transform slots data từ backend format thành format component cần
+          const transformedSlots = result.data.map(slot => ({
+            id: slot.id || slot.slotId, // Backend có thể trả về id hoặc slotId
+            label: slot.label || slot.name || `Slot ${slot.id}`,
+            time: slot.timeRange || slot.time || `${slot.startTime}-${slot.endTime}`,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            available: slot.available !== false // Default true nếu không có field available
+          }));
+          
+          setAvailableTimes(transformedSlots);
+          console.log('Transformed slots:', transformedSlots);
+        } else {
+          console.warn('Failed to load slots or no data:', result);
+          // Fallback về mock data nếu API thất bại
+          setAvailableTimes([
+            { id: 'slot1', label: 'Slot 1', time: '7:00-9:15', available: true },
+            { id: 'slot2', label: 'Slot 2', time: '9:30-11:45', available: true },
+            { id: 'slot3', label: 'Slot 3', time: '12:30-14:45', available: true },
+            { id: 'slot4', label: 'Slot 4', time: '15:00-17:15', available: true }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading slots:', error);
+        // Fallback về mock data nếu có lỗi
+        setAvailableTimes([
+          { id: 'slot1', label: 'Slot 1', time: '7:00-9:15', available: true },
+          { id: 'slot2', label: 'Slot 2', time: '9:30-11:45', available: true },
+          { id: 'slot3', label: 'Slot 3', time: '12:30-14:45', available: true },
+          { id: 'slot4', label: 'Slot 4', time: '15:00-17:15', available: true }
+        ]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };    loadSlots();
+  }, []); // Chỉ chạy một lần khi component mount
+
+  // useEffect để load doctors từ database
+  useEffect(() => {
+    const loadDoctors = async () => {
+      setLoadingDoctors(true);
+      try {
+        console.log('Loading doctors from database...');
+        const result = await doctorAPI.getAllDoctors();
+        
+        if (result.success && result.data) {
+          console.log('Doctors loaded successfully:', result.data);
+          
+          // Transform doctors data từ backend format thành format component cần
+          const transformedDoctors = result.data.map(doctor => ({
+            id: doctor.id || doctor.doctorId,
+            name: doctor.name || doctor.fullName || doctor.doctorName,
+            specialty: doctor.specialty || doctor.specialization || 'Bác sĩ HIV',
+            title: doctor.title || 'Bác sĩ',
+            experience: doctor.experience || doctor.yearsOfExperience || '5+ năm',
+            available: doctor.available !== false, // Default true nếu không có field available
+            image: doctor.image || doctor.avatar || '/images/default-doctor.jpg'
+          }));
+          
+          setAvailableDoctors(transformedDoctors);
+          console.log('Transformed doctors:', transformedDoctors);        } else {
+          console.warn('Failed to load doctors or no data:', result);
+          // Fallback về mock data nếu API thất bại để UI có thể test
+          setAvailableDoctors([
+            { id: 'doctor1', name: 'BS. Nguyễn Văn A', specialty: 'Bác sĩ HIV chuyên khoa', title: 'Bác sĩ', experience: '10+ năm', available: true },
+            { id: 'doctor2', name: 'BS. Trần Thị B', specialty: 'Bác sĩ HIV điều trị', title: 'Bác sĩ', experience: '8+ năm', available: true },
+            { id: 'doctor3', name: 'BS. Lê Văn C', specialty: 'Bác sĩ HIV tư vấn', title: 'Bác sĩ', experience: '5+ năm', available: true }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading doctors:', error);
+        // Fallback về mock data nếu có lỗi để UI có thể test
+        setAvailableDoctors([
+          { id: 'doctor1', name: 'BS. Nguyễn Văn A', specialty: 'Bác sĩ HIV chuyên khoa', title: 'Bác sĩ', experience: '10+ năm', available: true },
+          { id: 'doctor2', name: 'BS. Trần Thị B', specialty: 'Bác sĩ HIV điều trị', title: 'Bác sĩ', experience: '8+ năm', available: true },
+          { id: 'doctor3', name: 'BS. Lê Văn C', specialty: 'Bác sĩ HIV tư vấn', title: 'Bác sĩ', experience: '5+ năm', available: true }
+        ]);
+      }finally {
+        setLoadingDoctors(false);
+      }
+    };
+
+    loadDoctors();
+  }, []); // Chỉ chạy một lần khi component mount
 
   // Event handler để xử lý thay đổi input/select values
   const handleInputChange = (e) => {
@@ -99,16 +214,15 @@ const AppointmentForm = () => {
         alert('Vui lòng chọn ngày và giờ khám');
         return;
       }
-      setFormStep(4);
-    } else if (formStep === 4) {
+      setFormStep(4);    } else if (formStep === 4) {
       // Final validation: kiểm tra các required fields
       if (!formData.name || !formData.phone || !formData.dob) {
         alert('Vui lòng điền đầy đủ thông tin bắt buộc');
         return;
       }
-      // Hiển thị success modal và log data
-      setShowSuccessModal(true);
-      console.log('Form submitted:', formData);
+      
+      // Gửi appointment đến backend
+      handleCreateAppointment();
     }
   };
 
@@ -120,6 +234,51 @@ const AppointmentForm = () => {
     }
   };
 
+  // Handler để tạo appointment mới
+  const handleCreateAppointment = async () => {
+    setIsSubmitting(true);
+    setErrorMessage('');
+    
+    try {      // Chuẩn bị dữ liệu appointment để gửi lên backend
+      const appointmentData = {
+        customerId: user?.id, // ID của customer đăng nhập
+        serviceType: formData.serviceType,
+        serviceDetail: formData.serviceDetail,
+        doctorId: formData.doctor || null, // null nếu không chọn bác sĩ cụ thể
+        appointmentDate: formData.date,
+        slotId: formData.time, // Gửi slotId từ database thay vì time string
+        consultationType: formData.consultationType,
+        healthIssues: formData.healthIssues || '',
+        patientInfo: {
+          name: formData.name,
+          phoneNumber: formData.phone,
+          dateOfBirth: formData.dob,
+          customerId: formData.customerId || '' // Số BHYT/Mã bệnh nhân
+        },
+        status: 'pending' // Trạng thái chờ duyệt
+      };
+      
+      console.log('Creating appointment with data:', appointmentData);
+      
+      // Gọi API tạo appointment
+      const result = await appointmentAPI.createAppointment(appointmentData);
+      
+      if (result.success) {
+        // Thành công - hiển thị modal
+        setShowSuccessModal(true);
+        console.log('Appointment created successfully:', result.data);
+      } else {
+        // Thất bại - hiển thị lỗi
+        setErrorMessage(result.message || 'Đã xảy ra lỗi khi đặt lịch hẹn');
+        console.error('Failed to create appointment:', result);
+      }
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      setErrorMessage('Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const getServiceTypeName = (value) => {
     return 'Khám & Điều trị HIV';
   };
@@ -130,6 +289,13 @@ const AppointmentForm = () => {
       'viral-load-monitoring': 'Theo dõi tải lượng virus'
     };
     return serviceDetails[value] || value;
+  };
+
+  // Helper function để tìm và format thông tin slot đã chọn
+  const getSelectedSlotInfo = () => {
+    const selectedSlot = availableTimes.find(slot => slot.id === formData.time);
+    if (!selectedSlot) return '';
+    return `${selectedSlot.label} (${selectedSlot.time})`;
   };
 
   return (
@@ -406,26 +572,31 @@ const AppointmentForm = () => {
                   <strong>Theo dõi tải lượng virus</strong>
                   <small className="d-block text-muted mt-1">Xét nghiệm định kỳ, đánh giá hiệu quả điều trị</small>
                       </div>
-                    </div>
-
-              <div className="form-group">
+                    </div>              <div className="form-group">
                 <label className="form-label">
                   <FontAwesomeIcon icon={faUserMd} className="label-icon" />
                   Chọn bác sĩ (tùy chọn)
                 </label>
-                <Form.Select
-                  name="doctor"
-                  value={formData.doctor}
-                  onChange={handleInputChange}
-                  className="form-select"
-                >
-                  <option value="" disabled>Hãy chọn bác sĩ</option>
-                  {doctorsData.map((doctor) => (
-                    <option key={doctor.id} value={doctor.id}>
-                      {doctor.name} - {doctor.position}
-                    </option>
-                  ))}
-                </Form.Select>
+                {loadingDoctors ? (
+                  <div className="text-center py-3">
+                    <Spinner animation="border" size="sm" />
+                    <span className="ms-2">Đang tải danh sách bác sĩ...</span>
+                  </div>
+                ) : (
+                  <Form.Select
+                    name="doctor"
+                    value={formData.doctor}
+                    onChange={handleInputChange}
+                    className="form-select"
+                  >
+                    <option value="" disabled>Hãy chọn bác sĩ</option>
+                    {availableDoctors.map((doctor) => (
+                      <option key={doctor.id} value={doctor.id}>
+                        {doctor.name} - {doctor.specialty}
+                      </option>
+                    ))}
+                  </Form.Select>
+                )}
               </div>
 
               <div className="form-submit">
@@ -554,11 +725,10 @@ const AppointmentForm = () => {
 
 
               <div className="alert alert-info mb-4">
-                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong> - 
+                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />                Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong> - 
                 Loại khám: <strong>{formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}</strong>
                 {formData.doctor && (
-                  <span> - Bác sĩ: <strong>{doctorsData.find(d => d.id === formData.doctor)?.name}</strong></span>
+                  <span> - Bác sĩ: <strong>{availableDoctors.find(d => d.id === formData.doctor)?.name}</strong></span>
                 )}
               </div>
 
@@ -578,36 +748,56 @@ const AppointmentForm = () => {
                   />
                 </div>
                 <small className="text-muted">Chọn ngày từ hôm nay trở đi</small>
-              </div>
-
-              {formData.date && (
+              </div>              {formData.date && (
                 <div className="form-group">
                   <label className="form-label">
                     <FontAwesomeIcon icon={faClock} className="label-icon" />
                     Chọn giờ khám
                   </label>
-                  <div className="time-slots">
-                    {/* Array.map() để render các time slot từ availableTimes state */}
-                    {availableTimes.map((slot, index) => (
-                      <div
-                        key={slot.id} // React key prop để optimize re-rendering
-                        // Template literal để combine multiple class names với conditional logic
-                        className={`time-slot ${formData.time === slot.id ? 'active' : ''} ${Math.random() > 0.8 ? 'unavailable' : ''}`}
-                        // Arrow function trong onClick để handle slot selection
-                        onClick={() => {
-                          if (Math.random() <= 0.8) { // Conditional logic để simulate availability
-                            // Spread operator để immutable state update
-                            setFormData({...formData, time: slot.id});
-                          }
-                        }}
-                      >
-                        {/* JSX expression để hiển thị slot properties */}
-                        <div className="slot-label">{slot.label}</div>
-                        <div className="slot-time">{slot.time}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <small className="text-muted">Chọn khung giờ phù hợp. Slot màu xám không khả dụng.</small>
+                  
+                  {loadingSlots ? (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" role="status" className="me-2">
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>
+                      <span>Đang tải danh sách giờ khám...</span>
+                    </div>
+                  ) : (
+                    <div className="time-slots">
+                      {/* Array.map() để render các time slot từ availableTimes state (dữ liệu thực từ database) */}
+                      {availableTimes.length > 0 ? (
+                        availableTimes.map((slot) => (
+                          <div
+                            key={slot.id} // React key prop để optimize re-rendering
+                            // Template literal để combine multiple class names với conditional logic
+                            className={`time-slot ${formData.time === slot.id ? 'active' : ''} ${slot.available === false ? 'unavailable' : ''}`}
+                            // Arrow function trong onClick để handle slot selection
+                            onClick={() => {
+                              if (slot.available !== false) { // Chỉ cho phép chọn slot có sẵn
+                                // Spread operator để immutable state update với slotId từ database
+                                setFormData({...formData, time: slot.id});
+                              }
+                            }}
+                          >
+                            {/* JSX expression để hiển thị slot properties từ database */}
+                            <div className="slot-label">{slot.label}</div>
+                            <div className="slot-time">{slot.time}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-3 text-muted">
+                          <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                          Không có khung giờ khám nào trong ngày này
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <small className="text-muted">
+                    {loadingSlots 
+                      ? 'Đang tải dữ liệu từ hệ thống...' 
+                      : 'Chọn khung giờ phù hợp. Slot màu xám không khả dụng.'
+                    }
+                  </small>
                 </div>
               )}
 
@@ -710,7 +900,7 @@ const AppointmentForm = () => {
                       <Form.Control
                         type="text"
                         // Template literal + Array.find() method + optional chaining để get slot info
-                        value={`${availableTimes.find(slot => slot.id === formData.time)?.label} (${availableTimes.find(slot => slot.id === formData.time)?.time})`}
+                        value={getSelectedSlotInfo()}
                         readOnly
                         className="mb-2"
                         style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
@@ -724,10 +914,9 @@ const AppointmentForm = () => {
                         <Form.Label className="text-success fw-bold">
                           <FontAwesomeIcon icon={faUserMd} className="me-2" />
                           Bác sĩ đã chọn:
-                        </Form.Label>
-                        <Form.Control
+                        </Form.Label>                        <Form.Control
                           type="text"
-                          value={doctorsData.find(d => d.id === formData.doctor)?.name}
+                          value={availableDoctors.find(d => d.id === formData.doctor)?.name}
                           readOnly
                           className="mb-2"
                           style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
@@ -837,9 +1026,16 @@ const AppointmentForm = () => {
                     • Chỉ được sử dụng cho mục đích khám chữa bệnh<br/>
                     • Không chia sẻ với bên thứ ba khi chưa có sự đồng ý<br/>
                     • Bạn có quyền yêu cầu chỉnh sửa hoặc xóa thông tin
-                  </small>
-                </div>
+                  </small>                </div>
               </div>
+
+              {/* Hiển thị error message nếu có */}
+              {errorMessage && (
+                <div className="alert alert-danger mt-3">
+                  <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                  {errorMessage}
+                </div>
+              )}
 
               <div className="form-submit">
                 <div className="d-flex gap-3">
@@ -857,19 +1053,35 @@ const AppointmentForm = () => {
                   >
                     <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                     Quay lại
-                  </Button>
-                  <Button 
+                  </Button>                  <Button 
                     variant="primary" 
                     type="submit" 
                     className="flex-fill" 
+                    disabled={isSubmitting}
                     style={{
                       fontWeight: '600',
                       padding: '12px 20px',
                       borderRadius: '8px'
                     }}
                   >
-                    <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
-                    Hoàn Tất Đặt Lịch
+                    {isSubmitting ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                          className="me-2"
+                        />
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                        Hoàn Tất Đặt Lịch
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -904,7 +1116,7 @@ const AppointmentForm = () => {
             {formData.date && (
               <p className="mb-2">
                 <strong>Ngày khám:</strong> {new Date(formData.date).toLocaleDateString('vi-VN')}
-                {formData.time && <span> - <strong>Giờ:</strong> {availableTimes.find(slot => slot.id === formData.time)?.label} ({availableTimes.find(slot => slot.id === formData.time)?.time})</span>}
+                {formData.time && <span> - <strong>Giờ:</strong> {getSelectedSlotInfo()}</span>}
               </p>
             )}
             <p className="mb-0">
@@ -963,4 +1175,4 @@ const AppointmentForm = () => {
   );
 };
 
-export default AppointmentForm; 
+export default AppointmentForm;

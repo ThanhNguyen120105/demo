@@ -33,14 +33,12 @@ const Footer = () => {
             </Col>
             
             <Col lg={2} md={6} sm={12}>
-              <div className="footer-links">
-                <h4 className="text-start">Liên kết Nhanh</h4>
+              <div className="footer-links">                <h4 className="text-start">Liên kết Nhanh</h4>
                 <ul className="text-start">
                   <li><Link to="/">Trang chủ</Link></li>
                   <li><Link to="/about">Về chúng tôi</Link></li>
-                  <li><Link to="/services">Dịch vụ của chúng tôi</Link></li>
-                  <li><Link to="/doctors">Chuyên gia của chúng tôi</Link></li>
                   <li><Link to="/news">Tin tức mới nhất</Link></li>
+                  <li><Link to="/qna">Hỏi & Đáp</Link></li>
                   <li><Link to="/contact">Liên hệ với chúng tôi</Link></li>
                 </ul>
               </div>
