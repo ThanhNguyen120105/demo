@@ -22,8 +22,8 @@ const PatientDashboard = () => {
         const profileResult = await authAPI.getUserProfile();
         
         console.log('=== API getUserProfile result ===', profileResult);
-        
-        if (profileResult.success) {
+          if (profileResult.success) {
+          console.log('✅ Profile API successful');
           // Cấu trúc profile data với fields hiện có và fields trống cho tương lai
           const profileData = {
             id: profileResult.data.id,
@@ -39,7 +39,10 @@ const PatientDashboard = () => {
           console.log('=== Processed profile data ===', profileData);
           setProfile(profileData);
         } else {
-          console.error('=== API failed, using fallback ===', profileResult.message);
+          console.error('❌ Profile API FAILED, error:', profileResult.message);
+          console.error('❌ This might indicate backend issues or authentication problems');
+          console.error('❌ USING FALLBACK from localStorage');
+          
           // Fallback: sử dụng data từ localStorage nếu API fail
           const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
           console.log('=== Fallback data from localStorage ===', savedUser);
@@ -56,6 +59,9 @@ const PatientDashboard = () => {
             };
             console.log('=== Final fallback profile ===', fallbackProfile);
             setProfile(fallbackProfile);
+          } else {
+            console.error('❌ NO FALLBACK DATA AVAILABLE - No user in localStorage');
+            setProfile(null);
           }
         }
         

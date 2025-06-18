@@ -16,7 +16,6 @@ import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
 import PatientDashboard from './pages/PatientDashboard'; // Added from 6adb463
 
-import StaffDoctorManagement from './components/Appointment/StaffDoctorManagement';
 import TestResultsLookup from './components/Appointment/TestResultsLookup';
 import NavigationDemo from './components/common/NavigationDemo';
 import Doctors from './components/Doctors/Doctors';
@@ -69,7 +68,6 @@ function App() {
               <Route path="/staff-test-login" element={<StaffTestLogin />} /> {/* From HEAD */}              {/* Staff Routes - Using StaffRoute from HEAD */}
               <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
-              <Route path="/staff/doctor-management" element={<StaffRoute><StaffDoctorManagement /></StaffRoute>} />
               <Route path="/staff/appointment-approval" element={<StaffRoute><AppointmentApproval /></StaffRoute>} />
             
               {/* Doctor Routes - Using DoctorRoute from HEAD */}
