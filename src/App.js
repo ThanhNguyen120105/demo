@@ -14,7 +14,7 @@ import Services from './components/Services/Services';
 import About from './components/About/About';
 import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
-import PatientDashboard from './pages/PatientDashboard'; // Added from 6adb463
+import PatientDashboard from './components/patient/PatientDashboard'; // Moved from pages to patient folder
 
 import TestResultsLookup from './components/Appointment/TestResultsLookup';
 import NavigationDemo from './components/common/NavigationDemo';

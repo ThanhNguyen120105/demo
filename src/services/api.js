@@ -450,7 +450,8 @@ export const authAPI = {
 };
 
 // Appointment API
-export const appointmentAPI = {  // Tạo appointment mới (customer)
+export const appointmentAPI = {
+  // Tạo appointment mới (customer)
   createAppointment: async (appointmentData) => {
     try {
       console.log('Creating appointment:', appointmentData);
@@ -480,6 +481,47 @@ export const appointmentAPI = {  // Tạo appointment mới (customer)
         success: false,
         message: errorMessage,
         error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Lấy danh sách appointments của user (customer)
+  getAppointmentsByUserId: async () => {
+    try {
+      console.log('Getting appointments by user ID...');
+      const response = await api.get('/appointment/getAllAppointmentsByUserId');
+      
+      console.log('Get user appointments response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách lịch hẹn thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu lịch hẹn',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get user appointments error:', error);
+      
+      let errorMessage = 'Không thể lấy danh sách lịch hẹn';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy lịch hẹn nào';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message,
+        data: []
       };
     }
   },
@@ -689,6 +731,42 @@ export const doctorAPI = {  // Lấy tất cả bác sĩ
       return {
         success: false,
         message: 'Không thể lấy danh sách bác sĩ',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  }
+};
+
+// Service API - để lấy danh sách dịch vụ
+export const serviceAPI = {
+  // Lấy tất cả services
+  getAllServices: async () => {
+    try {
+      console.log('Getting all services...');
+      const response = await api.get('/service/getAllServices');
+      
+      console.log('Get services response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách dịch vụ thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu dịch vụ',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get services error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách dịch vụ',
         error: error.response?.data || error.message,
         data: []
       };
