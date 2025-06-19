@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
-import { authAPI } from '../services/api'; // Sử dụng real API thay vì mock
-import AppointmentHistory from '../components/patient/AppointmentHistory';
-import MedicalRecords from '../components/patient/MedicalRecords';
-import ARVRegimen from '../components/patient/ARVRegimen';
-import ProfileInfo from '../components/patient/ProfileInfo';
+import { authAPI } from '../../services/api'; // Sửa path từ components/patient lên src/services
+import AppointmentHistory from './AppointmentHistory'; // Cùng folder
+import MedicalRecords from './MedicalRecords'; // Cùng folder
+import ARVRegimen from './ARVRegimen'; // Cùng folder
+import ProfileInfo from './ProfileInfo'; // Cùng folder
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {

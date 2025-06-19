@@ -450,7 +450,8 @@ export const authAPI = {
 };
 
 // Appointment API
-export const appointmentAPI = {  // Tạo appointment mới (customer)
+export const appointmentAPI = {
+  // Tạo appointment mới (customer)
   createAppointment: async (appointmentData) => {
     try {
       console.log('Creating appointment:', appointmentData);
@@ -475,14 +476,56 @@ export const appointmentAPI = {  // Tạo appointment mới (customer)
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-      
-      return {
+        return {
         success: false,
         message: errorMessage,
         error: error.response?.data || error.message
       };
-    }  },
-    // Lấy danh sách appointments cần duyệt (staff)
+    }
+  },
+
+  // Lấy danh sách appointments của user (customer)
+  getAppointmentsByUserId: async () => {
+    try {
+      console.log('Getting appointments by user ID...');
+      const response = await api.get('/appointment/getAllAppointmentsByUserId');
+      
+      console.log('Get user appointments response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách lịch hẹn thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu lịch hẹn',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get user appointments error:', error);
+      
+      let errorMessage = 'Không thể lấy danh sách lịch hẹn';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy lịch hẹn nào';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  },
+
+  // Lấy danh sách appointments cần duyệt (staff)
   getPendingAppointments: async () => {
     try {
       console.log('Calling getPendingAppointments API...');
@@ -830,6 +873,39 @@ export const appointmentAPI = {  // Tạo appointment mới (customer)
 
 // Slot API
 export const slotAPI = {
+  // Lấy tất cả slots (endpoint cũ)
+  getAllSlots: async () => {
+    try {
+      console.log('Getting all slots...');
+      const response = await api.get('/slot-entity/getAllSlotEntity');
+      
+      console.log('Get slots response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách slots thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu slots',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get slots error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách slots',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  },
+
   // Lấy các slot thời gian có sẵn
   getAvailableSlots: async (date, doctorId) => {
     try {
@@ -886,7 +962,18 @@ export const doctorAPI = {
   getAllDoctors: async () => {
     try {
       console.log('Getting all doctors...');
-      const response = await api.get('/doctors');
+      // Thử endpoint cũ trước
+      let response;
+      try {
+        response = await api.get('/doctor/getAllDoctors');
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // Nếu endpoint cũ không có, thử endpoint mới
+          response = await api.get('/doctors');
+        } else {
+          throw error;
+        }
+      }
       
       return {
         success: true,
@@ -895,7 +982,6 @@ export const doctorAPI = {
       };
     } catch (error) {
       console.error('Get all doctors error:', error);
-      
       return {
         success: false,
         message: 'Không thể lấy danh sách bác sĩ',
@@ -974,3 +1060,5 @@ export const doctorAPI = {
     }
   }
 };
+
+export default api;
