@@ -63,8 +63,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
           const status = appointment.status?.toUpperCase();
           return status === 'PENDING';
         });
-        
-        console.log('Filtered pending appointments:', pendingAppointments);
+          console.log('Filtered pending appointments:', pendingAppointments);
         console.log('Number of pending appointments:', pendingAppointments.length);
         
         // Debug: Log first appointment to see structure
@@ -79,30 +78,13 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
           console.log('Status:', pendingAppointments[0].status);
         }
         
-        setAppointments(pendingAppointments);
+        // Set appointments với flag detailsLoaded = true vì dữ liệu đã đầy đủ từ getAllAppointments
+        const appointmentsWithDetails = pendingAppointments.map(appointment => ({
+          ...appointment,
+          detailsLoaded: true
+        }));
         
-        // Load chi tiết cho mỗi appointment để lấy thông tin bệnh nhân
-        pendingAppointments.forEach(async (appointment) => {
-          try {
-            const detailResult = await appointmentAPI.getAppointmentById(appointment.id);
-            if (detailResult.success) {
-              // Cập nhật appointment với thông tin chi tiết
-              setAppointments(prevAppointments => 
-                prevAppointments.map(appt => 
-                  appt.id === appointment.id 
-                    ? { 
-                        ...appt, 
-                        ...detailResult.data,
-                        detailsLoaded: true 
-                      }
-                    : appt
-                )
-              );
-            }
-          } catch (error) {
-            console.error('Error loading detail for appointment:', appointment.id, error);
-          }
-        });
+        setAppointments(appointmentsWithDetails);
       } else {
         console.error('Failed to load appointments:', result.message);
         setError(result.message || 'Không thể tải danh sách lịch hẹn');
@@ -139,30 +121,14 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
           console.log('Slot end time:', result.data[0].slotEndTime);
           console.log('Customer ID:', result.data[0].customerId);
           console.log('User ID:', result.data[0].userId);        }
-        setAppointments(result.data || []);
         
-        // Load chi tiết cho mỗi appointment để lấy thông tin bệnh nhân
-        (result.data || []).forEach(async (appointment) => {
-          try {
-            const detailResult = await appointmentAPI.getAppointmentById(appointment.id);
-            if (detailResult.success) {
-              // Cập nhật appointment với thông tin chi tiết
-              setAppointments(prevAppointments => 
-                prevAppointments.map(appt => 
-                  appt.id === appointment.id 
-                    ? { 
-                        ...appt, 
-                        ...detailResult.data,
-                        detailsLoaded: true 
-                      }
-                    : appt
-                )
-              );
-            }
-          } catch (error) {
-            console.error('Error loading detail for appointment:', appointment.id, error);
-          }
-        });
+        // Set appointments với flag detailsLoaded = true vì dữ liệu đã đầy đủ từ getAllAppointments
+        const appointmentsWithDetails = (result.data || []).map(appointment => ({
+          ...appointment,
+          detailsLoaded: true
+        }));
+        
+        setAppointments(appointmentsWithDetails);
       } else {
         setError(result.message || 'Không thể tải danh sách lịch hẹn');
       }
@@ -172,10 +138,19 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
     } finally {
       setLoading(false);
     }
-  };
-  const handleViewDetails = async (appointment) => {
+  };  const handleViewDetails = async (appointment) => {
     setSelectedAppointment(appointment);
     setShowDetailModal(true);
+    
+    // Nếu appointment đã có đầy đủ thông tin, không cần gọi API
+    if (appointment.detailsLoaded) {
+      console.log('Using cached appointment details:', appointment);
+      setAppointmentDetails(appointment);
+      setDetailLoading(false);
+      return;
+    }
+    
+    // Nếu chưa có đầy đủ thông tin, gọi API để lấy chi tiết
     setDetailLoading(true);
     setAppointmentDetails(null);
     

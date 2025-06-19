@@ -14,6 +14,8 @@ import {
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
 import ARVSelectionTool from './ARVSelectionTool';
+import { appointmentAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Dữ liệu lịch hẹn mẫu
 const initialAppointments = [
@@ -75,18 +77,23 @@ const generateCalendarDays = (year, month, appointments) => {
   for (let i = 0; i < firstDayOfMonth; i++) {
     days.push({ day: '', date: null });
   }
-  
-  // Thêm các ngày trong tháng
+    // Thêm các ngày trong tháng
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const dateStr = date.toISOString().split('T')[0];
-    const appts = appointments.filter(a => a.date === dateStr);
+    // Tạo dateStr theo format YYYY-MM-DD để tránh lỗi timezone
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    // Filter appointments for this date - chỉ hiển thị dấu chấm vàng cho appointments ACCEPTED
+    const acceptedAppts = appointments.filter(a => {
+      const matchesDate = a.date === dateStr || a.appointmentDate === dateStr;
+      const isAccepted = a.status === 'accepted' || a.status === 'ACCEPTED';
+      return matchesDate && isAccepted;
+    });
     
     days.push({
       day,
       date: dateStr,
-      appointments: appts,
-      hasAppointments: appts.length > 0
+      appointments: acceptedAppts,
+      hasAppointments: acceptedAppts.length > 0
     });
   }
   
@@ -94,12 +101,17 @@ const generateCalendarDays = (year, month, appointments) => {
 };
 
 const DoctorAppointments = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('appointments');
-  const [currentMonth, setCurrentMonth] = useState(4);
-  const [currentYear, setCurrentYear] = useState(2025);
-  const [selectedDate, setSelectedDate] = useState('2025-05-28');
-  const [todayDate, setTodayDate] = useState('2025-05-28');
-  const [appointments, setAppointments] = useState(initialAppointments);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  });
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [medicalReport, setMedicalReport] = useState({
@@ -147,9 +159,72 @@ const DoctorAppointments = () => {
     }
   });
   const [showPdfViewer, setShowPdfViewer] = useState(false);
-  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
-  const [showARVTool, setShowARVTool] = useState(false);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);  const [showARVTool, setShowARVTool] = useState(false);
   const [selectedAppointmentForARV, setSelectedAppointmentForARV] = useState(null);
+  
+  // Load appointments từ API khi component mount
+  useEffect(() => {
+    loadDoctorAppointments();
+  }, [user]);
+  
+  // Load lịch hẹn của bác sĩ từ API
+  const loadDoctorAppointments = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      console.log('Loading doctor appointments for user:', user);
+      
+      // Gọi API getAllAppointments
+      const result = await appointmentAPI.getAllAppointments();
+      
+      console.log('All appointments result:', result);
+      
+      if (result.success) {
+        // Lấy tất cả appointments của doctor
+        const doctorAllAppointments = (result.data || []).filter(appointment => {
+          const isDoctorAssigned = appointment.doctorName === user?.fullName || 
+                                 appointment.doctorName === user?.name ||
+                                 appointment.doctorId === user?.id;
+          return isDoctorAssigned;
+        });
+        
+        console.log('All doctor appointments:', doctorAllAppointments);
+        
+        // Convert format để compatible với component hiện tại
+        const allAppointmentsWithDetails = doctorAllAppointments.map((appointment) => {
+          return {
+            ...appointment,
+            // Convert format để compatible với component hiện tại
+            date: appointment.appointmentDate,
+            time: `${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`,
+            patient: appointment.userName || appointment.alternativeName || appointment.user?.fullName || `Patient #${appointment.id}`,
+            patientId: appointment.id,
+            type: appointment.appointmentService || appointment.appointmentType || 'Khám bệnh',
+            status: appointment.status.toLowerCase(), // Keep original status
+            originalStatus: appointment.status, // Keep original for debugging
+            symptoms: appointment.reason || 'Không có triệu chứng',
+            notes: appointment.notes || 'Chưa có ghi chú',
+            detailsLoaded: true
+          };
+        });
+        
+        setAppointments(allAppointmentsWithDetails);
+        console.log('Final appointments:', allAppointmentsWithDetails);
+        
+      } else {
+        console.error('Failed to load appointments:', result.message);
+        setError(result.message || 'Không thể tải danh sách lịch hẹn');
+        setAppointments([]);
+      }
+    } catch (error) {
+      console.error('Error loading doctor appointments:', error);
+      setError('Đã xảy ra lỗi khi tải danh sách lịch hẹn');
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const monthNames = [
     'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
@@ -478,10 +553,13 @@ const DoctorAppointments = () => {
   const getCompletedAppointmentsForDate = (date) => {
     return appointments.filter(apt => apt.date === date && apt.status === 'completed');
   };
-
-  // Modify to only get pending appointments for the selected date
+  // Get accepted appointments for the selected date (doctor chỉ xem appointments đã được duyệt)
   const getPendingAppointmentsForDate = (date) => {
-    return appointments.filter(apt => apt.date === date && apt.status === 'pending');
+    return appointments.filter(apt => {
+      const matchesDate = apt.date === date || apt.appointmentDate === date;
+      const isAccepted = apt.status === 'accepted' || apt.status === 'ACCEPTED';
+      return matchesDate && isAccepted;
+    });
   };
 
   // Add back ARV tool related functions
@@ -558,11 +636,11 @@ const DoctorAppointments = () => {
                           >
                             {day.day && (
                               <>
-                                <div className="day-number">{day.day}</div>
-                                {day.hasAppointments && (
+                                <div className="day-number">{day.day}</div>                                {day.hasAppointments && (
                                   <div className="appointment-indicators">
+                                    {/* Hiển thị dấu chấm vàng cho tất cả accepted appointments */}
                                     {day.appointments.slice(0, 3).map((appt, i) => (
-                                      <div key={i} className={`appointment-dot status-${appt.status}`}></div>
+                                      <div key={i} className="appointment-dot status-pending"></div>
                                     ))}
                                     {day.appointments.length > 3 && (
                                       <div className="appointment-more">+{day.appointments.length - 3}</div>
