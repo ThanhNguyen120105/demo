@@ -801,6 +801,39 @@ export const appointmentAPI = {
 
 // Slot API
 export const slotAPI = {
+  // Lấy tất cả slots (endpoint cũ)
+  getAllSlots: async () => {
+    try {
+      console.log('Getting all slots...');
+      const response = await api.get('/slot-entity/getAllSlotEntity');
+      
+      console.log('Get slots response:', response.data);
+      
+      if (response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Lấy danh sách slots thành công'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Không có dữ liệu slots',
+        data: []
+      };
+    } catch (error) {
+      console.error('Get slots error:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách slots',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  },
+
   // Lấy các slot thời gian có sẵn
   getAvailableSlots: async (date, doctorId) => {
     try {
@@ -857,7 +890,18 @@ export const doctorAPI = {
   getAllDoctors: async () => {
     try {
       console.log('Getting all doctors...');
-      const response = await api.get('/doctors');
+      // Thử endpoint cũ trước
+      let response;
+      try {
+        response = await api.get('/doctor/getAllDoctors');
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // Nếu endpoint cũ không có, thử endpoint mới
+          response = await api.get('/doctors');
+        } else {
+          throw error;
+        }
+      }
       
       return {
         success: true,
@@ -866,7 +910,7 @@ export const doctorAPI = {
       };
     } catch (error) {
       console.error('Get all doctors error:', error);
-        return {
+      return {
         success: false,
         message: 'Không thể lấy danh sách bác sĩ',
         error: error.response?.data || error.message,
