@@ -834,7 +834,6 @@ export const appointmentAPI = {
       };
     }
   },
-
   // Lấy appointments cho doctor (chỉ ACCEPTED)
   getDoctorAcceptedAppointments: async (doctorId) => {
     try {
@@ -865,6 +864,41 @@ export const appointmentAPI = {
         success: false,
         message: 'Không thể lấy danh sách lịch hẹn của bác sĩ',
         error: error.message,
+        data: []
+      };
+    }
+  },
+
+  // Lấy lịch hẹn được chấp nhận cho bác sĩ hiện tại (doctor) - API mới
+  getAcceptedAppointmentsForDoctor: async () => {
+    try {
+      console.log('Calling getAcceptedAppointmentsForDoctor API...');
+      const response = await api.get('/appointment/getAcceptedAppointmentsForAnDoctor');
+      
+      console.log('Get accepted appointments for doctor response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || [],
+        message: 'Lấy danh sách lịch hẹn của bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('Get accepted appointments for doctor error:', error);
+      
+      let errorMessage = 'Không thể lấy danh sách lịch hẹn';
+      
+      if (error.response?.status === 403) {
+        errorMessage = 'Bạn không có quyền truy cập danh sách này';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Bạn cần đăng nhập để xem danh sách này';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message,
         data: []
       };
     }

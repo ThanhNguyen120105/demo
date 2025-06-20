@@ -161,38 +161,28 @@ const DoctorAppointments = () => {
   const [showPdfViewer, setShowPdfViewer] = useState(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState(null);  const [showARVTool, setShowARVTool] = useState(false);
   const [selectedAppointmentForARV, setSelectedAppointmentForARV] = useState(null);
-  
-  // Load appointments từ API khi component mount
+    // Load appointments từ API khi component mount
   useEffect(() => {
     loadDoctorAppointments();
-  }, [user]);
-  
-  // Load lịch hẹn của bác sĩ từ API
+  }, []); // Không phụ thuộc vào user nữa
+    // Load lịch hẹn của bác sĩ từ API
   const loadDoctorAppointments = async () => {
     try {
       setLoading(true);
       setError('');
       
-      console.log('Loading doctor appointments for user:', user);
+      // Lấy user từ AuthContext hoặc localStorage
+      const currentUser = user || JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('Loading doctor appointments for user:', currentUser);
       
-      // Gọi API getAllAppointments
-      const result = await appointmentAPI.getAllAppointments();
+      // Gọi API getAcceptedAppointmentsForDoctor (dành cho doctor)
+      const result = await appointmentAPI.getAcceptedAppointmentsForDoctor();
       
-      console.log('All appointments result:', result);
+      console.log('Doctor appointments result:', result);      console.log('Doctor appointments result:', result);
       
       if (result.success) {
-        // Lấy tất cả appointments của doctor
-        const doctorAllAppointments = (result.data || []).filter(appointment => {
-          const isDoctorAssigned = appointment.doctorName === user?.fullName || 
-                                 appointment.doctorName === user?.name ||
-                                 appointment.doctorId === user?.id;
-          return isDoctorAssigned;
-        });
-        
-        console.log('All doctor appointments:', doctorAllAppointments);
-        
         // Convert format để compatible với component hiện tại
-        const allAppointmentsWithDetails = doctorAllAppointments.map((appointment) => {
+        const doctorAppointments = (result.data || []).map((appointment) => {
           return {
             ...appointment,
             // Convert format để compatible với component hiện tại
@@ -209,8 +199,8 @@ const DoctorAppointments = () => {
           };
         });
         
-        setAppointments(allAppointmentsWithDetails);
-        console.log('Final appointments:', allAppointmentsWithDetails);
+        setAppointments(doctorAppointments);
+        console.log('Final doctor appointments:', doctorAppointments);
         
       } else {
         console.error('Failed to load appointments:', result.message);

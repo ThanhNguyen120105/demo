@@ -1,6 +1,7 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ListGroup, Button, Badge, Col } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ListGroup, Button, Badge, Col, Modal } from 'react-bootstrap';
+import { useAuth } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserMd,
@@ -10,6 +11,20 @@ import {
 
 const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unansweredCount = 5 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setShowLogoutModal(false);
+    }
+  };
   
   return (
     <Col md={3} lg={2} className="sidebar">
@@ -74,13 +89,38 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           Cài Đặt
         </ListGroup.Item>
       </ListGroup>
-      
-      <div className="sidebar-footer">
-        <Button variant="outline-danger" className="logout-btn">
+        <div className="sidebar-footer">
+        <Button 
+          variant="outline-danger" 
+          className="logout-btn"
+          onClick={() => setShowLogoutModal(true)}
+        >
           <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
           Đăng Xuất
         </Button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal show={showLogoutModal} onHide={() => setShowLogoutModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FontAwesomeIcon icon={faSignOutAlt} className="text-warning me-2" />
+            Xác nhận đăng xuất
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowLogoutModal(false)}>
+            Hủy
+          </Button>
+          <Button variant="danger" onClick={handleLogout}>
+            <FontAwesomeIcon icon={faSignOutAlt} className="me-1" />
+            Đăng Xuất
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Col>
   );
 };
