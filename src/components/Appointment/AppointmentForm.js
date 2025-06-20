@@ -46,11 +46,11 @@ const AppointmentForm = () => {
     registrationType: 'hiv-care',
     consultationType: 'direct' // direct: khám trực tiếp, anonymous: khám ẩn danh
   });
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [loadingAvailableSlots, setLoadingAvailableSlots] = useState(false);
   // useState hook để lưu trữ array of objects chứa thông tin slot thời gian từ database
   const [availableTimes, setAvailableTimes] = useState([]);
   // useState hook để lưu trữ array of objects chứa thông tin bác sĩ từ database
@@ -85,118 +85,7 @@ const AppointmentForm = () => {
         console.log('Updated formData with user name:', newData);
         return newData;
       });
-    }  }, [user]); // Dependency array chứa user để re-run khi user thay đổi  // useEffect để load slots từ database (slots cố định hàng ngày)
-  useEffect(() => {
-    const testBackendConnection = async () => {
-      try {
-        console.log('🔍 Testing backend connection...');
-        console.log('🌐 Trying base URL:', process.env.REACT_APP_API_URL || 'http://localhost:8080/api');
-        
-        // Test với endpoint đơn giản trước
-        const testResponse = await fetch('http://localhost:8080', { 
-          method: 'GET',
-          mode: 'cors'
-        });
-        
-        console.log('✅ Basic connection test:', testResponse.status);
-        
-        // Test với API endpoint
-        const apiResponse = await fetch('http://localhost:8080/api', {
-          method: 'GET', 
-          mode: 'cors'
-        });
-        
-        console.log('✅ API endpoint test:', apiResponse.status);
-        
-      } catch (error) {
-        console.log('❌ Connection test failed:');
-        console.log('   - Error:', error.message);
-        console.log('   - Type:', error.name);
-      }
-    };
-      const loadSlots = async () => {
-      setLoadingSlots(true);
-      try {
-        // Debug authentication
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        console.log('🔍 Debug Authentication:');
-        console.log('Token exists:', !!token);
-        console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
-        console.log('Stored user exists:', !!storedUser);
-        console.log('Current user context:', user);
-        
-        if (!token) {
-          console.error('❌ No authentication token found');
-          console.error('User needs to login first');
-          setAvailableTimes([]);
-          return;
-        }
-        
-        console.log('✅ Token found, loading slots...');
-        
-        await testBackendConnection();
-        
-        console.log('Loading daily slots from database...');
-        const result = await slotAPI.getAllSlots();
-        
-        console.log('Raw API response for slots:', result);
-        console.log('API success:', result.success);
-        console.log('API data:', result.data);
-        console.log('API message:', result.message);
-        console.log('API error:', result.error);
-        
-        if (result.success && result.data) {
-          console.log('Slots loaded successfully:', result.data);
-          console.log('First slot structure:', result.data[0]);
-          
-          // Transform slots data từ backend format thành format component cần
-          const transformedSlots = result.data.map(slot => {
-            console.log('Processing slot:', slot);
-            
-            const transformed = {
-              id: slot.id || slot.slotId,
-              label: `Slot ${slot.slot_index || slot.slotIndex || slot.index || 'N/A'}`,
-              time: `${slot.slot_start_time || slot.slotStartTime || slot.startTime || 'N/A'}-${slot.slot_end_time || slot.slotEndTime || slot.endTime || 'N/A'}`,
-              startTime: slot.slot_start_time || slot.slotStartTime || slot.startTime,
-              endTime: slot.slot_end_time || slot.slotEndTime || slot.endTime,
-              slotIndex: slot.slot_index || slot.slotIndex || slot.index,
-              available: true // Slots luôn available vì lặp lại hàng ngày
-            };
-            
-            console.log('Transformed slot:', transformed);
-            return transformed;
-          });
-          
-          // Sort slots theo slot_index hoặc startTime
-          const sortedSlots = transformedSlots.sort((a, b) => {
-            if (a.slotIndex && b.slotIndex) {
-              return parseInt(a.slotIndex) - parseInt(b.slotIndex);
-            }
-            if (a.startTime && b.startTime) {
-              return a.startTime.localeCompare(b.startTime);
-            }
-            return 0;
-          });
-            setAvailableTimes(sortedSlots);
-          console.log('Transformed and sorted slots:', sortedSlots);
-        } else {
-          console.warn('Failed to load slots or no data:', result);
-          // Không dùng fallback - để thấy lỗi thực tế
-          setAvailableTimes([]);
-        }
-      } catch (error) {
-        console.error('Error loading slots:', error);
-        // Không dùng fallback - để thấy lỗi thực tế
-        setAvailableTimes([]);
-      } finally {
-        setLoadingSlots(false);
-      }
-    };
-
-    loadSlots();  }, []); // Chỉ chạy một lần khi component mount
-
-  // useEffect để load doctors từ database
+    }  }, [user]); // Dependency array chứa user để re-run khi user thay đổi  // useEffect để load doctors từ database
   useEffect(() => {
     const loadDoctors = async () => {
       setLoadingDoctors(true);
@@ -234,7 +123,7 @@ const AppointmentForm = () => {
     };
 
     loadDoctors();
-  }, []); // Chỉ chạy một lần khi component mount  // Event handler để xử lý thay đổi input/select values
+  }, []); // Chỉ chạy một lần khi component mount// Event handler để xử lý thay đổi input/select values
   const handleInputChange = (e) => {
     // Destructuring assignment để lấy name và value từ event target
     const { name, value } = e.target;
@@ -252,17 +141,90 @@ const AppointmentForm = () => {
       return;
     }
     
-    // Cập nhật state bằng spread operator để immutable update
-    setFormData({
-      ...formData, // Copy tất cả properties hiện tại
-      [name]: value // Computed property name để update dynamic key
-    });
+    // Cập nhật formData
+    const newFormData = {
+      ...formData,
+      [name]: value
+    };
+    
+    setFormData(newFormData);
+    
+    // Reset slot khi đổi bác sĩ hoặc ngày, và load lại slots
+    if (name === 'doctor' || name === 'date') {
+      // Reset time khi đổi bác sĩ hoặc ngày
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        time: '' // Reset time selection
+      }));
+      
+      // Load available slots nếu có đủ doctorId và date
+      const doctorId = name === 'doctor' ? value : formData.doctor;
+      const selectedDate = name === 'date' ? value : formData.date;
+      
+      if (doctorId && selectedDate) {
+        loadAvailableSlots(doctorId, selectedDate);
+      } else {
+        setAvailableTimes([]); // Clear slots nếu thiếu thông tin
+      }
+    }
   };
 
   // Function validation số điện thoại
   const validatePhoneNumber = (phone) => {
     const phoneRegex = /^[0-9]{10}$/; // Chính xác 10 số
     return phoneRegex.test(phone);
+  };
+
+  // Function để load available slots theo doctorId và date
+  const loadAvailableSlots = async (doctorId, date) => {
+    if (!doctorId || !date) {
+      console.log('Missing doctorId or date, clearing slots');
+      setAvailableTimes([]);
+      return;
+    }
+
+    setLoadingAvailableSlots(true);
+    console.log('Loading available slots for doctor:', doctorId, 'date:', date);
+    
+    try {
+      const result = await slotAPI.getAvailableSlotsByDoctorAndDate(doctorId, date);
+      
+      if (result.success && result.data) {
+        console.log('Available slots loaded:', result.data);
+          // Transform slots data từ backend format thành format component cần
+        const transformedSlots = result.data.map(slot => {
+          console.log('Processing slot from API:', slot);
+          
+          return {
+            id: slot.id || slot.slotId,
+            label: `Slot ${slot.slot_index || slot.slotIndex || 'N/A'}`,
+            time: `${slot.slot_start_time || slot.startTime || 'N/A'} - ${slot.slot_end_time || slot.endTime || 'N/A'}`,
+            slotIndex: slot.slot_index || slot.slotIndex,
+            startTime: slot.slot_start_time || slot.startTime,
+            endTime: slot.slot_end_time || slot.endTime,
+            available: true // Chỉ slot trống mới được trả về từ API
+          };        });
+        
+        // Sort slots theo slot_index
+        const sortedSlots = transformedSlots.sort((a, b) => {
+          const indexA = parseInt(a.slotIndex) || 0;
+          const indexB = parseInt(b.slotIndex) || 0;
+          return indexA - indexB;
+        });
+        
+        setAvailableTimes(sortedSlots);
+        console.log('Transformed available slots:', sortedSlots);
+      } else {
+        console.warn('No available slots found or API failed:', result);
+        setAvailableTimes([]);
+      }
+    } catch (error) {
+      console.error('Error loading available slots:', error);
+      setAvailableTimes([]);
+    } finally {
+      setLoadingAvailableSlots(false);
+    }
   };
 
   // Form submit handler với validation logic cho từng step
@@ -282,14 +244,19 @@ const AppointmentForm = () => {
         alert('Vui lòng chọn loại hình khám');
         return;
       }
-      setFormStep(3);
-    } else if (formStep === 3) {
+      setFormStep(3);    } else if (formStep === 3) {
+      // Validation: kiểm tra bác sĩ được chọn trước
+      if (!formData.doctor) {
+        alert('Vui lòng chọn bác sĩ ở bước 1');
+        return;
+      }
+      
       // Validation: kiểm tra cả date và time bằng logical OR
       if (!formData.date || !formData.time) {
         alert('Vui lòng chọn ngày và giờ khám');
         return;
       }
-      setFormStep(4);    } else if (formStep === 4) {
+      setFormStep(4);} else if (formStep === 4) {
       // Final validation: kiểm tra các required fields
       if (!formData.name || !formData.phone) {
         alert('Vui lòng điền đầy đủ họ tên và số điện thoại');
@@ -837,12 +804,18 @@ const AppointmentForm = () => {
                     Chọn giờ khám
                   </label>
                   
-                  {loadingSlots ? (
+                  {/* Hiển thị thông báo cần chọn bác sĩ trước */}
+                  {!formData.doctor ? (
+                    <div className="alert alert-warning">
+                      <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                      Vui lòng chọn bác sĩ ở bước 1 để xem khung giờ trống
+                    </div>
+                  ) : loadingAvailableSlots ? (
                     <div className="text-center py-4">
                       <Spinner animation="border" role="status" className="me-2">
                         <span className="visually-hidden">Loading...</span>
                       </Spinner>
-                      <span>Đang tải danh sách giờ khám...</span>
+                      <span>Đang kiểm tra khung giờ trống cho bác sĩ...</span>
                     </div>
                   ) : (
                     <div className="time-slots">
@@ -854,32 +827,38 @@ const AppointmentForm = () => {
                             className={`time-slot ${formData.time === slot.id ? 'active' : ''}`}
                             // Arrow function trong onClick để handle slot selection
                             onClick={() => {
-                              // Slots luôn available vì cố định hàng ngày
+                              // Chỉ slot trống mới được chọn
                               setFormData({...formData, time: slot.id});
-                              console.log('Selected slot:', slot.id, 'with index:', slot.slotIndex);
+                              console.log('Selected available slot:', slot.id, 'with index:', slot.slotIndex);
                             }}
                           >
                             {/* JSX expression để hiển thị slot properties từ database */}
                             <div className="slot-label">{slot.label}</div>
                             <div className="slot-time">{slot.time}</div>
+                            <div className="slot-info text-success">
+                              <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
+                              Còn trống
+                            </div>
                           </div>
                         ))
                       ) : (                        <div className="text-center py-3">
                           <div className="alert alert-warning mb-0">
                             <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                            Không có khung giờ khám nào
+                            Không có khung giờ trống cho ngày này
                             <br />
-                            <small>Vui lòng liên hệ hotline để được hỗ trợ</small>
+                            <small>Vui lòng chọn ngày khác hoặc liên hệ hotline để được hỗ trợ</small>
                           </div>
                         </div>
                       )}
                     </div>
                   )}                  <small className="text-muted">
-                    {loadingSlots 
-                      ? 'Đang tải dữ liệu từ hệ thống...' 
-                      : availableTimes.length > 0 
-                        ? 'Chọn khung giờ phù hợp.'
-                        : 'Dữ liệu khung giờ được lấy từ database.'
+                    {!formData.doctor 
+                      ? 'Chọn bác sĩ để xem khung giờ trống'
+                      : loadingAvailableSlots 
+                        ? 'Đang kiểm tra tình trạng slot...' 
+                        : availableTimes.length > 0 
+                          ? 'Chỉ hiển thị khung giờ còn trống.'
+                          : 'Không có khung giờ trống cho ngày này.'
                     }
                   </small>
                 </div>

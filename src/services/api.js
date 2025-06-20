@@ -967,6 +967,38 @@ export const slotAPI = {
     }
   },
 
+  // Lấy slot trống theo doctorId và date (API mới)
+  getAvailableSlotsByDoctorAndDate: async (doctorId, date) => {
+    try {
+      console.log('Calling getAvailableSlotsByDoctorAndDate API with:', { doctorId, date });
+      const response = await api.get(`/slot-entity/getAllSlotEntity/${doctorId}?date=${date}`);
+      
+      console.log('Get available slots response:', response.data);
+      
+      if (response.data?.status?.code === 200) {
+        return {
+          success: true,
+          data: response.data.data || [],
+          message: 'Lấy danh sách slot trống thành công'
+        };
+      } else {
+        return {
+          success: false,
+          data: [],
+          message: 'Không thể lấy danh sách slot'
+        };
+      }
+    } catch (error) {
+      console.error('Get available slots error:', error);
+      return {
+        success: false,
+        data: [],
+        message: 'Không thể lấy danh sách slot trống',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
   // Lấy chi tiết slot theo ID
   getSlotById: async (slotId) => {
     try {
