@@ -6,10 +6,8 @@ import {
   faPhone, 
   faCalendarAlt, 
   faUser, 
-  faQuestionCircle, 
   faSignInAlt, 
   faHospital,
-  faHome,
   faInfoCircle,
   faNewspaper,
   faEnvelope,
@@ -17,8 +15,7 @@ import {
   faUserPlus,
   faVial,
   faSignOutAlt,
-  faUserCircle,
-  faBell
+  faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDashboardRoute } from '../../constants/userRoles';
@@ -52,10 +49,9 @@ const Header = () => {
   const isActive = (path) => {
     return location.pathname === path;
   };
-
   // Function to check if current path is in dropdown items
   const isDropdownActive = () => {
-    const dropdownPaths = ['/about', '/news', '/qna', '/contact'];
+    const dropdownPaths = ['/about', '/news', '/contact'];
     return dropdownPaths.includes(location.pathname);
   };
 
@@ -193,29 +189,32 @@ const Header = () => {
                     <div className={`nav-item ${isActive('/doctors') ? 'active' : ''}`}>
                       <span>Chuyên gia của chúng tôi</span>
                     </div>
-                  </Nav.Link>
-                  
-                  <Nav.Link as={Link} to="/test-results" onClick={() => setExpanded(false)}>
-                    <div className={`nav-item ${isActive('/test-results') ? 'active' : ''}`}>
-                      <span>Kết quả XN & Lịch sử</span>
+                  </Nav.Link>                  <Nav.Link as={Link} to="/qna" onClick={() => setExpanded(false)}>
+                    <div className={`nav-item ${isActive('/qna') ? 'active' : ''}`}>
+                      <span>Hỏi & Đáp</span>
                     </div>
                   </Nav.Link>
+                  
+                  {/* Chỉ hiển thị cho CUSTOMER */}
+                  {user?.role === 'CUSTOMER' && (
+                    <Nav.Link as={Link} to="/lich-su-kham-benh" onClick={() => setExpanded(false)}>
+                      <div className={`nav-item ${isActive('/lich-su-kham-benh') ? 'active' : ''}`}>
+                        <span>Lịch sử khám bệnh</span>
+                      </div>
+                    </Nav.Link>
+                  )}
                   
                   <Dropdown className="nav-dropdown">
                     <Dropdown.Toggle as={Nav.Link}>
                       <div className={`nav-item ${isDropdownActive() ? 'active' : ''}`}>
                         <span>Giới thiệu & Tài nguyên</span>
                       </div>
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
+                    </Dropdown.Toggle>                    <Dropdown.Menu>
                       <Dropdown.Item as={Link} to="/about" onClick={() => setExpanded(false)}>
                         <FontAwesomeIcon icon={faInfoCircle} className="dropdown-icon" /> Về chúng tôi
                       </Dropdown.Item>
                       <Dropdown.Item as={Link} to="/news" onClick={() => setExpanded(false)}>
                         <FontAwesomeIcon icon={faNewspaper} className="dropdown-icon" /> Tin tức & Nghiên cứu
-                      </Dropdown.Item>
-                      <Dropdown.Item as={Link} to="/qna" onClick={() => setExpanded(false)}>
-                        <FontAwesomeIcon icon={faQuestionCircle} className="dropdown-icon" /> Hỏi & Đáp
                       </Dropdown.Item>
                       <Dropdown.Item as={Link} to="/contact" onClick={() => setExpanded(false)}>
                         <FontAwesomeIcon icon={faEnvelope} className="dropdown-icon" /> Liên hệ

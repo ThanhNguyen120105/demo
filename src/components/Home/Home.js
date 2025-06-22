@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -6,7 +6,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { 
   faStethoscope, faUsers, faHeartbeat, faBriefcaseMedical, 
   faMicroscope, faHandHoldingMedical, faCalendarCheck, faUserMd,
-  faPhone, faHistory, faTrophy
+  faPhone, faHistory, faTrophy, faQuestionCircle, faComment,
+  faThumbsUp, faEye, faChevronDown, faChevronUp
 } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import './Home.css';
@@ -53,8 +54,42 @@ const counterIcons = [
   { icon: faTrophy }     // Treatment Success Rate
 ];
 
+// QnA data cho homepage
+const featuredQnA = [
+  {
+    id: 1,
+    question: 'Nhiễm HIV có thể điều trị khỏi hoàn toàn không?',
+    answer: 'Hiện tại, HIV chưa thể điều trị khỏi hoàn toàn, nhưng với liệu pháp kháng retrovirus (ART) hiện đại, người nhiễm HIV có thể sống khỏe mạnh và bình thường. Mục tiêu của điều trị là giảm tải lượng virus xuống mức không phát hiện được.',
+    views: 1250,
+    likes: 89
+  },
+  {
+    id: 2,
+    question: 'Thuốc PrEP có tác dụng phụ gì không?',
+    answer: 'PrEP (Dự phòng trước phơi nhiễm) có thể gây một số tác dụng phụ nhẹ như buồn nôn, đau đầu, mệt mỏi trong thời gian đầu. Tuy nhiên, hầu hết mọi người dung nạp tốt. Cần theo dõi định kỳ chức năng thận và xương.',
+    views: 892,
+    likes: 67
+  },
+  {
+    id: 3,
+    question: 'Bao lâu sau khi phơi nhiễm có thể xét nghiệm HIV?',
+    answer: 'Thời gian "cửa sổ" cho xét nghiệm HIV thường là 2-12 tuần tùy thuộc vào loại xét nghiệm. Xét nghiệm kháng thể: 3-12 tuần, xét nghiệm kết hợp: 2-6 tuần, xét nghiệm PCR: 10-14 ngày. Nên tham khảo ý kiến bác sĩ để lựa chọn xét nghiệm phù hợp.',
+    views: 2150,
+    likes: 134
+  }
+];
+
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
+  const [expandedQnA, setExpandedQnA] = useState([]);
+
+  const toggleQnAExpand = (id) => {
+    if (expandedQnA.includes(id)) {
+      setExpandedQnA(expandedQnA.filter(qId => qId !== id));
+    } else {
+      setExpandedQnA([...expandedQnA, id]);
+    }
+  };
 
   return (
     <main>
@@ -536,6 +571,75 @@ const Home = () => {
           <motion.div className="text-center mt-5" variants={fadeIn}>
             <Button variant="outline-primary" as={Link} to="/news">
               Xem Tất Cả Tin Tức
+            </Button>
+          </motion.div>
+        </Container>      </AnimatedSection>
+
+      {/* QnA Section */}
+      <AnimatedSection className="section-padding bg-light">
+        <Container>
+          <motion.div className="section-title" variants={fadeIn}>
+            <h2 className="text-start">Hỏi & Đáp</h2>
+            <p className="text-start">Câu hỏi thường gặp về HIV và điều trị từ cộng đồng</p>
+          </motion.div>
+          <motion.div variants={staggerContainer}>
+            <Row>
+              {featuredQnA.map((qa, index) => (
+                <Col lg={12} key={qa.id}>
+                  <motion.div variants={fadeIn} className="mb-3">
+                    <Card className="qa-card">
+                      <Card.Header 
+                        className="bg-white border-0 d-flex justify-content-between align-items-center"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleQnAExpand(qa.id)}
+                      >
+                        <div className="d-flex align-items-center">
+                          <FontAwesomeIcon 
+                            icon={faQuestionCircle} 
+                            className="text-primary me-3" 
+                            style={{ fontSize: '1.2rem' }}
+                          />
+                          <h5 className="mb-0 text-start">{qa.question}</h5>
+                        </div>
+                        <FontAwesomeIcon 
+                          icon={expandedQnA.includes(qa.id) ? faChevronUp : faChevronDown}
+                          className="text-muted"
+                        />
+                      </Card.Header>
+                      {expandedQnA.includes(qa.id) && (
+                        <Card.Body className="pt-0">
+                          <div className="qa-answer">
+                            <div className="d-flex align-items-start mb-3">
+                              <FontAwesomeIcon 
+                                icon={faUserMd} 
+                                className="text-success me-3 mt-1" 
+                                style={{ fontSize: '1.1rem' }}
+                              />
+                              <p className="mb-0 text-start">{qa.answer}</p>
+                            </div>
+                            <div className="qa-stats d-flex align-items-center text-muted">
+                              <small className="me-3">
+                                <FontAwesomeIcon icon={faEye} className="me-1" />
+                                {qa.views} lượt xem
+                              </small>
+                              <small>
+                                <FontAwesomeIcon icon={faThumbsUp} className="me-1" />
+                                {qa.likes} hữu ích
+                              </small>
+                            </div>
+                          </div>
+                        </Card.Body>
+                      )}
+                    </Card>
+                  </motion.div>
+                </Col>
+              ))}
+            </Row>
+          </motion.div>
+          <motion.div className="text-center mt-4" variants={fadeIn}>
+            <Button variant="outline-primary" as={Link} to="/qa">
+              <FontAwesomeIcon icon={faComment} className="me-2" />
+              Xem Tất Cả Hỏi & Đáp
             </Button>
           </motion.div>
         </Container>

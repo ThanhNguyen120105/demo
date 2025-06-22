@@ -617,10 +617,75 @@
   overflow: hidden;
 }
 
+/* QnA Section Styles */
+.qa-card {
+  border: 1px solid #e0e6ed;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.qa-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.qa-card .card-header {
+  padding: 20px 25px;
+  border-bottom: none;
+  background: transparent;
+}
+
+.qa-card .card-header:hover {
+  background-color: #f8f9fa;
+}
+
+.qa-card .card-body {
+  padding: 0 25px 20px 25px;
+}
+
+.qa-answer {
+  background-color: #f8f9ff;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+}
+
+.qa-stats {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.qa-stats small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.qa-card h5 {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.qa-card .text-primary {
+  color: #2196f3 !important;
+}
+
+.qa-card .text-success {
+  color: #28a745 !important;
+}
+
+.qa-card .text-muted {
+  color: #6c757d !important;
+}
+
 .container {
   width: 100%;
   max-width: 1140px;
   margin: 0 auto;
   padding-left: 15px;
   padding-right: 15px;
-} 
+}
