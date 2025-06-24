@@ -15,6 +15,7 @@ import About from './components/About/About';
 import Contact from './components/Contact/Contact';
 import AppointmentPage from './components/Appointment/AppointmentPage';
 import PatientDashboard from './components/patient/PatientDashboard'; // Moved from pages to patient folder
+import AppointmentHistory from './components/patient/AppointmentHistory'; // Added for appointment history
 
 import TestResultsLookup from './components/Appointment/TestResultsLookup';
 import NavigationDemo from './components/common/NavigationDemo';
@@ -40,6 +41,7 @@ import AppointmentApproval from './components/Staff/AppointmentApproval'; // Add
 // Route Guards
 import DoctorRoute from './components/common/DoctorRoute'; // From HEAD
 import StaffRoute from './components/common/StaffRoute'; // From HEAD
+import ProtectedRoute from './components/common/ProtectedRoute'; // Added for protected routes
 
 function App() {
   return (
@@ -49,13 +51,22 @@ function App() {
           <ScrollToTop />
           <div className="App">
             <Header />
-            <Routes>
-              <Route path="/" element={<Home />} />
+            <Routes>              <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/appointment" element={<AppointmentPage />} />
               <Route path="/patient/dashboard" element={<PatientDashboard />} /> {/* Added from 6adb463 */}
+              
+              {/* Route cho lịch sử khám bệnh - chỉ dành cho CUSTOMER */}
+              <Route 
+                path="/lich-su-kham-benh" 
+                element={
+                  <ProtectedRoute requiredRole="CUSTOMER">
+                    <AppointmentHistory />
+                  </ProtectedRoute>
+                } 
+              />
             
               <Route path="/test-results" element={<TestResultsLookup />} />
               <Route path="/doctors" element={<Doctors />} />
