@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -21,7 +21,8 @@ import {
   faBell
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
-import { getDashboardRoute } from '../../constants/userRoles';
+import { getDashboardRoute, isDoctor, isCustomer, isStaff } from '../../constants/userRoles';
+import { getUserInfoFromToken } from '../../utils/jwtUtils';
 import './Header.css';
 import logo from '../../assets/images/logo.png';
 import NotificationBell from './NotificationBell';
@@ -32,16 +33,64 @@ const Header = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const dropdownRef = useRef(null);
   const location = useLocation();
-
+  const navigate = useNavigate();
   // Debug: Log user data
   console.log('Header - User data:', user);
   console.log('Header - isAuthenticated:', isAuthenticated);
   console.log('Header - localStorage user:', localStorage.getItem('user'));
-
+    // Helper function để lấy display name
+  const getDisplayName = (user) => {
+    if (!user) return 'Người dùng';
+    
+    // Debug: log tất cả properties của user
+    console.log('Header - All user properties:', Object.keys(user));
+    console.log('Header - User fullName:', user.fullName);
+    console.log('Header - User name:', user.name);
+    console.log('Header - User username:', user.username);
+    console.log('Header - User email:', user.email);
+    console.log('Header - User doctorName:', user.doctorName);
+    console.log('Header - User displayName:', user.displayName);
+    
+    // Nếu không có thông tin user đầy đủ, thử decode từ token
+    if (!user.fullName && !user.name && !user.username && !user.email && user.token) {
+      console.log('Header - Trying to decode user info from token');
+      const tokenInfo = getUserInfoFromToken(user.token);
+      console.log('Header - Token info:', tokenInfo);
+      
+      if (tokenInfo && tokenInfo.fullName) {
+        return tokenInfo.fullName;
+      }
+      if (tokenInfo && tokenInfo.email) {
+        return tokenInfo.email.split('@')[0];
+      }
+    }
+    
+    // Logic cũ
+    const candidates = [
+      user.fullName,
+      user.name, 
+      user.username,
+      user.doctorName,
+      user.displayName,
+      user.email?.split('@')[0]
+    ];
+    
+    for (const candidate of candidates) {
+      if (candidate && 
+          candidate !== 'User' && 
+          candidate !== 'user' && 
+          !candidate.includes('@example.com')) {
+        return candidate;
+      }
+    }    
+    return 'Người dùng';
+  };
   const handleLogout = () => {
     logout();
     setExpanded(false);
     setDropdownOpen(false);
+    // Điều hướng về trang chủ sau khi đăng xuất
+    navigate('/');
   };
 
   const toggleDropdown = () => {
@@ -111,29 +160,15 @@ const Header = () => {
                       className="top-auth-link user-link"
                       onClick={toggleDropdown}
                       style={{ cursor: 'pointer' }}
-                    >
-                      <FontAwesomeIcon icon={faUserCircle} />
-                      <span>Xin chào, {
-                        user?.fullName && user.fullName !== 'User' 
-                          ? user.fullName 
-                          : user?.name && user.name !== 'User'
-                            ? user.name
-                            : user?.username && user.username !== 'User'
-                              ? user.username
-                              : user?.email && !user.email.includes('@example.com')
-                                ? user.email.split('@')[0]
-                                : 'Người dùng'
-                      }</span>
+                    >                      <FontAwesomeIcon icon={faUserCircle} />
+                      <span>Xin chào, {getDisplayName(user)}</span>
                     </div>                    {dropdownOpen && (
                       <div className="dropdown-menu show">
                         <Link to={getDashboardRoute(user)} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <FontAwesomeIcon icon={faUser} className="me-2" />
-                          Thông tin cá nhân
+                          {isDoctor(user) ? 'Dashboard bác sĩ' : 'Thông tin cá nhân'}
                         </Link>
-                        <Link to="/appointments" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                          <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                          Lịch hẹn của tôi
-                        </Link>
+                        
                         <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={handleLogout} style={{ cursor: 'pointer' }}>
                           <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
@@ -249,4 +284,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;

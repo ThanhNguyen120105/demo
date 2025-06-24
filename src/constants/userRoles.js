@@ -4,14 +4,15 @@
 
 export const USER_ROLES = {
   CUSTOMER: 1,  // Bệnh nhân/khách hàng - có thể đặt lịch hẹn
-  STAFF: 3      // Nhân viên - duyệt lịch hẹn, quản lý hệ thống
-  // Doctor không có trong user table, có bảng riêng
+  STAFF: 3,     // Nhân viên - duyệt lịch hẹn, quản lý hệ thống
+  DOCTOR: 'DOCTOR' // Bác sĩ - có bảng riêng, role string
 };
 
 // Các role name tương ứng
 export const ROLE_NAMES = {
   [USER_ROLES.CUSTOMER]: 'CUSTOMER',
-  [USER_ROLES.STAFF]: 'STAFF'
+  [USER_ROLES.STAFF]: 'STAFF',
+  [USER_ROLES.DOCTOR]: 'DOCTOR'
 };
 
 // Helper functions - xử lý cả role_id (number) và role name (string)
@@ -27,12 +28,15 @@ export const isStaff = (user) => {
          user?.role_id === USER_ROLES.STAFF;
 };
 
-// Doctor không có trong user table, sẽ có logic riêng cho doctor login
+export const isDoctor = (user) => {
+  return user?.role === USER_ROLES.DOCTOR || 
+         user?.role === 'DOCTOR';
+};
 
 // Kiểm tra quyền truy cập cho các chức năng
 export const canBookAppointment = (user) => isCustomer(user);
 export const canApproveAppointment = (user) => isStaff(user);
-// Doctor sẽ có logic riêng
+export const canViewMedicalRecords = (user) => isDoctor(user);
 
 // Helper function để convert role name về role_id
 export const getRoleId = (user) => {
@@ -41,6 +45,7 @@ export const getRoleId = (user) => {
   switch(user?.role) {
     case 'CUSTOMER': return USER_ROLES.CUSTOMER;
     case 'STAFF': return USER_ROLES.STAFF;
+    case 'DOCTOR': return USER_ROLES.DOCTOR;
     default: return user?.role || null;
   }
 };
@@ -57,6 +62,8 @@ export const getDashboardRoute = (user) => {
     return '/patient/dashboard';
   } else if (isStaff(user)) {
     return '/staff/dashboard';
+  } else if (isDoctor(user)) {
+    return '/doctor/dashboard';
   } else {
     return '/'; // Default to home page
   }

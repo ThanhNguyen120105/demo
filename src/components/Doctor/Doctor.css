@@ -5,6 +5,81 @@
   padding-top: 1rem;
 }
 
+/* Modal size customization - Force Bootstrap override */
+.modal-90w {
+  --bs-modal-width: 66.666667vw !important;
+  max-width: 66.666667vw !important;
+  width: 66.666667vw !important;
+  margin: 0 auto !important;
+}
+
+.modal-90w .modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 100% !important;
+}
+
+/* Override Bootstrap modal dialog styles with maximum specificity */
+.modal .modal-dialog.modal-90w,
+.modal.show .modal-dialog.modal-90w,
+.modal.fade .modal-dialog.modal-90w {
+  max-width: 66.666667vw !important;
+  width: 66.666667vw !important;
+  margin: 1.75rem auto !important;
+  transform: none !important;
+}
+
+/* Bootstrap 5 CSS Variable Override */
+.modal-90w {
+  --bs-modal-width: 66.666667vw;
+}
+
+/* Ensure the modal is centered and responsive */
+@media (min-width: 576px) {
+  .modal .modal-dialog.modal-90w,
+  .modal.show .modal-dialog.modal-90w,
+  .modal.fade .modal-dialog.modal-90w {
+    max-width: 66.666667vw !important;
+    width: 66.666667vw !important;
+    margin: 1.75rem auto !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .modal .modal-dialog.modal-90w,
+  .modal.show .modal-dialog.modal-90w,
+  .modal.fade .modal-dialog.modal-90w {
+    max-width: 90vw !important;
+    width: 90vw !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal .modal-dialog.modal-90w,
+  .modal.show .modal-dialog.modal-90w,
+  .modal.fade .modal-dialog.modal-90w {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 1rem auto !important;
+  }
+}
+
+/* Final override for medical report modal - highest priority */
+.modal.show .modal-dialog.modal-90w {
+  max-width: 66.666667vw !important;
+  width: 66.666667vw !important;
+  margin: 1.75rem auto !important;
+  display: block !important;
+}
+
+/* Force the modal content to use full width */
+.modal-90w .modal-content {
+  width: 100% !important;
+  min-width: 66.666667vw !important;
+}
+
 /* Sidebar Styles */
 .sidebar {
   background-color: #fff;
@@ -532,6 +607,25 @@
 .appointment-time {
   font-weight: 600;
   color: #495057;
+}
+
+.appointment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appointment-info-line {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.appointment-info-line strong {
+  color: #495057;
+  min-width: 80px;
+  flex-shrink: 0;
 }
 
 .appointment-details {
@@ -1250,4 +1344,224 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
     flex: 0 0 100%;
     max-width: 100%;
   }
-} 
+}
+
+/* Medical Report Modal - Specific targeting */
+.medical-report-modal .modal-dialog,
+.medical-report-modal.modal .modal-dialog {
+  max-width: 66.666667vw !important;
+  width: 66.666667vw !important;
+  margin: 1.75rem auto !important;
+}
+
+.medical-report-modal-content {
+  width: 100% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* Additional medical report modal styling */
+.medical-report-modal .modal-dialog.modal-90w {
+  max-width: 66.666667vw !important;
+  width: 66.666667vw !important;
+  margin: 1.75rem auto !important;
+}
+
+/* Override any Bootstrap default modal sizes */
+.modal.medical-report-modal .modal-dialog {
+  max-width: 66.666667vw !important;
+  width: 66.666667vw !important;
+}
+
+/* Responsive for medical report modal */
+@media (max-width: 992px) {
+  .medical-report-modal .modal-dialog,
+  .medical-report-modal.modal .modal-dialog {
+    max-width: 90vw !important;
+    width: 90vw !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .medical-report-modal .modal-dialog,
+  .medical-report-modal.modal .modal-dialog {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 1rem auto !important;
+  }
+}
+
+/* PDF Preview Modal Styles */
+.pdf-preview-modal {
+  position: fixed;
+  z-index: 1050;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pdf-preview-modal .modal-content {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 800px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.pdf-preview-modal .close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #aaa;
+  z-index: 1051;
+}
+
+.pdf-preview-modal .close:hover,
+.pdf-preview-modal .close:focus {
+  color: #000;
+  text-decoration: none;
+}
+
+.pdf-preview-modal h2 {
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+}
+
+.pdf-preview-body {
+  margin-bottom: 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pdf-preview-body iframe {
+  border: none;
+  display: block;
+}
+
+/* ARV Tool Specific Styles */
+.arv-tool-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+.arv-tool-container .content-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.arv-tool-container .content-header h2 {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.arv-tool-container .content-header p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.medication-category {
+  color: #495057;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.25rem;
+}
+
+.small-text {
+  font-size: 0.85rem;
+}
+
+/* Enhanced form styling for ARV tool */
+.arv-tool-container .card {
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.arv-tool-container .form-label {
+  color: #495057;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.arv-tool-container .form-control,
+.arv-tool-container .form-select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.arv-tool-container .form-control:focus,
+.arv-tool-container .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.arv-tool-container .btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.arv-tool-container .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Checkbox styling */
+.arv-tool-container .form-check-input {
+  border-radius: 4px;
+  border: 2px solid #ced4da;
+  margin-top: 0.25rem;
+}
+
+.arv-tool-container .form-check-input:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.arv-tool-container .form-check-label {
+  margin-left: 0.5rem;
+  color: #495057;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pdf-preview-modal .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 10px;
+  }
+  
+  .pdf-preview-body iframe {
+    height: 400px;
+  }
+  
+  .arv-tool-container {
+    padding: 10px;
+  }
+}

@@ -1,96 +1,150 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Button, Badge, Spinner, Alert } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faChartLine, faCalendarCheck, faUserPlus, faUserMd, 
   faClipboardList, faCog, faSignOutAlt, faUsers, faFileAlt,
   faCalendarAlt, faCheckCircle, faExclamationTriangle,
-  faClock, faPhone, faVideo, faPrescriptionBottleAlt
+  faClock, faPhone, faVideo, faPrescriptionBottleAlt, faRefresh
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
-import { MedicalReportModal } from './DoctorAppointments';
-
-// Enhanced dummy data for dashboard
-const todayAppointments = [
-  { id: 1, time: '09:00 AM', patient: 'John Smith', status: 'completed', symptoms: 'Fever, Cough' },
-  { id: 2, time: '10:30 AM', patient: 'Sarah Johnson', status: 'completed', symptoms: 'Medication review' },
-  { id: 3, time: '11:45 AM', patient: 'Michael Brown', status: 'pending', symptoms: 'Weight loss, Fatigue' },
-  { id: 4, time: '02:15 PM', patient: 'Emily Davis', status: 'completed', symptoms: 'CD4 count review' },
-  { id: 5, time: '03:30 PM', patient: 'Robert Wilson', status: 'cancelled', symptoms: 'Treatment adjustment' }
-];
-
-// Appointments for different days
-const weeklyAppointments = {
-  monday: [
-    { id: 6, time: '08:30 AM', patient: 'James Williams', status: 'completed' },
-    { id: 7, time: '11:00 AM', patient: 'Patricia Moore', status: 'completed' },
-    { id: 8, time: '01:45 PM', patient: 'Thomas Taylor', status: 'completed' }
-  ],
-  tuesday: [
-    { id: 9, time: '09:15 AM', patient: 'Jennifer Anderson', status: 'completed' },
-    { id: 10, time: '10:45 AM', patient: 'Charles Jackson', status: 'pending' },
-    { id: 11, time: '02:30 PM', patient: 'Mary White', status: 'completed' },
-    { id: 12, time: '04:00 PM', patient: 'Daniel Harris', status: 'completed' }
-  ],
-  wednesday: [
-    { id: 13, time: '10:00 AM', patient: 'Elizabeth Martin', status: 'completed' },
-    { id: 14, time: '01:30 PM', patient: 'David Thompson', status: 'cancelled' }
-  ],
-  thursday: [
-    { id: 15, time: '09:30 AM', patient: 'Susan Garcia', status: 'completed' },
-    { id: 16, time: '11:15 AM', patient: 'Joseph Martinez', status: 'completed' },
-    { id: 17, time: '03:00 PM', patient: 'Margaret Robinson', status: 'pending' }
-  ],
-  friday: [
-    { id: 18, time: '08:45 AM', patient: 'Richard Clark', status: 'completed' },
-    { id: 19, time: '12:00 PM', patient: 'Nancy Lewis', status: 'completed' },
-    { id: 20, time: '02:45 PM', patient: 'Christopher Lee', status: 'completed' },
-    { id: 21, time: '04:15 PM', patient: 'Karen Walker', status: 'pending' }
-  ]
-};
+import MedicalReportModal from './MedicalReportModal';
+import { appointmentAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const DoctorDashboard = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // State cho lịch hẹn từ API
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // State cho Modal Báo cáo Y tế
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [medicalReport, setMedicalReport] = useState(null);
-  
-  // Thống kê tổng quan
-  const stats = [
-    { title: 'Tổng số bệnh nhân', value: '1,248', icon: faUsers, color: '#4CAF50' },
-    { title: 'Lịch hẹn hôm nay', value: '8', icon: faCalendarAlt, color: '#2196F3' },
-    { title: 'Hoàn thành hôm nay', value: '5', icon: faCheckCircle, color: '#9C27B0' },
-    { title: 'Đang chờ xử lý', value: '3', icon: faExclamationTriangle, color: '#FF9800' }
-  ];
 
-  // Type counts for current month (actual values for chart)
-  const appointmentTypes = [
-    { type: 'Tư vấn đầu tiên', count: 45, color: '#4CAF50' },
-    { type: 'Tái khám', count: 60, color: '#2196F3' },
-    { type: 'Kết quả xét nghiệm', count: 35, color: '#FF9800' },
-    { type: 'Đánh giá điều trị', count: 25, color: '#9C27B0' }
-  ];
-  
+  // Mapping functions
+  const getAppointmentTypeDisplay = (type) => {
+    switch (type) {
+      case 'INITIAL':
+        return 'Khám lần đầu';
+      case 'FOLLOW_UP':
+        return 'Tái khám';
+      default:
+        return type || 'Không xác định';
+    }
+  };
+  const getServiceDisplay = (serviceId) => {
+    switch (serviceId) {
+      case 1:
+        return 'Khám và tư vấn';
+      case 2:
+        return 'Theo dõi tải lượng virus';
+      default:
+        return `Dịch vụ ${serviceId}` || 'Không xác định';
+    }
+  };
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'ACCEPTED':
+      case 'COMPLETED':
+        return { text: 'Hoàn thành', variant: 'success' };
+      case 'PENDING':
+        return { text: 'Đang chờ', variant: 'warning' };
+      case 'CANCELLED':
+        return { text: 'Đã hủy', variant: 'danger' };
+      default:
+        return { text: status || 'Không xác định', variant: 'secondary' };
+    }
+  };
+
+  // Lấy lịch hẹn từ API
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Fetching appointments for doctor...');
+      const result = await appointmentAPI.getAcceptedAppointmentsForDoctor();
+      
+      console.log('API result:', result);
+      
+      if (result.success) {
+        const appointmentsData = result.data || [];
+        console.log('Appointments data:', appointmentsData);
+        setAppointments(appointmentsData);
+      } else {
+        console.error('Failed to fetch appointments:', result.message);
+        setError(result.message || 'Không thể tải danh sách lịch hẹn');
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      setError('Đã xảy ra lỗi khi tải danh sách lịch hẹn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load dữ liệu khi component mount
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  // Lọc lịch hẹn hôm nay
+  const getTodayAppointments = () => {
+    const today = new Date().toDateString();
+    return appointments.filter(appointment => {
+      if (appointment.appointmentDate) {
+        const appointmentDate = new Date(appointment.appointmentDate).toDateString();
+        return appointmentDate === today;
+      }
+      return false;
+    });
+  };
+
+  // Thống kê tổng quan
+  const getStats = () => {
+    const todayAppointments = getTodayAppointments();
+    const completedToday = todayAppointments.filter(apt => 
+      apt.status === 'COMPLETED' || apt.status === 'ACCEPTED'
+    ).length;
+    const pendingToday = todayAppointments.filter(apt => 
+      apt.status === 'PENDING'
+    ).length;
+
+    return [
+      { title: 'Tổng số lịch hẹn', value: appointments.length.toString(), icon: faUsers, color: '#4CAF50' },
+      { title: 'Lịch hẹn hôm nay', value: todayAppointments.length.toString(), icon: faCalendarAlt, color: '#2196F3' },
+      { title: 'Hoàn thành hôm nay', value: completedToday.toString(), icon: faCheckCircle, color: '#9C27B0' },
+      { title: 'Đang chờ xử lý', value: pendingToday.toString(), icon: faExclamationTriangle, color: '#FF9800' }
+    ];
+  };
   // Xử lý hiển thị modal medical report
   const handleShowReportModal = (appointment) => {
     setSelectedAppointment(appointment);
     
     // Khởi tạo giá trị mẫu cho appointment đã hoàn thành
     let initialReport;
-    if (appointment.status === 'completed') {
+    if (appointment.status === 'COMPLETED' || appointment.status === 'ACCEPTED') {
       initialReport = {
         patientInfo: {
-          name: appointment.patient,
+          name: appointment.alternativeName || appointment.customerName || 'Không có tên',
           dob: "1985-06-12",
           gender: "Male",
-          patientId: `P${1000 + appointment.id}`
+          patientId: `P${appointment.id || '000'}`
         },
-        visitDate: "2025-05-28",
+        visitDate: appointment.appointmentDate || new Date().toISOString().split('T')[0],
+        appointmentType: getAppointmentTypeDisplay(appointment.type),
+        service: getServiceDisplay(appointment.serviceId),
+        reason: appointment.reason || 'Không có thông tin',
+        note: appointment.note || 'Không có ghi chú',
         vitalSigns: {
           weight: '72 kg',
           height: '175 cm',
@@ -143,27 +197,31 @@ const DoctorDashboard = () => {
           'Call immediately if experiencing any concerning symptoms'
         ],
         arvResultFile: {
-          name: `ARV_Report_P${1000 + appointment.id}.pdf`,
+          name: `ARV_Report_P${appointment.id || '000'}.pdf`,
           size: '1.2 MB',
-          date: "2025-05-28"
+          date: appointment.appointmentDate || new Date().toISOString().split('T')[0]
         },
         doctorInfo: {
-          name: 'Dr. John Doe',
+          name: user?.fullName || user?.name || 'Dr. John Doe',
           specialty: 'HIV Treatment Specialist',
-          signature: 'J. Doe, MD',
-          date: "2025-05-28"
+          signature: user?.fullName || 'J. Doe, MD',
+          date: appointment.appointmentDate || new Date().toISOString().split('T')[0]
         }
       };
     } else {
       // Dữ liệu rỗng cho appointment chưa hoàn thành
       initialReport = {
         patientInfo: {
-          name: appointment.patient,
+          name: appointment.alternativeName || appointment.customerName || 'Không có tên',
           dob: "1985-06-12",
           gender: "Male",
-          patientId: `P${1000 + appointment.id}`
+          patientId: `P${appointment.id || '000'}`
         },
-        visitDate: "2025-05-28",
+        visitDate: appointment.appointmentDate || new Date().toISOString().split('T')[0],
+        appointmentType: getAppointmentTypeDisplay(appointment.type),
+        service: getServiceDisplay(appointment.serviceId),
+        reason: appointment.reason || '',
+        note: appointment.note || '',
         vitalSigns: {
           weight: '',
           height: '',
@@ -197,8 +255,7 @@ const DoctorDashboard = () => {
           {
             name: '',
             dosage: '',
-            frequency: '',
-            status: 'New'
+            frequency: '',            status: 'New'
           }
         ],
         assessment: '',
@@ -206,10 +263,10 @@ const DoctorDashboard = () => {
         recommendations: ['', '', '', ''],
         arvResultFile: null,
         doctorInfo: {
-          name: 'Dr. John Doe',
+          name: user?.fullName || user?.name || 'Dr. John Doe',
           specialty: 'HIV Treatment Specialist',
-          signature: 'J. Doe, MD',
-          date: "2025-05-28"
+          signature: user?.fullName || 'J. Doe, MD',
+          date: appointment.appointmentDate || new Date().toISOString().split('T')[0]
         }
       };
     }
@@ -248,15 +305,19 @@ const DoctorDashboard = () => {
       };
     });
   };
-  
-  // Lưu report
+    // Lưu report
   const handleSaveReport = () => {
     // Cập nhật status của appointment thành completed
     console.log('Lưu báo cáo y tế:', medicalReport);
     
     // Đóng modal sau khi lưu
     handleCloseReportModal();
+    
+    // Reload dữ liệu
+    fetchAppointments();
   };
+
+  const stats = getStats();
 
   return (
     <div className="doctor-dashboard">
@@ -270,11 +331,48 @@ const DoctorDashboard = () => {
           />
           
           {/* Main Content */}
-          <Col md={9} lg={10} className="main-content">
-            <div className="content-header">
-              <h2>Tổng quan</h2>
-              <p>Chào mừng trở lại, Dr. John Doe</p>
+          <Col md={9} lg={10} className="main-content">            <div className="content-header">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h2>Tổng quan</h2>
+                  <p>Chào mừng trở lại, {user?.fullName || user?.name || 'Bác sĩ'}</p>
+                </div>
+                <Button 
+                  variant="outline-primary" 
+                  onClick={fetchAppointments}
+                  disabled={loading}
+                  size="sm"
+                >
+                  <FontAwesomeIcon icon={faRefresh} className={loading ? 'fa-spin' : ''} />
+                  {loading ? ' Đang tải...' : ' Làm mới'}
+                </Button>
+              </div>
             </div>
+            
+            {/* Loading và Error States */}
+            {loading && (
+              <div className="text-center my-4">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Đang tải...</span>
+                </Spinner>
+                <p className="mt-2">Đang tải danh sách lịch hẹn...</p>
+              </div>
+            )}
+            
+            {error && (
+              <Alert variant="danger" className="mb-4">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                {error}
+                <Button 
+                  variant="outline-danger" 
+                  size="sm" 
+                  className="ms-2"
+                  onClick={fetchAppointments}
+                >
+                  Thử lại
+                </Button>
+              </Alert>
+            )}
             
             {/* Stats Cards */}
             <Row className="stats-row">
@@ -411,175 +509,205 @@ const DoctorDashboard = () => {
                 </Card>
               </Col>
             </Row>
-            
-            {/* Today's Appointments */}
-            <Row className="appointments-row">
-              <Col>
-                <Card className="appointments-card">
-                  <Card.Header className="d-flex justify-content-between align-items-center">
-                    <h5>Lịch hẹn hôm nay</h5>
-                    <div>
-                      <Button variant="outline-primary" size="sm" className="me-2">
-                        <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                        Xem theo tuần
-                      </Button>
-                      <Button variant="outline-primary" size="sm">
-                        Xem tất cả
-                      </Button>
-                    </div>
-                  </Card.Header>
-                  <Card.Body className="p-0">
-                    <div className="table-responsive">
-                      <table className="table appointment-table">
-                        <thead>
-                          <tr>
-                            <th>Thời gian</th>
-                            <th>Bệnh nhân</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {todayAppointments.map(appointment => (
-                            <tr key={appointment.id}>
-                              <td>
-                                <div className="d-flex align-items-center">
-                                  <FontAwesomeIcon icon={faClock} className="me-2 text-muted" />
-                                  {appointment.time}
-                                </div>
-                              </td>
-                              <td>
-                                <div className="d-flex flex-column">
-                                  <span className="fw-bold">{appointment.patient}</span>
-                                  <small className="text-muted">{appointment.symptoms}</small>
-                                </div>
-                              </td>
-                              <td>
-                                <Badge bg={
-                                  appointment.status === 'completed' ? 'success' : 
-                                  appointment.status === 'pending' ? 'warning' : 'danger'
-                                }>
-                                  {appointment.status === 'completed' ? 'Hoàn thành' : 
-                                  appointment.status === 'pending' ? 'Đang chờ' : 'Đã hủy'}
-                                </Badge>
-                              </td>
-                              <td>
-                                <Button 
-                                  variant="outline-primary" 
-                                  size="sm" 
-                                  className="me-2"
-                                  onClick={() => handleShowReportModal(appointment)}
-                                >
-                                  <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                  Chi tiết
-                                </Button>
-                                <Button variant="outline-success" size="sm" className="me-2">
-                                  <FontAwesomeIcon icon={faPhone} />
-                                </Button>
-                                <Button variant="outline-info" size="sm">
-                                  <FontAwesomeIcon icon={faVideo} />
-                                </Button>
-                              </td>
+              {/* Today's Appointments */}
+            {!loading && !error && (
+              <Row className="appointments-row">
+                <Col>
+                  <Card className="appointments-card">
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                      <h5>Lịch hẹn hôm nay ({getTodayAppointments().length})</h5>
+                      <div>
+                        <Button variant="outline-primary" size="sm" className="me-2">
+                          <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
+                          Xem theo tuần
+                        </Button>
+                        <Button variant="outline-primary" size="sm">
+                          Xem tất cả
+                        </Button>
+                      </div>
+                    </Card.Header>
+                    <Card.Body className="p-0">
+                      {getTodayAppointments().length > 0 ? (
+                        <div className="table-responsive">
+                          <table className="table appointment-table">
+                            <thead>
+                              <tr>
+                                <th>Thời gian</th>
+                                <th>Bệnh nhân</th>
+                                <th>Loại khám</th>
+                                <th>Dịch vụ</th>
+                                <th>Triệu chứng</th>
+                                <th>Ghi chú</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {getTodayAppointments().map(appointment => {
+                                const statusInfo = getStatusDisplay(appointment.status);
+                                return (
+                                  <tr key={appointment.id}>
+                                    <td>
+                                      <div className="d-flex align-items-center">
+                                        <FontAwesomeIcon icon={faClock} className="me-2 text-muted" />
+                                        {appointment.slotTime || 'Chưa xác định'}
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <div className="d-flex flex-column">
+                                        <span className="fw-bold">
+                                          {appointment.alternativeName || appointment.customerName || 'Không có tên'}
+                                        </span>
+                                        <small className="text-muted">ID: {appointment.id}</small>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <Badge bg="info" className="me-1">
+                                        {getAppointmentTypeDisplay(appointment.type)}
+                                      </Badge>
+                                    </td>
+                                    <td>
+                                      <small className="text-muted">
+                                        {getServiceDisplay(appointment.serviceId)}
+                                      </small>
+                                    </td>
+                                    <td>
+                                      <small>
+                                        {appointment.reason || 'Không có thông tin'}
+                                      </small>
+                                    </td>
+                                    <td>
+                                      <small>
+                                        {appointment.note || 'Không có ghi chú'}
+                                      </small>
+                                    </td>
+                                    <td>
+                                      <Badge bg={statusInfo.variant}>
+                                        {statusInfo.text}
+                                      </Badge>
+                                    </td>
+                                    <td>
+                                      <Button 
+                                        variant="outline-primary" 
+                                        size="sm" 
+                                        className="me-2"
+                                        onClick={() => handleShowReportModal(appointment)}
+                                      >
+                                        <FontAwesomeIcon icon={faClipboardList} className="me-1" />
+                                        Chi tiết
+                                      </Button>
+                                      <Button variant="outline-success" size="sm" className="me-2">
+                                        <FontAwesomeIcon icon={faPhone} />
+                                      </Button>
+                                      <Button variant="outline-info" size="sm">
+                                        <FontAwesomeIcon icon={faVideo} />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <FontAwesomeIcon icon={faCalendarAlt} size="3x" className="text-muted mb-3" />
+                          <p className="text-muted">Không có lịch hẹn nào trong hôm nay</p>
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+            )}
+              {/* Weekly Schedule Preview */}
+            {!loading && !error && appointments.length > 0 && (
+              <Row className="mt-4">
+                <Col>
+                  <Card className="appointments-card">
+                    <Card.Header>
+                      <h5>Tất cả lịch hẹn ({appointments.length})</h5>
+                    </Card.Header>
+                    <Card.Body className="p-0">
+                      <div className="table-responsive">
+                        <table className="table appointment-table">
+                          <thead>
+                            <tr>
+                              <th>Ngày</th>
+                              <th>Thời gian</th>
+                              <th>Bệnh nhân</th>
+                              <th>Loại khám</th>
+                              <th>Dịch vụ</th>
+                              <th>Triệu chứng</th>
+                              <th>Ghi chú</th>
+                              <th>Trạng thái</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-            
-            {/* Weekly Schedule Preview */}
-            <Row className="mt-4">
-              <Col>
-                <Card className="appointments-card">
-                  <Card.Header>
-                    <h5>Lịch trình tuần</h5>
-                  </Card.Header>
-                  <Card.Body className="p-0">
-                    <div className="table-responsive">
-                      <table className="table appointment-table">
-                        <thead>
-                          <tr>
-                            <th>Ngày</th>
-                            <th>Lịch hẹn</th>
-                            <th>Trạng thái</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td className="fw-bold">Thứ Hai</td>
-                            <td>
-                              <div className="d-flex flex-column">
-                                {weeklyAppointments.monday.map((apt, idx) => (
-                                  <small key={idx} className="mb-1">{apt.time} - {apt.patient}</small>
-                                ))}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="success">{weeklyAppointments.monday.length} Đã lên lịch</Badge>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="fw-bold">Thứ Ba</td>
-                            <td>
-                              <div className="d-flex flex-column">
-                                {weeklyAppointments.tuesday.map((apt, idx) => (
-                                  <small key={idx} className="mb-1">{apt.time} - {apt.patient}</small>
-                                ))}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="success">{weeklyAppointments.tuesday.length} Đã lên lịch</Badge>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="fw-bold">Thứ Tư</td>
-                            <td>
-                              <div className="d-flex flex-column">
-                                {weeklyAppointments.wednesday.map((apt, idx) => (
-                                  <small key={idx} className="mb-1">{apt.time} - {apt.patient}</small>
-                                ))}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="success">{weeklyAppointments.wednesday.length} Đã lên lịch</Badge>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="fw-bold">Thứ Năm</td>
-                            <td>
-                              <div className="d-flex flex-column">
-                                {weeklyAppointments.thursday.map((apt, idx) => (
-                                  <small key={idx} className="mb-1">{apt.time} - {apt.patient}</small>
-                                ))}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="success">{weeklyAppointments.thursday.length} Đã lên lịch</Badge>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="fw-bold">Thứ Sáu</td>
-                            <td>
-                              <div className="d-flex flex-column">
-                                {weeklyAppointments.friday.map((apt, idx) => (
-                                  <small key={idx} className="mb-1">{apt.time} - {apt.patient}</small>
-                                ))}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="success">{weeklyAppointments.friday.length} Đã lên lịch</Badge>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
+                          </thead>
+                          <tbody>
+                            {appointments.slice(0, 10).map((appointment) => {
+                              const statusInfo = getStatusDisplay(appointment.status);
+                              return (
+                                <tr key={appointment.id}>
+                                  <td className="fw-bold">
+                                    {appointment.appointmentDate ? 
+                                      new Date(appointment.appointmentDate).toLocaleDateString('vi-VN') : 
+                                      'Chưa xác định'
+                                    }
+                                  </td>
+                                  <td>
+                                    <small>{appointment.slotTime || 'Chưa xác định'}</small>
+                                  </td>
+                                  <td>
+                                    <div className="d-flex flex-column">
+                                      <span className="fw-bold">
+                                        {appointment.alternativeName || appointment.customerName || 'Không có tên'}
+                                      </span>
+                                      <small className="text-muted">ID: {appointment.id}</small>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <Badge bg="info" className="me-1">
+                                      {getAppointmentTypeDisplay(appointment.type)}
+                                    </Badge>
+                                  </td>
+                                  <td>
+                                    <small className="text-muted">
+                                      {getServiceDisplay(appointment.serviceId)}
+                                    </small>
+                                  </td>
+                                  <td>
+                                    <small>
+                                      {appointment.reason || 'Không có thông tin'}
+                                    </small>
+                                  </td>
+                                  <td>
+                                    <small>
+                                      {appointment.note || 'Không có ghi chú'}
+                                    </small>
+                                  </td>
+                                  <td>
+                                    <Badge bg={statusInfo.variant}>
+                                      {statusInfo.text}
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {appointments.length > 10 && (
+                        <div className="text-center p-3">
+                          <small className="text-muted">
+                            Hiển thị 10 lịch hẹn đầu tiên. Tổng cộng: {appointments.length} lịch hẹn
+                          </small>
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+            )}
             
             {/* Medical Report Modal */}
             {showReportModal && selectedAppointment && medicalReport && (
@@ -587,10 +715,9 @@ const DoctorDashboard = () => {
                 show={showReportModal}
                 onHide={handleCloseReportModal}
                 report={medicalReport}
-                onChange={handleReportChange}
-                onSave={handleSaveReport}
+                onChange={handleReportChange}                onSave={handleSaveReport}
                 appointment={selectedAppointment}
-                readOnly={selectedAppointment.status === 'completed'}
+                readOnly={selectedAppointment.status === 'COMPLETED' || selectedAppointment.status === 'ACCEPTED'}
               />
             )}
           </Col>

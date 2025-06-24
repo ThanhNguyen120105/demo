@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 // Cấu hình base URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
@@ -6,21 +7,46 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api
 // Tạo axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // KHÔNG set Content-Type mặc định ở đây
 });
 
-// Request interceptor để thêm token
+// Request interceptor để thêm token và xử lý FormData
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Debug: Log token info for medical result updates
+      if (config.url && config.url.includes('medical-result/update')) {
+        console.log('=== DEBUG Request Interceptor ===');
+        console.log('URL:', config.url);
+        console.log('Method:', config.method);
+        console.log('Token exists:', !!token);
+        console.log('Token preview:', token ? `${token.substring(0, 50)}...` : 'NO TOKEN');
+      }
+    } else {
+      console.warn('No token found in localStorage for API request:', config.url);
     }
+
+    // FIX: Xử lý Content-Type linh hoạt
+    // Nếu data là FormData, để trình duyệt tự set Content-Type (multipart/form-data)
+    if (config.data instanceof FormData) {
+      // Không làm gì cả, để header Content-Type trống
+      delete config.headers['Content-Type'];
+    } else {
+      // Đối với các request khác, set Content-Type là application/json
+      config.headers['Content-Type'] = 'application/json';
+    }
+    
+    // Log header cuối cùng trước khi gửi
+    if (config.url && config.url.includes('medical-result/update')) {
+        console.log('Final Headers:', config.headers);
+    }
+    
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -28,16 +54,31 @@ api.interceptors.request.use(
 // Response interceptor để xử lý lỗi
 api.interceptors.response.use(
   (response) => {
+    // Debug: Log successful responses for medical result updates
+    if (response.config.url && response.config.url.includes('medical-result/update')) {
+      console.log('=== DEBUG Response Interceptor Success ===');
+      console.log('Status:', response.status);
+      console.log('Response data:', response.data);
+    }
     return response;
   },
   (error) => {
+    console.log('=== DEBUG Response Interceptor Error ===');
     console.log('API Error:', error);
+    console.log('Status:', error.response?.status);
+    console.log('Status Text:', error.response?.statusText);
+    console.log('Response Data:', error.response?.data);
     
     if (error.response?.status === 401) {
+      console.warn('401 Unauthorized - Token may be expired');
       // Token hết hạn hoặc không hợp lệ
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
+    }
+    
+    if (error.response?.status === 403) {
+      console.error('403 Forbidden - Access denied. Check user permissions and token validity');
     }
     
     return Promise.reject(error);
@@ -894,14 +935,183 @@ export const appointmentAPI = {
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-      
-      return {
+        return {
         success: false,
         message: errorMessage,
         error: error.response?.data || error.message,
         data: []
       };
     }
+  },
+
+  // Lấy chi tiết appointment theo ID
+  getAppointmentById: async (appointmentId) => {
+    try {
+      console.log('Getting appointment details for ID:', appointmentId);
+      const response = await api.get(`/appointment/${appointmentId}`);
+      
+      console.log('Get appointment details response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data,
+        message: 'Lấy chi tiết lịch hẹn thành công'
+      };
+    } catch (error) {
+      console.error('Get appointment details error:', error);
+      
+      let errorMessage = 'Không thể lấy chi tiết lịch hẹn';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy lịch hẹn';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Bạn không có quyền xem lịch hẹn này';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+        return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message,
+        data: null
+      };
+    }
+  },
+  // Cập nhật trạng thái appointment
+  updateAppointmentStatus: async (appointmentId, status) => {
+    console.log('=== DEBUG: Starting appointment status update ===');
+    console.log('Appointment ID:', appointmentId);
+    console.log('New Status:', status);
+    
+    // List of possible API endpoints to try
+    const endpoints = [
+      {
+        method: 'patch',
+        url: `/appointment/updateStatus/${appointmentId}`,
+        data: { status: status }
+      },
+      {
+        method: 'patch',
+        url: `/appointment/${appointmentId}/status`,
+        data: { status: status }
+      },
+      {
+        method: 'put',
+        url: `/appointment/${appointmentId}/status`,
+        data: { status: status }
+      },
+      {
+        method: 'patch',
+        url: `/appointment/${appointmentId}`,
+        data: { status: status }
+      },
+      {
+        method: 'put',
+        url: `/appointment/${appointmentId}`,
+        data: { status: status }
+      },
+      {
+        method: 'post',
+        url: `/appointment/${appointmentId}/complete`,
+        data: { status: status }
+      },
+      {
+        method: 'put',
+        url: `/appointment/${appointmentId}/complete`,
+        data: {}
+      }
+    ];
+    
+    let lastError = null;
+    
+    // Try each endpoint until one works
+    for (let i = 0; i < endpoints.length; i++) {
+      const endpoint = endpoints[i];
+      
+      try {
+        console.log(`=== ATTEMPT ${i + 1}: Trying ${endpoint.method.toUpperCase()} ${endpoint.url} ===`);
+        
+        let response;
+        if (endpoint.method === 'patch') {
+          response = await api.patch(endpoint.url, endpoint.data);
+        } else if (endpoint.method === 'put') {
+          response = await api.put(endpoint.url, endpoint.data);
+        } else if (endpoint.method === 'post') {
+          response = await api.post(endpoint.url, endpoint.data);
+        }
+        
+        console.log('✅ SUCCESS: Update appointment status response:', response.data);
+        
+        return {
+          success: true,
+          data: response.data?.data || response.data,
+          message: `Cập nhật trạng thái lịch hẹn thành ${status} thành công`,
+          endpoint: `${endpoint.method.toUpperCase()} ${endpoint.url}` // For debugging
+        };
+        
+      } catch (error) {
+        console.warn(`❌ ATTEMPT ${i + 1} FAILED: ${endpoint.method.toUpperCase()} ${endpoint.url}`);
+        console.warn('Error:', error.response?.status, error.response?.statusText || error.message);
+        
+        lastError = error;
+        
+        // If it's a 404 or network error, try next endpoint
+        if (error.code === 'ERR_NETWORK' || 
+            error.response?.status === 404 || 
+            error.response?.status === 405) { // Method not allowed
+          continue;
+        }
+        
+        // If it's a different error (403, 401, etc.), it means the endpoint exists
+        // but there's a permission or data issue, so don't try other endpoints
+        if (error.response?.status === 403) {
+          console.error('❌ CRITICAL: 403 Forbidden - Permission denied');
+          return {
+            success: false,
+            message: 'Bạn không có quyền cập nhật lịch hẹn này',
+            error: error.response?.data || error.message,
+            data: null
+          };
+        }
+        
+        if (error.response?.status === 401) {
+          console.error('❌ CRITICAL: 401 Unauthorized - Token invalid');
+          return {
+            success: false,
+            message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+            error: error.response?.data || error.message,
+            data: null
+          };
+        }
+        
+        // For other errors, also break to avoid unnecessary attempts
+        if (error.response?.status && error.response.status !== 404 && error.response.status !== 405) {
+          break;
+        }
+      }
+    }
+    
+    // All attempts failed
+    console.error('❌ ALL ATTEMPTS FAILED: Could not update appointment status');
+    console.error('Last error:', lastError);
+    
+    let errorMessage = 'Không thể cập nhật trạng thái lịch hẹn';
+    
+    if (lastError?.code === 'ERR_NETWORK') {
+      errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.';
+    } else if (lastError?.response?.status === 404) {
+      errorMessage = 'API endpoint không tồn tại. Vui lòng liên hệ admin để kiểm tra cấu hình backend.';
+    } else if (lastError?.response?.data?.message) {
+      errorMessage = lastError.response.data.message;
+    }
+    
+    return {
+      success: false,
+      message: errorMessage,
+      error: lastError?.response?.data || lastError?.message || 'Unknown error',
+      data: null,
+      attemptsLog: endpoints.map((ep, i) => `${i + 1}. ${ep.method.toUpperCase()} ${ep.url}`)
+    };
   }
 };
 
@@ -1122,6 +1332,389 @@ export const doctorAPI = {
         message: 'Không thể lấy lịch làm việc bác sĩ',
         error: error.response?.data || error.message,
         data: {}
+      };
+    }
+  }
+};
+
+// User API
+export const userAPI = {
+  // Lấy thông tin user theo ID
+  getUserById: async (userId) => {
+    try {
+      console.log('Getting user by ID:', userId);
+      const response = await api.get(`/users/${userId}`);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Lấy thông tin người dùng thành công'
+      };
+    } catch (error) {
+      console.error('Get user by ID error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy thông tin người dùng',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Lấy thông tin customer theo ID
+  getCustomerById: async (customerId) => {
+    try {
+      console.log('Getting customer by ID:', customerId);
+      const response = await api.get(`/customers/${customerId}`);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Lấy thông tin khách hàng thành công'
+      };
+    } catch (error) {
+      console.error('Get customer by ID error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy thông tin khách hàng',
+        error: error.response?.data
+      };
+    }  }
+};
+
+// Medical Result API
+export const medicalResultAPI = {  // Tạo medical result cho appointment
+  createMedicalResult: async (appointmentId) => {
+    try {
+      console.log('=== DEBUG CREATE MEDICAL RESULT ===');
+      console.log('Creating medical result for appointment:', appointmentId);
+      console.log('Appointment ID type:', typeof appointmentId);
+      console.log('Appointment ID length:', appointmentId?.length);
+      
+      // Get doctor ID from token to ensure proper ownership
+      const token = localStorage.getItem('token');
+      let doctorId = null;
+      if (token) {
+        try {
+          const tokenPayload = jwtDecode(token);
+          doctorId = tokenPayload?.sub;
+          console.log('Doctor ID from token for creation:', doctorId);
+        } catch (error) {
+          console.error('Error extracting doctorId from token:', error);
+        }
+      }
+      
+      // Send doctor ID in request body to ensure proper ownership
+      const requestBody = doctorId ? { doctorId } : {};
+      console.log('Request body:', requestBody);
+        const endpoint = `/medical-result/create-MedicalResult/${appointmentId}`;
+      console.log('API Base URL:', api.defaults.baseURL);
+      console.log('Full endpoint URL:', `${api.defaults.baseURL}${endpoint}`);
+      console.log('Making POST request to:', endpoint);
+      
+      // Log current API configuration
+      console.log('API Config:', {
+        baseURL: api.defaults.baseURL,
+        timeout: api.defaults.timeout,
+        headers: api.defaults.headers
+      });
+      
+      const response = await api.post(endpoint, requestBody);
+      console.log('✅ Create medical result response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || 'Tạo báo cáo y tế thành công'
+      };
+    } catch (error) {
+      console.error('❌ Error creating medical result:', error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error config:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        fullURL: `${error.config?.baseURL}${error.config?.url}`
+      });
+      
+      if (error.response?.status === 404) {
+        console.error('🚫 404 ERROR: Endpoint not found');
+        console.error('Possible issues:');
+        console.error('1. Backend endpoint URL is different');
+        console.error('2. Appointment ID format is invalid');
+        console.error('3. Backend server is not running');
+        console.error('4. API route is not registered');
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tạo báo cáo y tế',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Lấy medical result theo ID
+  getMedicalResult: async (medicalResultId) => {
+    try {
+      console.log('Getting medical result:', medicalResultId);
+      const response = await api.post(`/medical-result/getMedicalResult/${medicalResultId}`);
+      console.log('Get medical result response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || 'Lấy thông tin báo cáo y tế thành công'
+      };
+    } catch (error) {
+      console.error('Error getting medical result:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy thông tin báo cáo y tế',
+        error: error.response?.data
+      };
+    }
+  },  // Cập nhật medical result
+  updateMedicalResult: async (medicalResultId, medicalData) => {
+    try {
+      // ========= COMPREHENSIVE TOKEN AND HEADER DEBUGGING =========
+      console.log('=== API LAYER TOKEN DEBUGGING ===');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('❌ No token found in localStorage');
+        throw new Error('Authentication required - no token found');
+      }
+      
+      console.log('📋 Token present in API call:', !!token);
+      console.log('📋 Token length:', token.length);
+      console.log('📋 Token first 50 chars:', token.substring(0, 50) + '...');
+      
+      // Decode and check token in API layer too
+      let apiTokenPayload = null;
+      try {
+        const jwtDecode = require('jwt-decode').default || require('jwt-decode');
+        apiTokenPayload = jwtDecode(token);
+        console.log('🔍 API Layer - Token payload:', JSON.stringify(apiTokenPayload, null, 2));
+        
+        const roles = apiTokenPayload?.roles || apiTokenPayload?.authorities || [];
+        const hasDoctor = Array.isArray(roles) ? 
+          roles.some(r => (typeof r === 'string' ? r : r?.authority)?.includes('DOCTOR')) :
+          roles?.toString().includes('DOCTOR');
+        
+        console.log('🎯 API Layer - DOCTOR role check:', hasDoctor);
+        console.log('🎯 API Layer - All roles/authorities:', roles);
+        
+        // Check expiration
+        const now = Math.floor(Date.now() / 1000);
+        const exp = apiTokenPayload?.exp;
+        console.log('⏰ Token expiry check:');
+        console.log('- Token exp:', exp ? new Date(exp * 1000) : 'Not found');
+        console.log('- Current time:', new Date(now * 1000));
+        console.log('- Is expired:', exp && exp < now);
+        
+      } catch (decodeError) {
+        console.error('❌ API Layer - Error decoding token:', decodeError);
+      }
+      
+      console.log('=== END API TOKEN DEBUGGING ===');
+      // ========= END TOKEN DEBUGGING =========
+
+      console.log('=== DEBUG updateMedicalResult API ===');
+      console.log('Medical Result ID:', medicalResultId);
+      console.log('Medical Data:', JSON.stringify(medicalData, null, 2));      // Debug token and headers
+      console.log('Token in API call:', token ? `${token.substring(0, 50)}...` : 'NO TOKEN');        // ============ FORMDATA WITH INDIVIDUAL FIELDS ============
+      console.log('=== CREATING FORMDATA WITH INDIVIDUAL FIELDS ===');
+        const formData = new FormData();
+      
+      // Backend expects @RequestPart("data") as a JSON object
+      const dataObj = {
+        doctorId: medicalData.doctorId || '',
+        weight: medicalData.weight || '',
+        height: medicalData.height || '',
+        bmi: medicalData.bmi || '',
+        temperature: medicalData.temperature || '',
+        bloodPressure: medicalData.bloodPressure || '',
+        heartRate: medicalData.heartRate || '',
+        cd4Count: medicalData.cd4Count || '',
+        viralLoad: medicalData.viralLoad || '',
+        hemoglobin: medicalData.hemoglobin || '',
+        whiteBloodCell: medicalData.whiteBloodCell || '',
+        platelets: medicalData.platelets || '',
+        glucose: medicalData.glucose || '',
+        creatinine: medicalData.creatinine || '',
+        alt: medicalData.alt || '',
+        ast: medicalData.ast || '',
+        totalCholesterol: medicalData.totalCholesterol || '',
+        ldl: medicalData.ldl || '',
+        hdl: medicalData.hdl || '',
+        trigilycerides: medicalData.trigilycerides || '',
+        patientProgressEvaluation: medicalData.patientProgressEvaluation || '',
+        plan: medicalData.plan || '',
+        recommendation: medicalData.recommendation || '',        medicalResultMedicines: medicalData.medicalResultMedicines && Array.isArray(medicalData.medicalResultMedicines) 
+          ? medicalData.medicalResultMedicines.map(med => {
+              // Ensure proper medicine structure for API
+              const apiMedicine = {
+                medicineId: med.medicineId || med.id,
+                name: med.name || med.medicineName, // Use name or medicineName
+                dosage: med.dosage || '',
+                status: med.status || 'Mới'
+              };
+              console.log('🔄 API: Mapping medicine for update:', med, '→', apiMedicine);
+              return apiMedicine;
+            })
+          : []
+      };
+      
+      // Send data as JSON blob under "data" key (matching @RequestPart("data"))
+      const dataBlob = new Blob([JSON.stringify(dataObj)], { type: 'application/json' });
+      formData.append('data', dataBlob);
+      
+      console.log('=== FormData Data Object ===');
+      console.log('Data object being sent:', JSON.stringify(dataObj, null, 2));        // Add ARV file if present - BACKEND EXPECTS "arvRegimenResultURL"
+      if (medicalData.arvFile) {
+        console.log('📎 ARV file data received:', medicalData.arvFile);
+        
+        // Handle different ARV file formats
+        if (medicalData.arvFile instanceof File) {
+          // Standard File object
+          console.log('✅ Adding standard File object:', medicalData.arvFile.name);
+          formData.append('arvRegimenResultURL', medicalData.arvFile);
+        } else if (medicalData.arvFile.data && medicalData.arvFile.name) {
+          // Custom file object from ARV Selection Tool (with base64 data)
+          console.log('✅ Adding custom ARV file object:', medicalData.arvFile.name);
+          
+          try {
+            // Convert base64 data to Blob
+            const base64Data = medicalData.arvFile.data;
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const blob = new Blob([byteNumbers], { type: medicalData.arvFile.type || 'application/pdf' });
+            const file = new File([blob], medicalData.arvFile.name, { type: medicalData.arvFile.type || 'application/pdf' });
+            
+            console.log('📎 Converted ARV file:', file.name, file.size, 'bytes');
+            formData.append('arvRegimenResultURL', file);
+          } catch (conversionError) {
+            console.error('❌ Error converting ARV file data:', conversionError);
+            console.log('⚠️ ARV file will not be uploaded due to conversion error');
+          }
+        } else {
+          console.warn('⚠️ Invalid ARV file format:', medicalData.arvFile);
+        }
+      } else {
+        console.log('📎 No ARV file to upload');
+      }
+      
+      // Debug log all FormData entries
+      console.log('=== FormData Individual Entries ===');
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: "${value}"`);
+        }
+      }
+      
+      // Send as FormData (browser automatically sets multipart/form-data with boundary)
+      const response = await api.patch(`/medical-result/update-MedicalResult/${medicalResultId}`, formData);
+      
+      console.log('=== DEBUG API Response Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || 'Cập nhật báo cáo y tế thành công'
+      };    } catch (error) {
+      console.error('=== DEBUG API Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Full error object:', error);
+      
+      // Kiểm tra nếu là lỗi 403
+      if (error.response?.status === 403) {
+        return {
+          success: false,
+          message: 'Lỗi 403: Không có quyền cập nhật báo cáo y tế này',
+          error: '403 Forbidden - Access denied',
+          is403: true
+        };
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể cập nhật báo cáo y tế',
+        error: error.response?.data || error.message
+      };
+    }
+  }
+};
+
+// Medicine APIs
+export const medicineAPI = {
+  // Lấy tất cả thuốc
+  getAllMedicines: async () => {
+    try {
+      console.log('=== DEBUG getAllMedicines API ===');
+      
+      const response = await api.get('/medicine/getAllMedicine');
+      
+      console.log('=== DEBUG getAllMedicines Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        message: response.data.message || 'Lấy danh sách thuốc thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getAllMedicines Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy danh sách thuốc',
+        error: error.response?.data,
+        data: []
+      };
+    }
+  },
+
+  // Tạo thuốc mới
+  createMedicine: async (medicineData) => {
+    try {
+      console.log('=== DEBUG createMedicine API ===');
+      console.log('Medicine Data:', medicineData);
+      
+      const response = await api.post('/medicine/create', medicineData);
+      
+      console.log('=== DEBUG createMedicine Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || 'Tạo thuốc mới thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG createMedicine Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tạo thuốc mới',
+        error: error.response?.data
       };
     }
   }

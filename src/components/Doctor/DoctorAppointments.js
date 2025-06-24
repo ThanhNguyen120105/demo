@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { Container, Row, Col, Card, Button, ListGroup, Badge, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,50 +8,54 @@ import {
   faClipboardList, faCog, faSignOutAlt, faUsers, faFileAlt,
   faCalendarAlt, faCheckCircle, faExclamationTriangle, faFilter,
   faChevronLeft, faChevronRight, faSearch, faPlus, faTimes, faCheck, faClock,
-  faPhone, faVideo, faNotesMedical, faVial, faPrescriptionBottleAlt,
+  faNotesMedical, faVial, faPrescriptionBottleAlt,
   faStethoscope, faUserFriends, faBaby, faSlidersH, faHeartbeat, 
-  faUpload, faFilePdf, faEye, faEdit, faTrash
+  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
 import ARVSelectionTool from './ARVSelectionTool';
-import { appointmentAPI } from '../../services/api';
+import MedicineSelector from './MedicineSelector';
+import MedicalReportModal from './MedicalReportModal';
+import { appointmentAPI, userAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Dữ liệu lịch hẹn mẫu
-const initialAppointments = [
-  // May 1, 2025
-  { id: 101, date: '2025-05-01', time: '09:00 AM', patient: 'John Smith', patientId: 'P1001', age: 45, 
-    type: 'Khám định kỳ', status: 'completed', symptoms: 'Sốt, mệt mỏi', notes: 'Theo dõi chỉ số CD4' },
-  { id: 102, date: '2025-05-01', time: '10:30 AM', patient: 'Sarah Johnson', patientId: 'P1002', age: 38, 
-    type: 'Tái khám', status: 'completed', symptoms: 'Không có', notes: 'Đánh giá đáp ứng điều trị' },
-  { id: 103, date: '2025-05-05', time: '08:45 AM', patient: 'Michael Brown', patientId: 'P1003', age: 52, 
-    type: 'Kết quả xét nghiệm', status: 'completed', symptoms: 'Sụt cân', notes: 'Xem xét chỉ số CD4 và tải lượng virus' },
-  { id: 104, date: '2025-05-05', time: '11:15 AM', patient: 'Emily Davis', patientId: 'P1004', age: 33, 
-    type: 'Đánh giá thuốc', status: 'pending', symptoms: 'Phát ban', notes: 'Có thể do tác dụng phụ của thuốc' },
-  { id: 105, date: '2025-05-07', time: '09:30 AM', patient: 'Robert Wilson', patientId: 'P1005', age: 41, 
-    type: 'Tư vấn ban đầu', status: 'completed', symptoms: 'Sụt cân không rõ nguyên nhân, đổ mồ hôi đêm', notes: 'Bệnh nhân mới được giới thiệu' },
-  { id: 106, date: '2025-05-08', time: '02:00 PM', patient: 'Jennifer Lopez', patientId: 'P1006', age: 36, 
-    type: 'Tái khám', status: 'completed', symptoms: 'Không có', notes: 'Kiểm tra điều trị' },
-  { id: 107, date: '2025-05-08', time: '03:30 PM', patient: 'David Miller', patientId: 'P1007', age: 49, 
-    type: 'Tư vấn', status: 'completed', symptoms: 'Lo âu, trầm cảm', notes: 'Hỗ trợ sức khỏe tâm thần' },
-  { id: 108, date: '2025-05-12', time: '10:00 AM', patient: 'Jessica Taylor', patientId: 'P1008', age: 28, 
-    type: 'Kế hoạch điều trị', status: 'completed', symptoms: 'Không có', notes: 'Bắt đầu điều trị' },
-  { id: 109, date: '2025-05-15', time: '01:30 PM', patient: 'William Jones', patientId: 'P1009', age: 55, 
-    type: 'Khám định kỳ', status: 'pending', symptoms: 'Ho dai dẳng', notes: 'Đánh giá nhiễm trùng cơ hội' },
-  { id: 110, date: '2025-05-15', time: '03:00 PM', patient: 'Daniel Garcia', patientId: 'P1010', age: 44, 
-    type: 'Tái khám', status: 'completed', symptoms: 'Mệt mỏi', notes: 'Theo dõi điều trị' },
-  { id: 111, date: '2025-05-19', time: '09:00 AM', patient: 'Maria Rodriguez', patientId: 'P1011', age: 32, 
-    type: 'Khám thai', status: 'pending', symptoms: 'Không có', notes: 'Quản lý HIV trong thời kỳ mang thai' },
-  { id: 112, date: '2025-05-19', time: '11:30 AM', patient: 'Thomas Anderson', patientId: 'P1012', age: 47, 
-    type: 'Kết quả xét nghiệm', status: 'pending', symptoms: 'Không có', notes: 'Theo dõi cải thiện chỉ số CD4' },
-  { id: 113, date: '2025-05-21', time: '02:30 PM', patient: 'Patricia Moore', patientId: 'P1013', age: 39, 
-    type: 'Tư vấn', status: 'pending', symptoms: 'Đau đầu, vấn đề về thị lực', notes: 'Đánh giá các vấn đề thần kinh' },
-  { id: 114, date: '2025-05-22', time: '10:15 AM', patient: 'James Williams', patientId: 'P1014', age: 51, 
-    type: 'Điều chỉnh điều trị', status: 'pending', symptoms: 'Buồn nôn với thuốc hiện tại', notes: 'Xem xét phác đồ thay thế' },
-  { id: 115, date: '2025-05-22', time: '01:45 PM', patient: 'Linda Martinez', patientId: 'P1015', age: 34, 
-    type: 'Tái khám', status: 'pending', symptoms: 'Không có', notes: 'Theo dõi đáp ứng điều trị' }
-];
+// Initial state for medical report
+const initialMedicalReportState = {
+  medicalResultId: '',
+  doctorId: '',
+  userId: '',
+  appointmentId: '',
+  patientInfo: {
+    name: '',
+    customerId: ''
+  },
+  weight: '',
+  height: '',
+  bmi: '',
+  temperature: '',
+  bloodPressure: '',
+  heartRate: '',
+  cd4Count: '',
+  viralLoad: '',
+  hemoglobin: '',
+  whiteBloodCell: '',
+  platelets: '',
+  glucose: '',
+  creatinine: '',
+  alt: '',
+  ast: '',
+  totalCholesterol: '',
+  ldl: '',  hdl: '',
+  trigilycerides: '',
+  patientProgressEvaluation: '',
+  plan: '',
+  recommendation: '',
+  arvRegimenResultURL: '',
+  arvFile: null, // For storing ARV PDF file object
+  medicalResultMedicines: [],
+  visitDate: ''
+};
 
 // Biểu tượng cho các loại lịch hẹn để hiển thị tốt hơn
 const appointmentTypeIcons = {
@@ -100,6 +105,65 @@ const generateCalendarDays = (year, month, appointments) => {
   return days;
 };
 
+// Hàm mapping service ID thành tên dịch vụ (hardcode, không dùng API)
+const getServiceDisplay = (appointment) => {
+  // Tìm serviceId từ nhiều trường khác nhau có thể có trong appointment
+  let serviceId = appointment?.serviceId || 
+                  appointment?.service?.id || 
+                  appointment?.service?.serviceId;
+  
+  // Nếu không có serviceId, tạo từ appointmentType
+  if (!serviceId && appointment?.appointmentType) {
+    switch (appointment.appointmentType.toUpperCase()) {
+      case 'INITIAL':
+        serviceId = 1;
+        break;
+      case 'FOLLOW_UP':
+        serviceId = 2;
+        break;
+      default:
+        serviceId = 1;
+        break;
+    }
+  }
+  
+  // Hardcode mapping - không gọi API
+  switch (serviceId) {
+    case 1:
+    case '1':
+      return 'Khám và xét nghiệm HIV';
+    case 2:
+    case '2':
+      return 'Theo dõi tải lượng virus';
+    default:
+      // Fallback dựa trên appointmentType nếu vẫn không có serviceId
+      if (appointment?.appointmentType) {
+        switch (appointment.appointmentType.toLowerCase()) {
+          case 'initial':
+            return 'Khám và xét nghiệm HIV';
+          case 'follow_up':
+          case 'followup':
+            return 'Theo dõi tải lượng virus';
+          default:
+            return appointment.appointmentType;
+        }
+      }
+      return 'Dịch vụ khám bệnh';
+  }
+};
+
+// Hàm mapping appointment type thành tiếng Việt
+const getAppointmentTypeDisplay = (type) => {
+  switch (type) {
+    case 'INITIAL':
+      return 'Khám lần đầu';
+    case 'FOLLOW_UP':
+      return 'Tái khám';
+    default:
+      return type || 'Không xác định';
+  }
+};
+
 const DoctorAppointments = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('appointments');
@@ -108,64 +172,19 @@ const DoctorAppointments = () => {
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  });
-  const [appointments, setAppointments] = useState([]);
+  });  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [medicalReport, setMedicalReport] = useState({
-    patientInfo: {},
-    visitDate: '',
-    vitalSigns: {
-      weight: '',
-      height: '',
-      bmi: '',
-      temperature: '',
-      bloodPressure: '',
-      heartRate: ''
-    },
-    labResults: {
-      cd4Count: '',
-      viralLoad: '',
-      hematology: {
-        hgb: '',
-        wbc: '',
-        platelets: ''
-      },
-      chemistry: {
-        glucose: '',
-        creatinine: '',
-        alt: '',
-        ast: ''
-      },
-      lipidPanel: {
-        totalCholesterol: '',
-        ldl: '',
-        hdl: '',
-        triglycerides: ''
-      }
-    },
-    medications: [],
-    assessment: '',
-    plan: '',
-    recommendations: ['', '', '', ''],
-    arvResultFile: null,
-    doctorInfo: {
-      name: 'Dr. John Doe',
-      specialty: 'Chuyên gia điều trị HIV',
-      signature: 'J. Doe, MD',
-      date: ''
-    }
-  });
+  const [medicalReport, setMedicalReport] = useState(initialMedicalReportState);
   const [showPdfViewer, setShowPdfViewer] = useState(false);
-  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);  const [showARVTool, setShowARVTool] = useState(false);
-  const [selectedAppointmentForARV, setSelectedAppointmentForARV] = useState(null);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
+  const [showMedicineSelector, setShowMedicineSelector] = useState(false);
     // Load appointments từ API khi component mount
   useEffect(() => {
     loadDoctorAppointments();
-  }, []); // Không phụ thuộc vào user nữa
-    // Load lịch hẹn của bác sĩ từ API
+  }, []); // Không phụ thuộc vào user nữa  // Load lịch hẹn của bác sĩ từ API
   const loadDoctorAppointments = async () => {
     try {
       setLoading(true);
@@ -177,30 +196,155 @@ const DoctorAppointments = () => {
       
       // Gọi API getAcceptedAppointmentsForDoctor (dành cho doctor)
       const result = await appointmentAPI.getAcceptedAppointmentsForDoctor();
-      
-      console.log('Doctor appointments result:', result);      console.log('Doctor appointments result:', result);
+      console.log('Doctor appointments result:', result);
       
       if (result.success) {
-        // Convert format để compatible với component hiện tại
-        const doctorAppointments = (result.data || []).map((appointment) => {
-          return {
-            ...appointment,
-            // Convert format để compatible với component hiện tại
-            date: appointment.appointmentDate,
-            time: `${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`,
-            patient: appointment.userName || appointment.alternativeName || appointment.user?.fullName || `Patient #${appointment.id}`,
-            patientId: appointment.id,
-            type: appointment.appointmentService || appointment.appointmentType || 'Khám bệnh',
-            status: appointment.status.toLowerCase(), // Keep original status
-            originalStatus: appointment.status, // Keep original for debugging
-            symptoms: appointment.reason || 'Không có triệu chứng',
-            notes: appointment.notes || 'Chưa có ghi chú',
-            detailsLoaded: true
-          };
-        });
+        // Lấy chi tiết từng appointment để có đầy đủ thông tin
+        const appointmentList = result.data || [];
+        const detailedAppointments = [];
         
-        setAppointments(doctorAppointments);
-        console.log('Final doctor appointments:', doctorAppointments);
+        // Load chi tiết từng appointment
+        for (const appointment of appointmentList) {
+          try {
+            console.log('📋 Getting details for appointment:', appointment.id);
+            const detailResult = await appointmentAPI.getAppointmentById(appointment.id);
+            
+            if (detailResult.success && detailResult.data) {
+              const detailedAppt = detailResult.data;
+              console.log('📋 Appointment details received:', detailedAppt);
+              
+              // Mapping serviceId từ appointmentType nếu không có serviceId
+              let serviceId = detailedAppt?.serviceId || appointment?.serviceId;
+              if (!serviceId && detailedAppt?.appointmentType) {
+                switch (detailedAppt.appointmentType.toUpperCase()) {
+                  case 'INITIAL':
+                    serviceId = 1; // Khám và xét nghiệm HIV
+                    break;
+                  case 'FOLLOW_UP':
+                    serviceId = 2; // Theo dõi tải lượng virus
+                    break;
+                  default:
+                    serviceId = 1; // Default to service 1
+                    break;
+                }
+                console.log(`🔄 Mapped appointmentType "${detailedAppt.appointmentType}" to serviceId: ${serviceId}`);
+              }
+              
+              // Tên bệnh nhân từ alternativeName (ưu tiên từ chi tiết), fallback về ID
+              const patientName = detailedAppt.alternativeName || appointment.alternativeName || `Bệnh nhân #${detailedAppt.userId || appointment.userId || appointment.id}`;
+              console.log(`👤 Patient name: ${patientName} (alternativeName: ${detailedAppt.alternativeName})`);
+              
+              // Tên dịch vụ từ appointmentService (ưu tiên từ chi tiết)
+              const serviceName = detailedAppt.appointmentService || getServiceDisplay({ serviceId, appointmentType: detailedAppt.appointmentType });
+              console.log(`🏥 Service name: ${serviceName} (appointmentService: ${detailedAppt.appointmentService})`);
+              
+              // Debug các trường quan trọng
+              console.log(`🔍 Final appointment details:`, {
+                serviceId,
+                serviceName,
+                alternativeName: detailedAppt.alternativeName,
+                userId: detailedAppt.userId,
+                reason: detailedAppt.reason,
+                note: detailedAppt.notes || detailedAppt.note,
+                appointmentType: detailedAppt.appointmentType,
+                slotStartTime: detailedAppt.slotStartTime,
+                slotEndTime: detailedAppt.slotEndTime,
+                appointmentService: detailedAppt.appointmentService
+              });
+              
+              detailedAppointments.push({
+                ...detailedAppt, // Giữ nguyên TẤT CẢ các field từ API chi tiết
+                // Convert format để compatible với component hiện tại
+                date: detailedAppt.appointmentDate || appointment.appointmentDate,
+                type: detailedAppt.appointmentType || appointment.appointmentType || 'Khám bệnh',
+                status: (detailedAppt.status || appointment.status).toLowerCase(),
+                originalStatus: detailedAppt.status || appointment.status,
+                symptoms: detailedAppt.reason || appointment.reason || 'Không có triệu chứng',
+                notes: detailedAppt.notes || detailedAppt.note || appointment.notes || appointment.note || 'Chưa có ghi chú',
+                // Sử dụng dữ liệu từ API chi tiết
+                alternativeName: patientName,
+                serviceName: serviceName, // Tên dịch vụ đã được xác định
+                reason: detailedAppt.reason || appointment.reason,
+                note: detailedAppt.notes || detailedAppt.note || appointment.notes || appointment.note,
+                serviceId: serviceId,
+                service: detailedAppt.service || appointment.service,
+                appointmentType: detailedAppt.appointmentType || appointment.appointmentType,
+                userId: detailedAppt.userId || appointment.userId,
+                appointmentService: detailedAppt.appointmentService, // Tên dịch vụ từ API
+                detailsLoaded: true
+              });
+            } else {
+              // Nếu không lấy được chi tiết, sử dụng dữ liệu cơ bản
+              console.warn('Could not get details for appointment:', appointment.id, 'using basic data');
+              
+              // Mapping serviceId từ appointmentType
+              let serviceId = appointment?.serviceId;
+              if (!serviceId && appointment?.appointmentType) {
+                switch (appointment.appointmentType.toUpperCase()) {
+                  case 'INITIAL':
+                    serviceId = 1;
+                    break;
+                  case 'FOLLOW_UP':
+                    serviceId = 2;
+                    break;
+                  default:
+                    serviceId = 1;
+                    break;
+                }
+              }
+              
+              const patientName = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
+              const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType });
+              
+              detailedAppointments.push({
+                ...appointment,
+                date: appointment.appointmentDate,
+                type: appointment.appointmentType || 'Khám bệnh',
+                status: appointment.status.toLowerCase(),
+                originalStatus: appointment.status,
+                symptoms: appointment.reason || 'Không có triệu chứng',
+                notes: appointment.notes || appointment.note || 'Chưa có ghi chú',
+                alternativeName: patientName,
+                serviceName: serviceName,
+                reason: appointment.reason,
+                note: appointment.notes || appointment.note,
+                serviceId: serviceId,
+                service: appointment.service,
+                appointmentType: appointment.appointmentType,
+                userId: appointment.userId,
+                detailsLoaded: false
+              });
+            }
+          } catch (detailError) {
+            console.error('Error getting appointment details:', detailError);
+            // Nếu lỗi, vẫn thêm appointment với dữ liệu cơ bản
+            const patientName = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
+            let serviceId = appointment?.serviceId || 1;
+            const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType });
+            
+            detailedAppointments.push({
+              ...appointment,
+              date: appointment.appointmentDate,
+              type: appointment.appointmentType || 'Khám bệnh',
+              status: appointment.status.toLowerCase(),
+              originalStatus: appointment.status,
+              symptoms: appointment.reason || 'Không có triệu chứng',
+              notes: appointment.notes || appointment.note || 'Chưa có ghi chú',
+              alternativeName: patientName,
+              serviceName: serviceName,
+              reason: appointment.reason,
+              note: appointment.notes || appointment.note,
+              serviceId: serviceId,
+              service: appointment.service,
+              appointmentType: appointment.appointmentType,
+              userId: appointment.userId,
+              detailsLoaded: false
+            });
+          }
+        }
+        
+        setAppointments(detailedAppointments);
+        console.log('Final detailed appointments:', detailedAppointments);
         
       } else {
         console.error('Failed to load appointments:', result.message);
@@ -257,16 +401,7 @@ const DoctorAppointments = () => {
       month: 'long', 
       day: 'numeric' 
     });
-  };
-  
-  // Modify handleViewPdf to use base64 data
-  const handleViewPdf = (pdfFile) => {
-    if (pdfFile && pdfFile.data) {
-      setCurrentPdfUrl(pdfFile.data);
-      setShowPdfViewer(true);
-    }
-  };
-
+  };  
   // Modify handleClosePdfViewer to not revoke URL
   const handleClosePdfViewer = () => {
     setCurrentPdfUrl(null);
@@ -298,9 +433,27 @@ const DoctorAppointments = () => {
     }
     return null;
   };
-
   // Add back handleReportChange function
   const handleReportChange = (field, value) => {
+    console.log(`🔄 Report field change: ${field} =`, value);
+    
+    // Special handling for ARV file from ARV Selection Tool
+    if (field === 'arvResultFile' && value) {
+      console.log('📎 ARV File received:', {
+        name: value.name,
+        type: value.type,
+        size: value.size,
+        hasData: !!value.data
+      });
+      
+      setMedicalReport(prevReport => ({
+        ...prevReport,
+        arvFile: value, // Store the file object for API upload
+        arvRegimenResultURL: value.name || 'arv-selection-result.pdf' // Store filename for display
+      }));
+      return;
+    }
+    
     setMedicalReport(prevReport => {
       // Xử lý các trường lồng nhau (nested fields)
       if (field.includes('.')) {
@@ -323,154 +476,44 @@ const DoctorAppointments = () => {
       };
     });
   };
-
-  // Modify existing handleShowReportModal
-  const handleShowReportModal = (appointment) => {
-    setSelectedAppointment(appointment);
-    
-    // Try to load saved progress first
-    const savedProgress = handleLoadFormProgress(appointment);
-    if (savedProgress) {
-      setMedicalReport(savedProgress);
-    } else {
-      // If no saved progress, initialize with default values
-      let initialReport;
-      if (appointment.status === 'completed') {
-        initialReport = {
-          patientInfo: {
-            name: appointment.patient,
-            dob: "1985-06-12",
-            gender: "Nam",
-            patientId: appointment.patientId
-          },
-          visitDate: appointment.date,
-          vitalSigns: {
-            weight: '72 kg',
-            height: '175 cm',
-            bmi: '23.5',
-            temperature: '36.7°C',
-            bloodPressure: '120/80 mmHg',
-            heartRate: '72 bpm'
-          },
-          labResults: {
-            cd4Count: `${Math.floor(Math.random() * 300) + 400} tế bào/mm³`,
-            viralLoad: 'Không phát hiện (<20 bản sao/mL)',
-            hematology: {
-              hgb: '14.2 g/dL',
-              wbc: '5.8 × 10³/μL',
-              platelets: '230 × 10³/μL'
-            },
-            chemistry: {
-              glucose: '92 mg/dL',
-              creatinine: '0.9 mg/dL',
-              alt: '28 U/L',
-              ast: '26 U/L'
-            },
-            lipidPanel: {
-              totalCholesterol: '180 mg/dL',
-              ldl: '105 mg/dL',
-              hdl: '48 mg/dL',
-              triglycerides: '130 mg/dL'
-            }
-          },
-          medications: [
-            {
-              name: 'Biktarvy',
-              dosage: '1 viên',
-              frequency: 'Ngày 1 lần',
-              status: 'Tiếp tục'
-            },
-            {
-              name: 'Đa vitamin',
-              dosage: '1 viên',
-              frequency: 'Ngày 1 lần',
-              status: 'Mới'
-            }
-          ],
-          assessment: generateAssessment(appointment),
-          plan: 'Tiếp tục liệu pháp kháng virus hiện tại. Tái khám sau 3 tháng với xét nghiệm CD4 và tải lượng virus. Khuyến khích thực hành tình dục an toàn.',
-          recommendations: [
-            'Duy trì chế độ ăn uống lành mạnh và tập thể dục thường xuyên',
-            'Tránh uống rượu bia',
-            'Quay lại tái khám sau 3 tháng',
-            'Gọi ngay nếu có bất kỳ triệu chứng đáng lo ngại nào'
-          ],
-          arvResultFile: {
-            name: `Báo_cáo_ARV_${appointment.patientId}.pdf`,
-            size: '1.2 MB',
-            date: appointment.date
-          },
-          doctorInfo: {
-            name: 'Dr. John Doe',
-            specialty: 'Chuyên gia điều trị HIV',
-            signature: 'J. Doe, MD',
-            date: appointment.date
-          }
-        };
-      } else {
-        initialReport = {
-          patientInfo: {
-            name: appointment.patient,
-            dob: "1985-06-12",
-            gender: "Nam",
-            patientId: appointment.patientId
-          },
-          visitDate: appointment.date,
-          vitalSigns: {
-            weight: '',
-            height: '',
-            bmi: '',
-            temperature: '',
-            bloodPressure: '',
-            heartRate: ''
-          },
-          labResults: {
-            cd4Count: '',
-            viralLoad: '',
-            hematology: {
-              hgb: '',
-              wbc: '',
-              platelets: ''
-            },
-            chemistry: {
-              glucose: '',
-              creatinine: '',
-              alt: '',
-              ast: ''
-            },
-            lipidPanel: {
-              totalCholesterol: '',
-              ldl: '',
-              hdl: '',
-              triglycerides: ''
-            }
-          },
-          medications: [
-            {
-              name: '',
-              dosage: '',
-              frequency: '',
-              status: 'Mới'
-            }
-          ],
-          assessment: '',
-          plan: '',
-          recommendations: ['', '', '', ''],
-          arvResultFile: null,
-          doctorInfo: {
-            name: 'Dr. John Doe',
-            specialty: 'Chuyên gia điều trị HIV',
-            signature: 'J. Doe, MD',
-            date: new Date().toISOString().split('T')[0]
-          }
+  // Hàm xử lý thay đổi thông tin thuốc
+  const handleMedicineChange = (index, field, value) => {
+    setMedicalReport(prevReport => {
+      const newMedicines = [...(prevReport.medicalResultMedicines || [])];
+      if (newMedicines[index]) {
+        newMedicines[index] = {
+          ...newMedicines[index],
+          [field]: value
         };
       }
-      setMedicalReport(initialReport);
-    }
-    
-    setShowReportModal(true);
+      return {
+        ...prevReport,
+        medicalResultMedicines: newMedicines
+      };
+    });
   };
-  
+
+  // Hàm thêm thuốc mới từ MedicineSelector
+  const handleAddMedicine = (newMedicine) => {
+    setMedicalReport(prevReport => {
+      return {
+        ...prevReport,
+        medicalResultMedicines: [...(prevReport.medicalResultMedicines || []), newMedicine]
+      };
+    });
+  };
+
+  // Hàm xóa thuốc
+  const handleRemoveMedicine = (index) => {
+    setMedicalReport(prevReport => {
+      const newMedicines = [...(prevReport.medicalResultMedicines || [])];
+      newMedicines.splice(index, 1);
+      return {
+        ...prevReport,
+        medicalResultMedicines: newMedicines
+      };
+    });
+  };
   // Hàm trợ giúp để tạo nội dung đánh giá dựa trên loại lịch hẹn
   const generateAssessment = (appointment) => {
     const assessments = {
@@ -487,63 +530,990 @@ const DoctorAppointments = () => {
   
   // Modify existing handleCloseReportModal
   const handleCloseReportModal = () => {
-    handleSaveFormProgress(medicalReport);
     setShowReportModal(false);
     setSelectedAppointment(null);
+    setMedicalReport(initialMedicalReportState);
   };
-  
-  // Modify existing handleSaveReport
-  const handleSaveReport = () => {
-    // Ở đây có thể xử lý việc lưu báo cáo vào cơ sở dữ liệu
-    console.log('Đang lưu báo cáo y tế:', medicalReport);
-    
-    // Cập nhật trạng thái của lịch hẹn thành đã hoàn thành
-    const updatedAppointments = appointments.map(apt => {
-      if (apt.id === selectedAppointment.id) {
-        return {...apt, status: 'completed'};
+
+  const handleViewPdf = (pdfFile) => {
+    if (pdfFile && pdfFile.data) {
+      const byteCharacters = atob(pdfFile.data);
+      const byteNumbers = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-      return apt;
-    });
-    
-    // Clear saved progress after successful save
-    if (selectedAppointment) {
-      localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
+      const blob = new Blob([byteNumbers], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url);
     }
-    
-    handleCloseReportModal();
+  };  // Helper function to get doctor ID from token
+  const getDoctorIdFromToken = () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      const tokenPayload = jwtDecode(token);
+      return tokenPayload?.sub || tokenPayload?.userId || tokenPayload?.id;
+    } catch (error) {
+      console.error('Error extracting doctorId from token:', error);
+      return null;
+    }
   };
 
-  // Hàm chuyển trạng thái lịch hẹn từ đang chờ sang hoàn thành
-  const handleCompleteAppointment = (appointmentId) => {
-    const appointment = appointments.find(apt => apt.id === appointmentId);
-    if (!appointment) return;
-
-    // Kiểm tra xem đã có đánh giá và thuốc chưa
-    const hasAssessment = medicalReport.assessment && medicalReport.assessment.trim() !== '';
-    const hasMedications = medicalReport.medications && medicalReport.medications.length > 0 && 
-                          medicalReport.medications.some(med => med.name.trim() !== '');
-
-    if (!hasAssessment || !hasMedications) {
-      alert('Vui lòng thêm đánh giá và thuốc trước khi hoàn thành lịch hẹn');
+  // Debug function to test token independently
+  const testTokenAndRole = () => {
+    console.log('=== INDEPENDENT TOKEN TEST ===');
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('❌ No token found');
+      alert('❌ Không tìm thấy token trong localStorage');
       return;
     }
-
-    setAppointments(prevAppointments => {
-      const updatedAppointments = prevAppointments.map(apt => {
-        if (apt.id === appointmentId) {
-          return { ...apt, status: 'completed' };
-        }
-        return apt;
+    
+    try {
+      const payload = jwtDecode(token);
+      console.log('🔍 Token Payload:', JSON.stringify(payload, null, 2));
+      
+      // Check all possible role fields
+      const roleFields = {
+        roles: payload.roles,
+        authorities: payload.authorities,
+        role: payload.role,
+        auth: payload.auth,
+        scopes: payload.scopes,
+        scope: payload.scope,
+        userType: payload.userType,
+        user_type: payload.user_type,
+        userRole: payload.userRole,
+        user_role: payload.user_role
+      };
+      
+      console.log('🔑 All possible role fields:', roleFields);
+      
+      // Check expiration
+      const now = Math.floor(Date.now() / 1000);
+      const exp = payload.exp;
+      const isExpired = exp && exp < now;
+      
+      console.log('⏰ Expiration check:', {
+        exp: exp ? new Date(exp * 1000) : 'N/A',
+        now: new Date(now * 1000),
+        isExpired
       });
-      return updatedAppointments;
-    });
+      
+      // Display results
+      alert(`🔍 Token Debug Results:\n\n` +
+            `User ID: ${payload.sub || payload.userId || payload.id || 'N/A'}\n` +
+            `Expired: ${isExpired ? 'YES' : 'NO'}\n\n` +
+            `Role Fields:\n${JSON.stringify(roleFields, null, 2)}\n\n` +
+            `Full Payload:\n${JSON.stringify(payload, null, 2)}`);
+            
+    } catch (error) {
+      console.error('❌ Token decode error:', error);
+      alert('❌ Lỗi decode token: ' + error.message);
+    }
   };
 
+  const handleSaveReport = async () => {
+    try {
+      // ============ TOKEN AND ROLE DEBUGGING ============
+      console.log('=== COMPREHENSIVE TOKEN DEBUGGING ===');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('❌ Lỗi: Không tìm thấy token. Vui lòng đăng nhập lại.');
+        return;
+      }
+      
+      console.log('📋 Token found in localStorage:', token ? 'YES' : 'NO');
+      console.log('📋 Token length:', token?.length || 0);
+      console.log('📋 Token first 50 chars:', token?.substring(0, 50) + '...');
+      
+      let tokenPayload = null;
+      let tokenDoctorId = null;
+      let tokenRoles = null;
+      let tokenAuthorities = null;
+      
+      try {
+        tokenPayload = jwtDecode(token);
+        console.log('🔍 Full JWT Token Payload:', JSON.stringify(tokenPayload, null, 2));
+        
+        // Extract doctor ID
+        tokenDoctorId = tokenPayload?.sub || tokenPayload?.userId || tokenPayload?.id;
+        console.log('👤 Doctor ID from token:', tokenDoctorId);
+        
+        // Extract roles/authorities in various possible formats
+        tokenRoles = tokenPayload?.roles || tokenPayload?.role || [];
+        tokenAuthorities = tokenPayload?.authorities || tokenPayload?.auth || [];
+        
+        console.log('🔑 Roles from token:', tokenRoles);
+        console.log('🔑 Authorities from token:', tokenAuthorities);
+        
+        // Check for DOCTOR role in different formats
+        const hasDocRoleInRoles = Array.isArray(tokenRoles) ? 
+          tokenRoles.some(role => typeof role === 'string' ? role.includes('DOCTOR') : role?.authority?.includes('DOCTOR')) :
+          (typeof tokenRoles === 'string' && tokenRoles.includes('DOCTOR'));
+          
+        const hasDocRoleInAuth = Array.isArray(tokenAuthorities) ?
+          tokenAuthorities.some(auth => typeof auth === 'string' ? auth.includes('DOCTOR') : auth?.authority?.includes('DOCTOR')) :
+          (typeof tokenAuthorities === 'string' && tokenAuthorities.includes('DOCTOR'));
+        
+        // Check other possible fields
+        const hasDocInScopes = tokenPayload?.scope?.includes('DOCTOR') || tokenPayload?.scopes?.includes('DOCTOR');
+        const hasDocInUserType = tokenPayload?.userType === 'DOCTOR' || tokenPayload?.user_type === 'DOCTOR';
+        
+        console.log('🎯 DOCTOR Role Detection:');
+        console.log('- In roles array/string:', hasDocRoleInRoles);
+        console.log('- In authorities array/string:', hasDocRoleInAuth);
+        console.log('- In scope/scopes:', hasDocInScopes);
+        console.log('- In userType/user_type:', hasDocInUserType);
+        
+        const hasDoctorRole = hasDocRoleInRoles || hasDocRoleInAuth || hasDocInScopes || hasDocInUserType;
+        console.log('✅ Final DOCTOR role check:', hasDoctorRole);
+        
+        if (!hasDoctorRole) {
+          console.error('❌ CRITICAL: Token does not contain DOCTOR role!');
+          alert('❌ Lỗi phân quyền: Token không chứa quyền DOCTOR.\n\n' +
+                'Chi tiết:\n' +
+                `- User ID: ${tokenDoctorId}\n` +
+                `- Roles: ${JSON.stringify(tokenRoles)}\n` +
+                `- Authorities: ${JSON.stringify(tokenAuthorities)}\n\n` +
+                'Vui lòng đăng nhập lại hoặc liên hệ admin để kiểm tra phân quyền.');
+          return;
+        }
+        
+        // Check token expiration
+        const currentTime = Math.floor(Date.now() / 1000);
+        const tokenExp = tokenPayload?.exp;
+        if (tokenExp && tokenExp < currentTime) {
+          console.error('❌ CRITICAL: Token has expired!');
+          console.log('Token exp:', new Date(tokenExp * 1000));
+          console.log('Current time:', new Date(currentTime * 1000));
+          alert('❌ Token đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        
+        console.log('✅ Token is valid and contains DOCTOR role');
+        
+      } catch (tokenError) {
+        console.error('❌ CRITICAL: Error decoding JWT token:', tokenError);
+        alert('❌ Lỗi: Token không hợp lệ. Vui lòng đăng nhập lại.\n\nChi tiết lỗi: ' + tokenError.message);
+        return;
+      }
+      
+      if (!tokenDoctorId) {
+        alert('❌ Lỗi: Không thể xác định ID bác sĩ từ token. Vui lòng đăng nhập lại.');
+        return;
+      }
+      
+      console.log('=== END TOKEN DEBUGGING ===');
+      // ============ END TOKEN DEBUGGING ============
+
+      // Validate required fields
+      const requiredFields = {
+        'Cân nặng': medicalReport.weight,
+        'Chiều cao': medicalReport.height,
+        'Huyết áp': medicalReport.bloodPressure,
+        'Nhịp tim': medicalReport.heartRate,
+        'CD4 Count': medicalReport.cd4Count,
+        'Viral Load': medicalReport.viralLoad,
+        'Hemoglobin': medicalReport.hemoglobin,
+        'Bạch cầu': medicalReport.whiteBloodCell,
+        'Tiểu cầu': medicalReport.platelets,
+        'Đánh giá tiến triển': medicalReport.patientProgressEvaluation,
+        'Kế hoạch điều trị': medicalReport.plan,
+        'Khuyến nghị': medicalReport.recommendation
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([_, value]) => !value || value.toString().trim() === '')
+        .map(([key, _]) => key);
+
+      if (missingFields.length > 0) {
+        alert(`Vui lòng điền đầy đủ các trường bắt buộc:\n${missingFields.join(', ')}`);
+        return;
+      }
+
+      // Validate medications
+      if (medicalReport.medicalResultMedicines && medicalReport.medicalResultMedicines.length > 0) {
+        for (let i = 0; i < medicalReport.medicalResultMedicines.length; i++) {
+          const med = medicalReport.medicalResultMedicines[i];
+          if (!med.medicineId || !med.medicineName || !med.dosage || !med.status) {
+            alert(`Thuốc thứ ${i + 1}: Vui lòng chọn thuốc từ danh sách và điền đầy đủ liều lượng, trạng thái`);
+            return;
+          }
+          // Ensure medicineId is from backend (not a fallback ID)
+          if (med.medicineId.includes('new_med_') || med.medicineId.includes('fallback_med_')) {
+            alert(`Thuốc thứ ${i + 1}: Vui lòng chọn thuốc từ danh sách có sẵn, không sử dụng ID tạm thời`);
+            return;
+          }
+        }
+      }
+
+      console.log('Medical Result ID:', medicalReport.medicalResultId);
+      console.log('Doctor trying to update:', tokenDoctorId);
+        // Kiểm tra ownership trước khi update        // Kiểm tra ownership trước khi update
+      console.log('=== DEBUG: Checking medical result ownership ===');
+      let appointmentDoctorId = selectedAppointment?.doctorId;
+      
+      try {
+        const appointmentResult = await appointmentAPI.getAppointmentById(selectedAppointment.id);
+        console.log('Current appointment data:', appointmentResult.data);
+        console.log('Appointment medicalResultId:', appointmentResult.data?.medicalResultId);
+        console.log('Appointment doctorId from API:', appointmentResult.data?.doctorId);
+        
+        // Update appointment doctor ID if we got it from API
+        if (appointmentResult.data?.doctorId) {
+          appointmentDoctorId = appointmentResult.data.doctorId;
+          console.log('Updated appointment doctor ID from API:', appointmentDoctorId);
+        }
+      } catch (ownershipError) {
+        console.warn('Could not check appointment for ownership:', ownershipError);
+      }
+      
+      console.log('=== OWNERSHIP ANALYSIS ===');
+      console.log('Token doctor ID:', tokenDoctorId);
+      console.log('Appointment doctor ID:', appointmentDoctorId);
+      console.log('Doctor IDs match:', tokenDoctorId === appointmentDoctorId);
+      
+      // Check if doctor ownership matches
+      if (appointmentDoctorId && tokenDoctorId !== appointmentDoctorId) {
+        console.warn('⚠️ Doctor ownership mismatch detected!');
+        const confirmProceed = window.confirm(
+          `⚠️ Cảnh báo: Bạn đang cố gắng cập nhật báo cáo của bác sĩ khác.\n\n` +
+          `Bác sĩ của appointment: ${appointmentDoctorId}\n` +
+          `Bác sĩ hiện tại: ${tokenDoctorId}\n\n` +
+          `Bạn có muốn tiếp tục không? (Có thể sẽ gặp lỗi 403)`
+        );
+        
+        if (!confirmProceed) {
+          console.log('User cancelled due to ownership mismatch');
+          return;
+        }
+      }      const updateData = {
+        doctorId: getDoctorIdFromToken(), // Always use token doctor ID for ownership
+        weight: medicalReport.weight ? parseFloat(medicalReport.weight) : null,
+        height: medicalReport.height ? parseFloat(medicalReport.height) : null,
+        bmi: medicalReport.bmi ? parseFloat(medicalReport.bmi) : null,
+        temperature: medicalReport.temperature ? parseFloat(medicalReport.temperature) : null,
+        bloodPressure: medicalReport.bloodPressure || null,
+        heartRate: medicalReport.heartRate ? parseInt(medicalReport.heartRate) : null,
+        cd4Count: medicalReport.cd4Count ? parseInt(medicalReport.cd4Count) : null,
+        viralLoad: medicalReport.viralLoad || null,
+        hemoglobin: medicalReport.hemoglobin ? parseFloat(medicalReport.hemoglobin) : null,
+        whiteBloodCell: medicalReport.whiteBloodCell ? parseFloat(medicalReport.whiteBloodCell) : null,
+        platelets: medicalReport.platelets ? parseInt(medicalReport.platelets) : null,
+        glucose: medicalReport.glucose ? parseInt(medicalReport.glucose) : null,
+        creatinine: medicalReport.creatinine ? parseFloat(medicalReport.creatinine) : null,
+        alt: medicalReport.alt ? parseInt(medicalReport.alt) : null,
+        ast: medicalReport.ast ? parseInt(medicalReport.ast) : null,
+        totalCholesterol: medicalReport.totalCholesterol ? parseInt(medicalReport.totalCholesterol) : null,
+        ldl: medicalReport.ldl ? parseInt(medicalReport.ldl) : null,
+        hdl: medicalReport.hdl ? parseInt(medicalReport.hdl) : null,        trigilycerides: medicalReport.trigilycerides ? parseInt(medicalReport.trigilycerides) : null,
+        patientProgressEvaluation: medicalReport.patientProgressEvaluation || null,
+        plan: medicalReport.plan || null,
+        recommendation: medicalReport.recommendation || null,        medicalResultMedicines: Array.isArray(medicalReport.medicalResultMedicines) && medicalReport.medicalResultMedicines.length > 0 ?
+          medicalReport.medicalResultMedicines
+            .filter(med => med && med.medicineName && med.dosage && med.medicineId)
+            .map((med) => ({
+              medicineId: parseInt(med.medicineId), // Ensure medicineId is integer
+              medicineName: med.medicineName || '',
+              dosage: med.dosage || '',
+              status: med.status || 'Mới'
+            })) : null, // Send null instead of empty array
+        // ARV file handling - include the file object for upload
+        arvFile: medicalReport.arvFile || null, // File object from ARV Selection Tool
+        arvRegimenResultURL: medicalReport.arvRegimenResultURL || ""
+      };console.log('=== DEBUG: Trying to update existing report ===');
+      console.log('Medical Result ID:', medicalReport.medicalResultId);      console.log('Doctor from token:', tokenDoctorId);
+      console.log('Doctor in updateData:', updateData.doctorId);
+      console.log('Appointment doctor ID:', selectedAppointment?.doctorId);
+      console.log('Update Payload:', JSON.stringify(updateData, null, 2));      // Additional debug - check medicines format
+      if (updateData.medicalResultMedicines && updateData.medicalResultMedicines.length > 0) {
+        console.log('Medicines being sent:');
+        updateData.medicalResultMedicines.forEach((med, index) => {
+          console.log(`Medicine ${index + 1}:`, {
+            medicineId: med.medicineId,
+            type: typeof med.medicineId,
+            medicineName: med.medicineName,
+            dosage: med.dosage,
+            status: med.status
+          });
+        });      } else {
+        console.log('No medicines to send (null or empty)');
+      }
+        // Debug ARV file
+      if (updateData.arvFile) {
+        console.log('📎 ARV File being sent:', {
+          name: updateData.arvFile.name,
+          type: updateData.arvFile.type,
+          size: updateData.arvFile.size,
+          hasData: !!updateData.arvFile.data
+        });
+        
+        // Validate ARV file before sending
+        if (updateData.arvFile.type && !updateData.arvFile.type.includes('pdf')) {
+          console.warn('⚠️ ARV file is not a PDF:', updateData.arvFile.type);
+          const confirmNonPdf = window.confirm(
+            '⚠️ Cảnh báo: File ARV không phải định dạng PDF.\n\n' +
+            `Loại file: ${updateData.arvFile.type}\n` +
+            'Hệ thống có thể không chấp nhận file này.\n\n' +
+            'Bạn có muốn tiếp tục không?'
+          );
+          if (!confirmNonPdf) {
+            console.log('User cancelled due to non-PDF ARV file');
+            return;
+          }
+        }
+        
+        // Check file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (updateData.arvFile.size > maxSize) {
+          alert('❌ Lỗi: File ARV quá lớn. Kích thước tối đa: 10MB\n\n' +
+                `Kích thước hiện tại: ${(updateData.arvFile.size / 1024 / 1024).toFixed(2)}MB`);
+          return;
+        }
+        
+      } else {
+        console.log('📎 No ARV file to send');
+      }
+      
+      const initialResult = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, updateData);
+      
+      console.log('=== DEBUG: API Response ===', initialResult);      if (initialResult.success) {
+        console.log('=== SUCCESS: Medical report updated successfully ===');
+        
+        // Enhanced success message with ARV feedback
+        let successMessage = '✅ Cập nhật báo cáo y tế thành công!\n\n📋 Tất cả thông tin đã được lưu đầy đủ.';
+        
+        if (updateData.arvFile) {
+          successMessage += '\n\n📎 File ARV đã được tải lên và lưu trữ thành công.';
+          console.log('📎 ARV file uploaded successfully with medical report update');
+        }
+        
+        if (updateData.medicalResultMedicines && updateData.medicalResultMedicines.length > 0) {
+          successMessage += `\n\n💊 Đã lưu ${updateData.medicalResultMedicines.length} loại thuốc.`;
+        }
+        
+        alert(successMessage);
+        
+        if (selectedAppointment) {
+          localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
+        }
+        await loadDoctorAppointments();
+        handleCloseReportModal();
+        return;
+      }// Kiểm tra lỗi 403 với nhiều cách khác nhau
+      const is403Error = initialResult.is403 === true ||
+                        initialResult.error?.includes?.('403') ||
+                        initialResult.message?.includes?.('403') ||
+                        (initialResult.error && typeof initialResult.error === 'object' && 
+                         (initialResult.error.status === 403 || initialResult.error.response?.status === 403)) ||
+                        (initialResult.success === false && initialResult.message?.includes('403'));
+        console.log('=== DEBUG: Checking 403 error ===');
+      console.log('Full API result:', initialResult);
+      console.log('Error object:', initialResult.error);
+      console.log('Message:', initialResult.message);
+      console.log('Success flag:', initialResult.success);
+      console.log('Is 403 Error:', is403Error);      if (is403Error) {
+        console.warn('=== 403 FORBIDDEN: Detailed analysis ===');
+        console.log('Possible reasons:');        console.log('1) Doctor ownership mismatch:');
+        console.log('   - Token doctor ID:', tokenDoctorId);
+        console.log('   - Appointment doctor ID:', selectedAppointment?.doctorId);
+        console.log('   - Update data doctor ID:', updateData.doctorId);
+        console.log('2) Medicine ID format issues:');
+        if (updateData.medicalResultMedicines) {
+          updateData.medicalResultMedicines.forEach((med, i) => {
+            console.log(`   - Medicine ${i+1}: ID=${med.medicineId} (${typeof med.medicineId})`);
+          });
+        }
+        console.log('3) ARV file issue:', medicalReport.arvRegimenResultURL ? 'File present' : 'No file');
+        console.log('Full error response:', initialResult);
+        
+        // Step 1: Try without medicines first (most common fix)
+        const retryWithoutMedicines = window.confirm(
+          'Lỗi 403: Không có quyền cập nhật báo cáo y tế.\n\n' +
+          'Nguyên nhân có thể là:\n' +
+          '• Báo cáo chưa được gán đúng bác sĩ\n' +
+          '• Dữ liệu thuốc không hợp lệ\n' +
+          '• Quyền truy cập bị hạn chế\n\n' +
+          'Thử lưu báo cáo cơ bản trước (không bao gồm thuốc)?'
+        );
+
+        if (retryWithoutMedicines) {
+          try {
+            console.log('=== STEP 1: Attempting update without medicines ===');
+            const simpleUpdateData = {
+              ...updateData,
+              medicalResultMedicines: null, // Remove medicines
+              arvRegimenResultURL: "" // Remove ARV file
+            };
+            
+            console.log('Simple update payload:', JSON.stringify(simpleUpdateData, null, 2));
+            const retryResult = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, simpleUpdateData);
+              if (retryResult.success) {
+              console.log('=== SUCCESS: Simple update worked ===');
+              
+              // Check if we had ARV file that was excluded
+              const hadARVFile = updateData.arvFile;
+              let baseSuccessMessage = '✅ Đã lưu báo cáo y tế cơ bản thành công!\n\n' + 
+                    'Lưu ý: Chưa bao gồm thông tin thuốc và file ARV.\n' + 
+                    'Bạn có thể thêm thuốc sau bằng cách chỉnh sửa báo cáo.';
+              
+              if (hadARVFile) {
+                const retryARV = window.confirm(
+                  baseSuccessMessage + 
+                  '\n\n📎 Bạn có file ARV đã tạo từ công cụ ARV.\n' +
+                  'Bạn có muốn thử tải lên file ARV riêng biệt không?'
+                );
+                
+                if (retryARV) {
+                  try {
+                    console.log('=== STEP 1B: Attempting ARV file upload separately ===');
+                    const arvOnlyData = {
+                      doctorId: getDoctorIdFromToken(),
+                      arvFile: updateData.arvFile,
+                      arvRegimenResultURL: updateData.arvRegimenResultURL
+                    };
+                    
+                    const arvResult = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, arvOnlyData);
+                    
+                    if (arvResult.success) {
+                      console.log('=== SUCCESS: ARV file uploaded separately ===');
+                      alert('✅ Đã lưu báo cáo y tế và file ARV thành công!\n\n' +
+                            '📋 Báo cáo cơ bản: ✅\n' +
+                            '📎 File ARV: ✅\n' +
+                            '💊 Thuốc: Cần thêm riêng sau này');
+                    } else {
+                      console.log('=== FAILED: ARV upload failed ===', arvResult);
+                      alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
+                            '❌ Không thể tải file ARV: ' + (arvResult.message || 'Lỗi không xác định') + '\n\n' +
+                            'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
+                    }
+                  } catch (arvError) {
+                    console.error('=== ARV UPLOAD ERROR ===', arvError);
+                    alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
+                          '❌ Lỗi khi tải file ARV: ' + arvError.message + '\n\n' +
+                          'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
+                  }
+                } else {
+                  alert(baseSuccessMessage);
+                }
+              } else {
+                alert(baseSuccessMessage);
+              }
+              
+              if (selectedAppointment) {
+                localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
+              }
+              await loadDoctorAppointments();
+              handleCloseReportModal();
+              return;
+            } else {
+              console.log('=== STEP 1 FAILED: Still getting error ===', retryResult);
+            }
+          } catch (retryError) {
+            console.error('=== STEP 1 ERROR ===', retryError);
+          }
+        }
+        
+        // Step 2: Create new medical result if simple update also failed
+        const confirmNewRecord = window.confirm(
+          '❌ Vẫn không thể cập nhật báo cáo hiện tại.\n\n' +
+          'Có thể báo cáo này đã bị khóa hoặc thuộc về bác sĩ khác.\n\n' +
+          '🔄 Tạo báo cáo y tế mới cho lịch hẹn này?\n' +
+          '(Dữ liệu hiện tại sẽ được chuyển sang báo cáo mới)'
+        );        if (confirmNewRecord) {          try {
+            console.log('=== STEP 2: Creating new medical result for appointment ===', selectedAppointment.id);
+            
+            // Try to create medical result with detailed logging
+            let createResult = await medicalResultAPI.createMedicalResult(selectedAppointment.id);
+            
+            // If 404, try alternative endpoints
+            if (!createResult.success && createResult.error && 
+                (createResult.error.status === 404 || createResult.message?.includes('404'))) {
+              
+              console.log('=== STEP 2A: Primary endpoint failed with 404, trying alternatives ===');
+              
+              // Import api directly for alternative endpoints
+              const { api } = await import('../../services/api');
+              
+              // Try alternative endpoint formats
+              const alternativeEndpoints = [
+                `/medical-result/create/${selectedAppointment.id}`,
+                `/medical-result/createMedicalResult/${selectedAppointment.id}`,
+                `/medicalresult/create/${selectedAppointment.id}`,
+                `/api/medical-result/create-MedicalResult/${selectedAppointment.id}`
+              ];
+                for (const altEndpoint of alternativeEndpoints) {
+                try {
+                  console.log(`Trying alternative endpoint: ${altEndpoint}`);
+                  const response = await api.post(altEndpoint, { doctorId: getDoctorIdFromToken() });
+                  if (response.data) {
+                    console.log(`✅ Alternative endpoint worked: ${altEndpoint}`);
+                    createResult = {
+                      success: true,
+                      data: response.data.data || response.data,
+                      message: 'Tạo báo cáo y tế thành công với endpoint thay thế'
+                    };
+                    break;
+                  }
+                } catch (altError) {
+                  console.log(`❌ Alternative endpoint failed: ${altEndpoint}`, altError.response?.status);
+                }
+              }
+            }
+
+            if (createResult.success && createResult.data?.id) {
+              const newMedicalResultId = createResult.data.id;
+              console.log('=== STEP 2: New medical result created with ID ===', newMedicalResultId);              // Try to update with simplified data first (no medicines, no ARV)
+              const cleanUpdateData = {
+                doctorId: getDoctorIdFromToken(), // Ensure we use the token doctor ID
+                weight: updateData.weight,
+                height: updateData.height,
+                bmi: updateData.bmi,
+                temperature: updateData.temperature,
+                bloodPressure: updateData.bloodPressure,
+                heartRate: updateData.heartRate,
+                cd4Count: updateData.cd4Count,
+                viralLoad: updateData.viralLoad,
+                hemoglobin: updateData.hemoglobin,
+                whiteBloodCell: updateData.whiteBloodCell,
+                platelets: updateData.platelets,
+                glucose: updateData.glucose,
+                creatinine: updateData.creatinine,
+                alt: updateData.alt,
+                ast: updateData.ast,
+                totalCholesterol: updateData.totalCholesterol,
+                ldl: updateData.ldl,
+                hdl: updateData.hdl,
+                trigilycerides: updateData.trigilycerides,
+                patientProgressEvaluation: updateData.patientProgressEvaluation,
+                plan: updateData.plan,
+                recommendation: updateData.recommendation,
+                medicalResultMedicines: null, // Start without medicines
+                arvRegimenResultURL: "" // Start without ARV file
+              };
+
+              console.log('=== STEP 2: Updating new medical result with clean data ===');
+              console.log('Clean payload:', JSON.stringify(cleanUpdateData, null, 2));
+              
+              const finalResult = await medicalResultAPI.updateMedicalResult(newMedicalResultId, cleanUpdateData);
+
+              if (finalResult.success) {
+                console.log('=== SUCCESS: New medical result created and updated successfully ===');
+                const hasSkippedData = (updateData.medicalResultMedicines && updateData.medicalResultMedicines.length > 0) || 
+                                     (medicalReport.arvRegimenResultURL && medicalReport.arvRegimenResultURL !== "");
+                
+                let successMessage = '✅ Đã tạo và lưu báo cáo y tế mới thành công!';
+                if (hasSkippedData) {
+                  successMessage += '\n\n⚠️ Lưu ý: Chưa bao gồm thông tin thuốc và file ARV do vấn đề quyền truy cập.\nBạn có thể thêm sau bằng cách chỉnh sửa báo cáo.';
+                }
+                
+                alert(successMessage);
+                if (selectedAppointment) {
+                  localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
+                }
+                await loadDoctorAppointments();
+                handleCloseReportModal();
+              } else {
+                console.error('=== STEP 2 FAILED: Could not update the new medical result ===', finalResult);
+                alert('❌ Tạo báo cáo mới thành công nhưng không thể cập nhật dữ liệu.\n\nLỗi: ' + (finalResult.message || 'Không rõ nguyên nhân.'));
+              }
+            } else {
+              console.error('=== STEP 2 FAILED: Could not create a new medical result ===', createResult);
+              alert('❌ Không thể tạo báo cáo mới.\n\nLỗi: ' + (createResult.message || 'Không rõ nguyên nhân.'));
+            }
+          } catch (workaroundError) {
+            console.error('=== STEP 2 EXCEPTION: Caught error in fallback ===', workaroundError);
+            alert('❌ Đã xảy ra lỗi không mong muốn trong khi tạo báo cáo mới.');
+          }
+        }
+      } else {
+        // Xử lý các lỗi khác không phải 403
+        console.error('=== FAILED: API returned a non-403 error ===', initialResult);
+        alert('Lỗi khi cập nhật báo cáo y tế: ' + (initialResult.message || 'Không rõ nguyên nhân.'));
+      }
+    } catch (error) {
+      console.error('=== EXCEPTION: Caught error in handleSaveReport ===', error);
+      alert('Đã xảy ra lỗi không mong muốn khi lưu báo cáo y tế: ' + error.message);
+    }
+  };  // Hàm tạo medical result cho appointment
+  const handleCreateMedicalResult = async (appointmentId) => {
+    try {
+      console.log('Creating medical result for appointment:', appointmentId);
+      
+      // Get doctor ID from token to ensure proper ownership
+      const tokenDoctorId = getDoctorIdFromToken();
+      if (!tokenDoctorId) {
+        alert('Lỗi: Không thể xác định bác sĩ từ token. Vui lòng đăng nhập lại.');
+        return;
+      }
+
+      console.log('Creating medical result with doctor ID:', tokenDoctorId);
+      
+      let result = await medicalResultAPI.createMedicalResult(appointmentId);
+      
+      // If primary creation failed with 404, try alternative endpoints
+      if (!result.success && result.message?.includes('404')) {
+        console.log('Primary creation failed, trying alternative endpoints...');
+        
+        // Import api directly for alternative endpoints
+        const { api } = await import('../../services/api');
+        
+        const alternativeEndpoints = [
+          `/medical-result/create/${appointmentId}`,
+          `/medical-result/createMedicalResult/${appointmentId}`,
+          `/medicalresult/create/${appointmentId}`,
+          `/api/medical-result/create-MedicalResult/${appointmentId}`
+        ];
+          for (const altEndpoint of alternativeEndpoints) {
+          try {
+            console.log(`Trying alternative endpoint: ${altEndpoint}`);
+            const response = await api.post(altEndpoint, { doctorId: getDoctorIdFromToken() });
+            if (response.data) {
+              console.log(`✅ Alternative endpoint worked: ${altEndpoint}`);
+              result = {
+                success: true,
+                data: response.data.data || response.data,
+                message: 'Tạo báo cáo y tế thành công với endpoint thay thế'
+              };
+              break;
+            }
+          } catch (altError) {
+            console.log(`❌ Alternative endpoint failed: ${altEndpoint}`, altError.response?.status);
+          }
+        }
+      }
+      
+      if (result.success) {
+        // Reload appointments để cập nhật medicalResultId
+        await loadDoctorAppointments();
+        alert('Tạo báo cáo y tế thành công!');
+      } else {
+        console.error('All creation attempts failed:', result);
+        alert('Lỗi tạo báo cáo y tế: ' + (result.message || 'Không thể kết nối đến server'));
+      }
+    } catch (error) {
+      console.error('Error creating medical result:', error);
+      alert('Đã xảy ra lỗi khi tạo báo cáo y tế: ' + error.message);
+    }
+  };
+  // Hàm hiển thị modal nhập báo cáo y tế
+  const handleShowMedicalReportModal = async (appointment) => {
+    try {
+      setSelectedAppointment(appointment);
+      
+      // Lấy lại thông tin appointment để có medicalResultId mới nhất
+      const appointmentResult = await appointmentAPI.getAppointmentById(appointment.id);
+        if (appointmentResult.success && appointmentResult.data.medicalResultId) {
+        const medicalResultId = appointmentResult.data.medicalResultId;
+        console.log('Loading medical result:', medicalResultId);
+        
+        // Try to load existing medical result data
+        console.log('=== DEBUG: Attempting to load existing medical result data ===');
+        try {
+          const existingMedicalResult = await medicalResultAPI.getMedicalResult(medicalResultId);
+          
+          if (existingMedicalResult.success && existingMedicalResult.data) {
+            console.log('✅ Successfully loaded existing medical result:', existingMedicalResult.data);
+            
+            // Log medicines data for debugging
+            if (existingMedicalResult.data.medicalResultMedicines && existingMedicalResult.data.medicalResultMedicines.length > 0) {
+              console.log('📋 Medicines from API:', existingMedicalResult.data.medicalResultMedicines);
+            }
+            
+            // Map API response to form structure
+            const loadedReport = {
+              medicalResultId: existingMedicalResult.data.id,
+              doctorId: getDoctorIdFromToken(),
+              userId: appointment.userId,
+              appointmentId: appointment.id,
+              patientInfo: {
+                name: appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`,
+                customerId: appointment.userId || appointment.id
+              },
+              visitDate: appointment.date,
+              appointmentInfo: {
+                time: `${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`,
+                type: getAppointmentTypeDisplay(appointment.appointmentType || appointment.type),
+                service: appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment),
+                symptoms: appointment.reason || appointment.symptoms || 'Không có triệu chứng',
+                notes: appointment.notes || appointment.note || 'Chưa có ghi chú'
+              },
+              // Map medical data from API response
+              weight: existingMedicalResult.data.weight || '',
+              height: existingMedicalResult.data.height || '',
+              bmi: existingMedicalResult.data.bmi || '',
+              temperature: existingMedicalResult.data.temperature || '',
+              bloodPressure: existingMedicalResult.data.bloodPressure || '',
+              heartRate: existingMedicalResult.data.heartRate || '',
+              cd4Count: existingMedicalResult.data.cd4Count || '',
+              viralLoad: existingMedicalResult.data.viralLoad || '',
+              hemoglobin: existingMedicalResult.data.hemoglobin || '',
+              whiteBloodCell: existingMedicalResult.data.whiteBloodCell || '',
+              platelets: existingMedicalResult.data.platelets || '',
+              glucose: existingMedicalResult.data.glucose || '',
+              creatinine: existingMedicalResult.data.creatinine || '',
+              alt: existingMedicalResult.data.alt || '',
+              ast: existingMedicalResult.data.ast || '',
+              totalCholesterol: existingMedicalResult.data.totalCholesterol || '',
+              ldl: existingMedicalResult.data.ldl || '',
+              hdl: existingMedicalResult.data.hdl || '',              trigilycerides: existingMedicalResult.data.triglycerides || '', // Note: API uses 'triglycerides' not 'trigilycerides'
+              patientProgressEvaluation: existingMedicalResult.data.patientProgressEvaluation || '',
+              plan: existingMedicalResult.data.plan || '',              recommendation: existingMedicalResult.data.recommendation || '',
+              // Properly map medicines with all required fields
+              medicalResultMedicines: (existingMedicalResult.data.medicalResultMedicines || []).map(medicine => {
+                const mappedMedicine = {
+                  medicineId: medicine.medicineId || medicine.id || '',
+                  medicineName: medicine.name || medicine.medicineName || '', // Map API 'name' to 'medicineName' for component
+                  name: medicine.name || medicine.medicineName || '', // Keep both for backward compatibility
+                  dosage: medicine.dosage || '',
+                  status: medicine.status || 'Mới'
+                };
+                console.log('🔄 Mapping medicine:', medicine, '→', mappedMedicine);
+                return mappedMedicine;
+              }),
+              // ARV file handling - URL from database, but no file object for existing data
+              arvRegimenResultURL: existingMedicalResult.data.arvRegimenResultURL || null,
+              arvFile: null // No file object for existing data, only URL reference
+            };
+            console.log('📋 Populated medical report with existing data:', loadedReport);
+            console.log('💊 Final medicines array:', loadedReport.medicalResultMedicines);
+            setMedicalReport(loadedReport);
+            setShowReportModal(true);
+            return; // Exit early since we successfully loaded existing data
+          }
+        } catch (loadError) {
+          console.warn('⚠️ Could not load existing medical result, will create empty form:', loadError);
+          // Continue to create empty form below
+        }
+        
+        // Fallback: Initialize empty form if loading existing data failed
+        console.log('=== DEBUG: Initializing empty medical report form for doctor ===');
+        const currentUser = user || JSON.parse(localStorage.getItem('user') || '{}');
+        
+        // Lấy doctorId từ JWT token
+        let doctorId = '';
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const tokenPayload = jwtDecode(token);
+            doctorId = tokenPayload.sub; // Lấy user ID từ JWT token
+            console.log('Doctor ID from JWT token:', doctorId);
+          } catch (error) {
+            console.error('Error extracting doctorId from token:', error);
+          }
+        }
+        
+        // Fallback nếu không lấy được từ token
+        if (!doctorId) {
+          doctorId = appointment.doctorId || currentUser?.id || '';
+        }
+        
+        console.log('Doctor ID sources:');
+        console.log('- From JWT token:', token ? doctorId : 'no token');
+        console.log('- From appointment:', appointment.doctorId);
+        console.log('- From current user:', currentUser?.id);
+        console.log('- Final doctor ID:', doctorId);
+        
+        const emptyReport = {
+          medicalResultId: medicalResultId,
+          doctorId: doctorId,
+          userId: appointment.userId || appointment.id,
+          appointmentId: appointment.id,
+          patientInfo: {
+            name: appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`,
+            customerId: appointment.userId || appointment.id
+          },
+          visitDate: appointment.date,
+          
+          // Vital Signs - khởi tạo trống, doctor sẽ điền
+          weight: '', height: '', bmi: '', temperature: '', bloodPressure: '', heartRate: '',
+          
+          // Lab Results - khởi tạo trống, doctor sẽ điền
+          cd4Count: '', viralLoad: '', hemoglobin: '', whiteBloodCell: '', platelets: '',
+          glucose: '', creatinine: '', alt: '', ast: '', totalCholesterol: '', ldl: '', hdl: '', trigilycerides: '',
+            // Medical Assessment & Plan - khởi tạo trống, doctor sẽ điền
+          patientProgressEvaluation: '', plan: '', recommendation: '', 
+          
+          // ARV Result - khởi tạo trống
+          arvRegimenResultURL: '',
+          arvFile: null, // No ARV file initially
+          
+          // Medications - empty by default, doctor will add via MedicineSelector
+          medicalResultMedicines: [],
+          
+          doctorInfo: {
+            name: 'Dr. John Doe', 
+            specialty: 'Chuyên gia điều trị HIV',
+            signature: 'J. Doe, MD', 
+            date: appointment.date
+          }
+        };
+        
+        setMedicalReport(emptyReport);
+        
+        setShowReportModal(true);
+      } else {
+        alert('Không tìm thấy báo cáo y tế cho lịch hẹn này');
+      }
+    } catch (error) {
+      console.error('Error showing medical report modal:', error);
+      alert('Đã xảy ra lỗi khi mở báo cáo y tế');
+    }
+  };
+  // Hàm hiển thị chi tiết lịch hẹn (chỉ xem, không chỉnh sửa)
+  const handleShowAppointmentDetails = (appointment) => {
+    setSelectedAppointment(appointment);
+    // Hiển thị modal chỉ để xem thông tin, không cho chỉnh sửa
+    const readOnlyReport = {
+      patientInfo: {
+        name: appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`,
+        customerId: appointment.userId || appointment.id
+      },
+      visitDate: appointment.date,
+      appointmentInfo: {
+        time: `${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`,
+        type: getAppointmentTypeDisplay(appointment.appointmentType || appointment.type),
+        service: appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment),
+        symptoms: appointment.reason || appointment.symptoms || 'Không có triệu chứng',
+        notes: appointment.notes || appointment.note || 'Chưa có ghi chú'      },      // Thêm các trường cần thiết để tránh lỗi - mapping với API fields
+      medicalResultMedicines: [],
+      weight: '',
+      height: '',
+      bmi: '',
+      temperature: '',
+      bloodPressure: '',
+      heartRate: '',
+      cd4Count: '',
+      viralLoad: '',
+      hemoglobin: '',
+      whiteBloodCell: '',
+      platelets: '',
+      glucose: '',
+      creatinine: '',
+      alt: '',
+      ast: '',
+      totalCholesterol: '',
+      ldl: '',
+      hdl: '',
+      trigilycerides: '',
+      patientProgressEvaluation: '',
+      plan: '',
+      recommendation: ''
+    };
+    setMedicalReport(readOnlyReport);
+    setShowReportModal(true);
+  };  // Hàm chuyển trạng thái lịch hẹn từ ACCEPTED sang COMPLETED
+  const handleCompleteAppointment = async (appointmentId) => {
+    try {
+      console.log('=== DEBUG: Starting appointment completion ===');
+      
+      const appointment = appointments.find(apt => apt.id === appointmentId);
+      if (!appointment) {
+        console.error('❌ Appointment not found in current appointments list');
+        alert('Không tìm thấy lịch hẹn trong danh sách hiện tại');
+        return;
+      }
+      
+      console.log('📋 Appointment found:', {
+        id: appointment.id,
+        patientName: appointment.alternativeName,
+        currentStatus: appointment.status,
+        originalStatus: appointment.originalStatus,
+        hasmedicalResult: !!appointment.medicalResultId
+      });
+
+      // Check if appointment has medical result
+      if (!appointment.medicalResultId) {
+        const proceedWithoutMedical = window.confirm(
+          '⚠️ Cảnh báo: Lịch hẹn này chưa có báo cáo y tế.\n\n' +
+          'Thông thường bạn nên tạo báo cáo y tế trước khi hoàn thành lịch hẹn.\n\n' +
+          'Bạn có muốn tiếp tục hoàn thành mà không có báo cáo y tế không?'
+        );
+        
+        if (!proceedWithoutMedical) {
+          console.log('User cancelled due to missing medical result');
+          return;
+        }
+      }
+
+      // Confirm with user
+      const patientInfo = appointment.alternativeName || `Bệnh nhân #${appointment.userId}`;
+      const confirmMessage = `Bạn có chắc chắn muốn hoàn thành lịch hẹn này?\n\n` +
+                           `👤 Bệnh nhân: ${patientInfo}\n` +
+                           `📅 Ngày: ${appointment.date}\n` +
+                           `⏰ Giờ: ${appointment.slotStartTime} - ${appointment.slotEndTime}\n` +
+                           `🏥 Dịch vụ: ${appointment.serviceName || appointment.appointmentService || 'N/A'}\n\n` +
+                           `Sau khi hoàn thành, trạng thái sẽ chuyển thành "COMPLETED".`;
+                           
+      const confirmed = window.confirm(confirmMessage);
+      if (!confirmed) {
+        console.log('User cancelled appointment completion');
+        return;
+      }
+
+      console.log('=== DEBUG: Calling API to update appointment status ===');
+      console.log('Appointment ID:', appointmentId);
+      console.log('Target Status: COMPLETED');
+      
+      // Call API to update status to COMPLETED
+      const result = await appointmentAPI.updateAppointmentStatus(appointmentId, 'COMPLETED');
+      
+      console.log('=== DEBUG: API Response ===', result);
+      
+      if (result.success) {
+        console.log('✅ SUCCESS: Appointment status updated to COMPLETED');
+        
+        // Show success message with details
+        let successMessage = '✅ Đã hoàn thành lịch hẹn thành công!\n\n' +
+                           `👤 Bệnh nhân: ${patientInfo}\n` +
+                           `📅 Trạng thái mới: COMPLETED`;
+        
+        if (result.endpoint) {
+          console.log('📡 Success endpoint:', result.endpoint);
+        }
+        
+        alert(successMessage);
+        
+        // Reload appointments to update the status in UI
+        console.log('🔄 Reloading appointments to update UI...');
+        await loadDoctorAppointments();
+        
+      } else {
+        console.error('❌ FAILED: API returned error');
+        console.error('Error details:', result);
+        
+        // Enhanced error message based on the error type
+        let errorMessage = 'Lỗi hoàn thành lịch hẹn:\n\n' + result.message;
+        
+        if (result.attemptsLog) {
+          errorMessage += '\n\nCác endpoint đã thử:\n' + result.attemptsLog.join('\n');
+        }
+        
+        if (result.message?.includes('mạng') || result.message?.includes('network')) {
+          errorMessage += '\n\n💡 Gợi ý: Kiểm tra kết nối internet và thử lại.';
+        } else if (result.message?.includes('endpoint')) {
+          errorMessage += '\n\n💡 Gợi ý: Liên hệ admin để kiểm tra cấu hình API backend.';
+        }
+        
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error('=== EXCEPTION: Error in handleCompleteAppointment ===', error);
+      alert('Đã xảy ra lỗi không mong muốn khi hoàn thành lịch hẹn:\n\n' + error.message);
+    }
+  };
   // Lọc lịch hẹn đã hoàn thành cho ngày được chọn
   const getCompletedAppointmentsForDate = (date) => {
-    return appointments.filter(apt => apt.date === date && apt.status === 'completed');
-  };
-  // Get accepted appointments for the selected date (doctor chỉ xem appointments đã được duyệt)
+    return appointments.filter(apt => {
+      const matchesDate = apt.date === date || apt.appointmentDate === date;
+      const isCompleted = apt.status === 'completed' || apt.status === 'COMPLETED';
+      return matchesDate && isCompleted;
+    });
+  };  // Get accepted appointments for the selected date (doctor chỉ xem appointments đã được duyệt)
   const getPendingAppointmentsForDate = (date) => {
     return appointments.filter(apt => {
       const matchesDate = apt.date === date || apt.appointmentDate === date;
@@ -552,25 +1522,51 @@ const DoctorAppointments = () => {
     });
   };
 
-  // Add back ARV tool related functions
-  const handleOpenARVTool = (appointment) => {
-    setSelectedAppointmentForARV(appointment);
-    setShowARVTool(true);
-  };
-
-  const handleCloseARVTool = () => {
-    setShowARVTool(false);
-    setSelectedAppointmentForARV(null);
-  };
-
-  const handleARVResult = (result) => {
-    if (selectedAppointmentForARV) {
-      setMedicalReport(prev => ({
-        ...prev,
-        arvResultFile: result
-      }));
+  // Debug function to test appointment endpoints
+  const testAppointmentEndpoints = async (appointmentId) => {
+    console.log('=== TESTING ALL APPOINTMENT ENDPOINTS ===');
+    
+    if (!appointmentId) {
+      const firstAppointment = appointments.find(apt => apt.id);
+      appointmentId = firstAppointment?.id;
+      
+      if (!appointmentId) {
+        alert('Không có appointment nào để test. Vui lòng tải lại danh sách appointments.');
+        return;
+      }
     }
-    handleCloseARVTool();
+    
+    console.log('Testing with appointment ID:', appointmentId);
+    
+    // Test getting appointment details first
+    try {
+      console.log('📋 Testing: GET appointment details...');
+      const detailResult = await appointmentAPI.getAppointmentById(appointmentId);
+      console.log('✅ GET appointment details - Success:', detailResult.success);
+      console.log('📋 Current appointment data:', detailResult.data);
+    } catch (error) {
+      console.error('❌ GET appointment details - Failed:', error);
+    }
+    
+    // Test update status with different endpoints
+    const testStatuses = ['COMPLETED', 'ACCEPTED', 'PENDING'];
+    
+    for (const status of testStatuses) {
+      console.log(`\n🔄 Testing status update to: ${status}`);
+      try {
+        const result = await appointmentAPI.updateAppointmentStatus(appointmentId, status);
+        console.log(`✅ Status update to ${status} - Success:`, result.success);
+        if (result.success && result.endpoint) {
+          console.log(`📡 Working endpoint: ${result.endpoint}`);
+          alert(`✅ Success! Working endpoint found:\n${result.endpoint}\n\nStatus updated to: ${status}`);
+          return; // Stop testing once we find a working endpoint
+        }
+      } catch (error) {
+        console.error(`❌ Status update to ${status} - Failed:`, error);
+      }
+    }
+    
+    alert('❌ All endpoint tests failed. Check console for details.');
   };
 
   return (
@@ -583,8 +1579,7 @@ const DoctorAppointments = () => {
             appointmentsCount={appointments.length}
           />
           
-          <Col md={9} lg={10} className="main-content">
-            <div className="content-header">
+          <Col md={9} lg={10} className="main-content">            <div className="content-header">
               <h2>Lịch hẹn</h2>
               <p>Quản lý lịch hẹn bệnh nhân</p>
             </div>
@@ -620,13 +1615,14 @@ const DoctorAppointments = () => {
                       <div className="calendar-grid">
                         {days.map((day, index) => (
                           <div 
-                            key={index} 
+                            key={index}
                             className={`calendar-day ${day.date === selectedDate ? 'selected' : ''} ${day.date === '2025-05-28' ? 'today' : ''} ${day.hasAppointments ? 'has-appointments' : ''} ${!day.date ? 'empty' : ''}`}
                             onClick={() => day.date && setSelectedDate(day.date)}
                           >
                             {day.day && (
                               <>
-                                <div className="day-number">{day.day}</div>                                {day.hasAppointments && (
+                                <div className="day-number">{day.day}</div>
+                                {day.hasAppointments && (
                                   <div className="appointment-indicators">
                                     {/* Hiển thị dấu chấm vàng cho tất cả accepted appointments */}
                                     {day.appointments.slice(0, 3).map((appt, i) => (
@@ -662,85 +1658,72 @@ const DoctorAppointments = () => {
                             key={appointment.id} 
                             className={`appointment-item status-${appointment.status}`}
                           >
-                            <div className="appointment-time">
-                              <FontAwesomeIcon icon={faClock} className="me-2" />
-                              {appointment.time}
-                            </div>
                             <div className="appointment-details">
-                              <div className="appointment-patient">
-                                {appointment.patient}
-                                {appointment.patientId && appointment.age && (
-                                  <small className="text-muted ms-2">(ID: {appointment.patientId}, Tuổi: {appointment.age})</small>
-                                )}
+                              <div className="appointment-info-line">
+                                <strong>Giờ khám:</strong> {`${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`}
+                              </div>                              <div className="appointment-info-line">
+                                <strong>Bệnh nhân:</strong> {appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`}
                               </div>
-                              <div className="appointment-type">{appointment.type}</div>
-                              {appointment.symptoms && (
-                                <div className="appointment-symptoms">
-                                  <small>Triệu chứng: {appointment.symptoms}</small>
-                                </div>
-                              )}
-                              {appointment.notes && (
-                                <div className="appointment-notes">
-                                  <small className="text-muted">Ghi chú: {appointment.notes}</small>
-                                </div>
-                              )}
+                              <div className="appointment-info-line">
+                                <strong>Loại khám:</strong> {getAppointmentTypeDisplay(appointment.appointmentType || appointment.type)}
+                              </div>
+                              <div className="appointment-info-line">
+                                <strong>Triệu chứng:</strong> {appointment.reason || appointment.symptoms || 'Không có triệu chứng'}
+                              </div>
+                              <div className="appointment-info-line">
+                                <strong>Ghi chú:</strong> {appointment.notes || appointment.note || 'Chưa có ghi chú'}
+                              </div>
+                              <div className="appointment-info-line">
+                                <strong>Dịch vụ:</strong> {appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment)}
+                              </div>
                             </div>
                             <div className="appointment-status">
-                              <Button 
-                                variant="outline-success" 
-                                size="sm" 
-                                className="action-btn"
-                                onClick={() => handleCompleteAppointment(appointment.id)}
-                              >
-                                <FontAwesomeIcon icon={faCheck} className="me-1" />
-                                Hoàn thành
-                              </Button>
-                            </div>
-                            
-                            <div className="examination-form mt-3">
-                              <h6 className="form-label">Kết quả khám</h6>
-                              <Form>
-                                <Form.Group className="mb-2">
-                                  <Form.Control as="textarea" rows={2} placeholder="Quan sát lâm sàng" />
-                                </Form.Group>
-                                <Row>
-                                  <Col>
-                                    <Form.Group className="mb-2">
-                                      <Form.Control type="text" placeholder="Chỉ số CD4" />
-                                    </Form.Group>
-                                  </Col>
-                                  <Col>
-                                    <Form.Group className="mb-2">
-                                      <Form.Control type="text" placeholder="Tải lượng virus" />
-                                    </Form.Group>
-                                  </Col>
-                                </Row>
-                                <Form.Group className="mb-2">
-                                  <Form.Control as="textarea" rows={2} placeholder="Khuyến nghị điều trị" />
-                                </Form.Group>
-                                <div className="d-flex justify-content-end">
-                                  <Button variant="primary" size="sm">
-                                    Lưu vào hồ sơ y tế
-                                  </Button>
-                                </div>
-                              </Form>
+                              {!appointment.medicalResultId ? (
+                                // Chưa có medical result → hiển thị nút "Tạo báo cáo y tế"
+                                <Button 
+                                  variant="outline-primary" 
+                                  size="sm" 
+                                  className="action-btn me-2"
+                                  onClick={() => handleCreateMedicalResult(appointment.id)}
+                                >
+                                  <FontAwesomeIcon icon={faPlus} className="me-1" />
+                                  Tạo báo cáo y tế
+                                </Button>
+                              ) : (
+                                // Đã có medical result → hiển thị nút "Nhập báo cáo y tế"
+                                <Button 
+                                  variant="outline-info" 
+                                  size="sm" 
+                                  className="action-btn me-2"
+                                  onClick={() => handleShowMedicalReportModal(appointment)}
+                                >
+                                  <FontAwesomeIcon icon={faEdit} className="me-1" />
+                                  Nhập báo cáo y tế
+                                </Button>
+                              )}
+                              
+                              {/* Nút hoàn thành - chỉ hiển thị khi đã có medical result */}
+                              {appointment.medicalResultId && (
+                                <Button 
+                                  variant="outline-success" 
+                                  size="sm" 
+                                  className="action-btn"
+                                  onClick={() => handleCompleteAppointment(appointment.id)}
+                                >
+                                  <FontAwesomeIcon icon={faCheck} className="me-1" />
+                                  Hoàn thành
+                                </Button>                              )}
                             </div>
                             
                             <div className="appointment-actions mt-2">
-                              <Button 
-                                variant="outline-primary" 
+                              <Button
+                                variant="outline-secondary" 
                                 size="sm" 
                                 className="action-btn me-1"
-                                onClick={() => handleShowReportModal(appointment)}
+                                onClick={() => handleShowAppointmentDetails(appointment)}
                               >
                                 <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                Chi tiết
-                              </Button>
-                              <Button variant="outline-success" size="sm" className="action-btn me-1">
-                                <FontAwesomeIcon icon={faPhone} />
-                              </Button>
-                              <Button variant="outline-info" size="sm" className="action-btn">
-                                <FontAwesomeIcon icon={faVideo} />
+                                Chi tiết lịch hẹn
                               </Button>
                             </div>
                           </div>
@@ -766,8 +1749,7 @@ const DoctorAppointments = () => {
                   Xem tất cả
                 </Button>
               </Card.Header>
-              <Card.Body className="p-0">
-                <div className="table-responsive">
+              <Card.Body className="p-0">                <div className="table-responsive">
                   <table className="table appointment-table">
                     <thead>
                       <tr>
@@ -780,20 +1762,20 @@ const DoctorAppointments = () => {
                     <tbody>
                       {getCompletedAppointmentsForDate(selectedDate).map(appointment => (
                         <tr key={appointment.id}>
-                          <td>{appointment.time}</td>
+                          <td>{`${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`}</td>
                           <td>
                             <div className="d-flex flex-column">
-                              <span>{appointment.patient}</span>
-                              <small className="text-muted">ID: {appointment.patientId}</small>
+                              <span>{appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`}</span>
+                              <small className="text-muted">ID: {appointment.userId || appointment.id}</small>
                             </div>
                           </td>
                           <td>{appointment.type}</td>
                           <td>
                             <Button 
                               variant="outline-primary" 
-                              size="sm" 
+                              size="sm"
                               className="me-2"
-                              onClick={() => handleShowReportModal(appointment)}
+                              onClick={() => handleShowAppointmentDetails(appointment)}
                             >
                               <FontAwesomeIcon icon={faClipboardList} className="me-1" />
                               Chi tiết
@@ -806,569 +1788,37 @@ const DoctorAppointments = () => {
                 </div>
               </Card.Body>
             </Card>
-            
-            <MedicalReportModal
-              show={showReportModal}
-              onHide={handleCloseReportModal}
-              report={medicalReport}
-              onChange={handleReportChange}
-              onSave={handleSaveReport}
-              appointment={selectedAppointment}
-              readOnly={selectedAppointment?.status === 'completed'}
-              onOpenARVTool={handleOpenARVTool}
-              onViewPdf={handleViewPdf}
-            />
           </Col>
-        </Row>
+        </Row>        
+        {/* Medical Report Modal */}
+        <MedicalReportModal 
+          show={showReportModal}
+          onHide={handleCloseReportModal}
+          report={medicalReport}
+          onChange={handleReportChange}
+          onSave={handleSaveReport}
+          appointment={selectedAppointment}
+          readOnly={selectedAppointment?.status === 'completed'}
+          onViewPdf={handleViewPdf}
+          onShowMedicineSelector={() => setShowMedicineSelector(true)}
+          onMedicineChange={handleMedicineChange}
+          onAddMedicine={handleAddMedicine}
+          onRemoveMedicine={handleRemoveMedicine}
+        />
+
+        {/* Medicine Selector Modal */}
+        <MedicineSelector
+          show={showMedicineSelector}
+          onHide={() => setShowMedicineSelector(false)}
+          medicines={medicalReport.medicalResultMedicines || []}
+          onMedicineChange={handleMedicineChange}
+          onAddMedicine={handleAddMedicine}
+          onRemoveMedicine={handleRemoveMedicine}
+          readOnly={false}
+        />
       </Container>
-
-      {/* Add back ARV Tool Modal */}
-      <Modal 
-        show={showARVTool} 
-        onHide={handleCloseARVTool} 
-        size="xl" 
-        centered
-        fullscreen
-        className="arv-tool-modal"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Công cụ lựa chọn ARV
-            {selectedAppointmentForARV && (
-              <div className="text-muted fs-6">
-                Bệnh nhân: {selectedAppointmentForARV.patient} - {selectedAppointmentForARV.date} {selectedAppointmentForARV.time}
-              </div>
-            )}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          <ARVSelectionTool 
-            onSelect={handleARVResult}
-            appointment={selectedAppointmentForARV}
-          />
-        </Modal.Body>
-      </Modal>
-
-      {/* Keep PDF Viewer Modal */}
-      <Modal 
-        show={showPdfViewer} 
-        onHide={handleClosePdfViewer}
-        size="xl"
-        centered
-        fullscreen
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Xem Báo Cáo ARV</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-0">
-          {currentPdfUrl && (
-            <iframe
-              src={`${currentPdfUrl}#toolbar=0&navpanes=0`}
-              style={{ width: '100%', height: '100%', border: 'none' }}
-              title="PDF Viewer"
-            />
-          )}
-        </Modal.Body>
-      </Modal>
     </div>
   );
 };
 
-// Modify MedicalReportModal component to include ARV tool functionality
-const MedicalReportModal = ({ show, onHide, report, onChange, onSave, appointment, readOnly, onOpenARVTool, onViewPdf }) => {
-  // Add data validation
-  const validateReport = (report) => {
-    // Ensure recommendations is always an array
-    if (!Array.isArray(report.recommendations)) {
-      report.recommendations = ['', '', '', ''];
-    }
-    return report;
-  };
-
-  // Validate report when component mounts or report changes
-  useEffect(() => {
-    if (report) {
-      validateReport(report);
-    }
-  }, [report]);
-
-  // Add function to handle recommendation changes
-  const handleRecommendationChange = (index, value) => {
-    const newRecommendations = [...(report.recommendations || ['', '', '', ''])];
-    newRecommendations[index] = value;
-    onChange('recommendations', newRecommendations);
-  };
-
-  // Thêm một thuốc vào danh sách
-  const handleAddMedicine = () => {
-    const newMedications = [...report.medications, {
-      name: '',
-      dosage: '',
-      frequency: '',
-      status: 'Mới'
-    }];
-    onChange('medications', newMedications);
-  };
-
-  // Xóa một thuốc khỏi danh sách
-  const handleRemoveMedicine = (index) => {
-    const newMedications = [...report.medications];
-    newMedications.splice(index, 1);
-    onChange('medications', newMedications);
-  };
-
-  // Cập nhật thông tin thuốc
-  const handleMedicineChange = (index, field, value) => {
-    const newMedications = [...report.medications];
-    newMedications[index][field] = value;
-    onChange('medications', newMedications);
-  };
-
-  return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>
-          {readOnly ? 'Xem báo cáo y tế' : 'Tạo báo cáo y tế'}
-          <div className="text-muted fs-6">
-            {appointment?.patient} - {appointment?.date} {appointment?.time}
-          </div>
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body className="px-4 py-3">
-        <div className="medical-report-form">
-          {/* Phần thông tin bệnh nhân */}
-          <Card className="mb-3">
-            <Card.Header className="bg-primary text-white py-2">
-              <FontAwesomeIcon icon={faUserMd} className="me-2" />
-              Thông tin bệnh nhân
-            </Card.Header>
-            <Card.Body>
-              <Row>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>ID bệnh nhân</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      value={report.patientInfo.patientId || ''} 
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Tên bệnh nhân</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      value={report.patientInfo.name || ''} 
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ngày sinh</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      value={report.patientInfo.dob || ''} 
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Giới tính</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      value={report.patientInfo.gender || ''} 
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Phần kết quả xét nghiệm */}
-          <Card className="mb-3">
-            <Card.Header className="bg-warning text-dark py-2">
-              <FontAwesomeIcon icon={faVial} className="me-2" />
-              Kết quả xét nghiệm
-            </Card.Header>
-            <Card.Body>
-              <h6 className="mb-3">Xét nghiệm HIV</h6>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Chỉ số CD4</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 650 tế bào/mm³" 
-                      value={report.labResults.cd4Count || ''}
-                      onChange={(e) => onChange('labResults.cd4Count', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Tải lượng virus</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: < 20 bản sao/mL" 
-                      value={report.labResults.viralLoad || ''}
-                      onChange={(e) => onChange('labResults.viralLoad', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <h6 className="mb-3 mt-4">Huyết học</h6>
-              <Row>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Hemoglobin</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 14.2 g/dL" 
-                      value={report.labResults.hematology.hgb || ''}
-                      onChange={(e) => onChange('labResults.hematology.hgb', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Bạch cầu</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 5.6 × 10³/μL" 
-                      value={report.labResults.hematology.wbc || ''}
-                      onChange={(e) => onChange('labResults.hematology.wbc', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Tiểu cầu</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 235 × 10³/μL" 
-                      value={report.labResults.hematology.platelets || ''}
-                      onChange={(e) => onChange('labResults.hematology.platelets', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <h6 className="mb-3 mt-4">Sinh hóa</h6>
-              <Row>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Đường huyết</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 95 mg/dL" 
-                      value={report.labResults.chemistry.glucose || ''}
-                      onChange={(e) => onChange('labResults.chemistry.glucose', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Creatinine</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 0.9 mg/dL" 
-                      value={report.labResults.chemistry.creatinine || ''}
-                      onChange={(e) => onChange('labResults.chemistry.creatinine', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>ALT</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 25 U/L" 
-                      value={report.labResults.chemistry.alt || ''}
-                      onChange={(e) => onChange('labResults.chemistry.alt', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>AST</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 28 U/L" 
-                      value={report.labResults.chemistry.ast || ''}
-                      onChange={(e) => onChange('labResults.chemistry.ast', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <h6 className="mb-3 mt-4">Chỉ số mỡ máu</h6>
-              <Row>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Cholesterol toàn phần</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 185 mg/dL" 
-                      value={report.labResults.lipidPanel.totalCholesterol || ''}
-                      onChange={(e) => onChange('labResults.lipidPanel.totalCholesterol', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>LDL</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 110 mg/dL" 
-                      value={report.labResults.lipidPanel.ldl || ''}
-                      onChange={(e) => onChange('labResults.lipidPanel.ldl', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>HDL</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 45 mg/dL" 
-                      value={report.labResults.lipidPanel.hdl || ''}
-                      onChange={(e) => onChange('labResults.lipidPanel.hdl', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Triglycerides</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      placeholder="vd: 150 mg/dL" 
-                      value={report.labResults.lipidPanel.triglycerides || ''}
-                      onChange={(e) => onChange('labResults.lipidPanel.triglycerides', e.target.value)}
-                      readOnly={readOnly}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Công cụ lựa chọn ARV */}
-          <Card className="mb-3">
-            <Card.Header className="bg-danger text-white py-2">
-              <FontAwesomeIcon icon={faFilePdf} className="me-2" />
-              Công cụ lựa chọn ARV
-            </Card.Header>
-            <Card.Body>
-              {!report.arvResultFile ? (
-                <Button 
-                  variant="outline-primary" 
-                  onClick={() => onOpenARVTool(appointment)}
-                  className="mb-3"
-                >
-                  <FontAwesomeIcon icon={faSlidersH} className="me-2" />
-                  Mở công cụ lựa chọn ARV
-                </Button>
-              ) : (
-                <div className="arv-file-management">
-                  <div className="d-flex align-items-center mb-3">
-                    <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
-                    <span className="me-3">{report.arvResultFile.name}</span>
-                    <div className="btn-group">
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm" 
-                        onClick={() => onViewPdf(report.arvResultFile)}
-                      >
-                        <FontAwesomeIcon icon={faEye} className="me-1" />
-                        Xem
-                      </Button>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm"
-                        onClick={() => {
-                          if (window.confirm('Bạn có chắc muốn xóa báo cáo ARV này?')) {
-                            onChange('arvResultFile', null);
-                          }
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="me-1" />
-                        Xóa
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Phần thuốc */}
-          <Card className="mb-3">
-            <Card.Header className="bg-success text-white py-2">
-              <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
-              Thuốc
-            </Card.Header>
-            <Card.Body>
-              {report.medications.map((medication, index) => (
-                <Row key={index} className="mb-3">
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label>Tên thuốc</Form.Label>
-                      <Form.Control 
-                        type="text" 
-                        placeholder="vd: Biktarvy" 
-                        value={medication.name || ''}
-                        onChange={(e) => handleMedicineChange(index, 'name', e.target.value)}
-                        readOnly={readOnly}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label>Liều lượng</Form.Label>
-                      <Form.Control 
-                        type="text" 
-                        placeholder="vd: 1 viên" 
-                        value={medication.dosage || ''}
-                        onChange={(e) => handleMedicineChange(index, 'dosage', e.target.value)}
-                        readOnly={readOnly}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label>Tần suất</Form.Label>
-                      <Form.Control 
-                        type="text" 
-                        placeholder="vd: Ngày 1 lần" 
-                        value={medication.frequency || ''}
-                        onChange={(e) => handleMedicineChange(index, 'frequency', e.target.value)}
-                        readOnly={readOnly}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label>Trạng thái</Form.Label>
-                      <Form.Select 
-                        value={medication.status || 'Mới'}
-                        onChange={(e) => handleMedicineChange(index, 'status', e.target.value)}
-                        disabled={readOnly}
-                      >
-                        <option value="Mới">Mới</option>
-                        <option value="Tiếp tục">Tiếp tục</option>
-                        <option value="Đã thay đổi">Đã thay đổi</option>
-                        <option value="Đã ngừng">Đã ngừng</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  {!readOnly && (
-                    <Col md={1} className="d-flex align-items-end">
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        onClick={() => handleRemoveMedicine(index)}
-                        className="mb-2"
-                      >
-                        <FontAwesomeIcon icon={faTimes} />
-                      </Button>
-                    </Col>
-                  )}
-                </Row>
-              ))}
-              
-              {!readOnly && (
-                <Button 
-                  variant="outline-primary" 
-                  size="sm" 
-                  onClick={handleAddMedicine}
-                  className="mt-2"
-                >
-                  <FontAwesomeIcon icon={faPlus} className="me-1" />
-                  Thêm thuốc
-                </Button>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Đánh giá & kế hoạch */}
-          <Card className="mb-3">
-            <Card.Header className="bg-secondary text-white py-2">
-              <FontAwesomeIcon icon={faClipboardList} className="me-2" />
-              Đánh giá & Kế hoạch
-            </Card.Header>
-            <Card.Body>
-              <Form.Group className="mb-3">
-                <Form.Label>Đánh giá</Form.Label>
-                <Form.Control 
-                  as="textarea" 
-                  rows={3} 
-                  placeholder="Nhập đánh giá bệnh nhân" 
-                  value={report.assessment || ''}
-                  onChange={(e) => onChange('assessment', e.target.value)}
-                  readOnly={readOnly}
-                />
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Kế hoạch</Form.Label>
-                <Form.Control 
-                  as="textarea" 
-                  rows={3} 
-                  placeholder="Nhập kế hoạch điều trị" 
-                  value={report.plan || ''}
-                  onChange={(e) => onChange('plan', e.target.value)}
-                  readOnly={readOnly}
-                />
-              </Form.Group>
-              
-              <Form.Group>
-                <Form.Label>Khuyến nghị</Form.Label>
-                {(report.recommendations || ['', '', '', '']).map((rec, index) => (
-                  <Form.Control 
-                    key={index}
-                    type="text" 
-                    className="mb-2"
-                    placeholder={`Khuyến nghị ${index + 1}`} 
-                    value={rec || ''}
-                    onChange={(e) => handleRecommendationChange(index, e.target.value)}
-                    readOnly={readOnly}
-                  />
-                ))}
-              </Form.Group>
-            </Card.Body>
-          </Card>
-        </div>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Đóng
-        </Button>
-        {!readOnly && (
-          <Button variant="primary" onClick={onSave}>
-            Lưu báo cáo y tế
-          </Button>
-        )}
-      </Modal.Footer>
-    </Modal>
-  );
-};
-
-export { MedicalReportModal };
 export default DoctorAppointments;
