@@ -154,6 +154,53 @@
   margin-top: 8px;
 }
 
+/* Style cho dropdown items trong user dropdown */
+.top-user-dropdown .dropdown-item {
+  padding: 12px 16px;
+  color: #333;
+  font-size: 14px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.top-user-dropdown .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #1565c0;
+}
+
+.top-user-dropdown .dropdown-item:focus {
+  background-color: #f8f9fa;
+  color: #1565c0;
+  outline: none;
+}
+
+.top-user-dropdown .dropdown-divider {
+  height: 0;
+  margin: 8px 0;
+  overflow: hidden;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Style cho user link (phần "Xin chào, tên") */
+.top-auth-link.user-link {
+  color: white !important;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.top-auth-link.user-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white !important;
+}
+
 .pulse {
   animation: pulse 2s infinite;
 }
@@ -573,4 +620,4 @@
     margin-top: 5px;
     margin-left: 20px;
   }
-} 
+}

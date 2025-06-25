@@ -217,54 +217,27 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     const url = URL.createObjectURL(file.file);
     window.open(url, '_blank');
   };
-
+  // Enhanced PDF generation function with professional format
   const generatePDF = () => {
     try {
-      // Create PDF with default font
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Set default font
-      doc.setFont('helvetica');
+      console.log('=== GENERATING ENHANCED ARV PDF ===');
       
-      // Add header
-      doc.setFontSize(16);
-      doc.text('Bao Cao Lua Chon ARV', 105, 20, { align: 'center' });
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      let yPosition = 20;
       
-      // Add patient info
-      doc.setFontSize(12);
-      doc.text(`Benh nhan: ${appointment?.patient || 'N/A'}`, 20, 30);
-      doc.text(`Ngay: ${appointment?.date || 'N/A'}`, 20, 40);
+      // Helper function to add a new page if needed
+      const checkPageBreak = (requiredSpace) => {
+        if (yPosition + requiredSpace > pageHeight - 20) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      };
       
-      // Add test results
-      doc.setFontSize(14);
-      doc.text('Ket Qua Xet Nghiem:', 20, 50);
-      doc.setFontSize(12);
-      doc.text(`Tai luong virus: ${viralLoad}`, 30, 60);
-      doc.text(`So luong CD4: ${cd4Count}`, 30, 70);
-      doc.text(`HLA-B5701: ${hlaB5701}`, 30, 80);
-      doc.text(`Tropism: ${tropism}`, 30, 90);
-      
-      // Add current regimen
-      doc.setFontSize(14);
-      doc.text('Phac Do Hien Tai:', 20, 110);
-      doc.setFontSize(12);
-      currentRegimen.forEach((regimen, index) => {
-        const arv = arvOptions.find(option => option.value === regimen);
-        doc.text(`- ${arv?.label || regimen}`, 30, 120 + (index * 10));
-      });
-      
-      // Add comorbidities
-      doc.setFontSize(14);
-      doc.text('Benh Dong Mac:', 20, 150);
-      doc.setFontSize(12);
-      comorbidities.forEach((comorbidity, index) => {
-        const option = comorbidityOptions.find(opt => opt.value === comorbidity);
-        // Convert Vietnamese text to ASCII
-        const label = option?.label
+      // Helper function for Vietnamese text conversion
+      const toAscii = (text) => {
+        return text
           .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
           .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
           .replace(/[ìíịỉĩ]/g, 'i')
@@ -279,52 +252,602 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
           .replace(/[ÙÚỤỦŨƯỪỨỰỬỮ]/g, 'U')
           .replace(/[ỲÝỴỶỸ]/g, 'Y')
           .replace(/Đ/g, 'D');
-        doc.text(`- ${label || comorbidity}`, 30, 160 + (index * 10));
-      });
+      };
       
-      // Add recommendations
-      doc.setFontSize(14);
-      doc.text('Khuyen Nghi Dieu Tri:', 20, 200);
+      // Header
+      doc.setFillColor(46, 125, 50); // Dark green header
+      doc.rect(0, 0, pageWidth, 30, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('BAO CAO KHUYEN NGHI ARV', pageWidth/2, 15, { align: 'center' });
+      
       doc.setFontSize(12);
-      preferredRegimen.forEach((regimen, index) => {
-        const arv = arvOptions.find(option => option.value === regimen);
-        doc.text(`- ${arv?.label || regimen}`, 30, 210 + (index * 10));
+      doc.setFont(undefined, 'normal');
+      doc.text('HIV Antiretroviral Treatment Recommendation Report', pageWidth/2, 22, { align: 'center' });
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      yPosition = 45;
+      
+      // Patient Information Section
+      doc.setFillColor(240, 240, 240);
+      doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+      
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('THONG TIN BENH NHAN', 15, yPosition + 5);
+      yPosition += 20;
+      
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      
+      // Patient details in two columns
+      const patientInfo = [
+        ['Ho va Ten:', appointment?.alternativeName || appointment?.patientName || 'Chua cap nhat'],
+        ['Ma Benh Nhan:', appointment?.userId || appointment?.patientId || 'N/A'],
+        ['Ngay Kham:', appointment?.date || new Date().toLocaleDateString('vi-VN')],
+        ['Bac Si Dieu Tri:', appointment?.doctorName || 'Dr. ' + (appointment?.doctorId || 'Unknown')]
+      ];
+      
+      patientInfo.forEach((info, index) => {
+        const col = index % 2;
+        const row = Math.floor(index / 2);
+        const x = col === 0 ? 15 : pageWidth/2 + 10;
+        const y = yPosition + (row * 8);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text(toAscii(info[0]), x, y);
+        doc.setFont(undefined, 'normal');
+        doc.text(toAscii(info[1]), x + 35, y);
       });
       
-      // Add notes
-      if (notes) {
+      yPosition += 25;
+      checkPageBreak(30);
+      
+      // Clinical Parameters Section
+      doc.setFillColor(240, 240, 240);
+      doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+      
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('THONG SO LAM SANG', 15, yPosition + 5);
+      yPosition += 20;
+      
+      // Clinical data table
+      const clinicalData = [
+        ['Tai Luong Virus:', getViralLoadDisplay(viralLoad)],
+        ['So Luong CD4:', getCd4Display(cd4Count)],
+        ['HLA-B5701:', hlaB5701 === 'positive' ? 'Duong tinh' : 'Am tinh'],
+        ['Tinh Huong Thu The:', getTropismDisplay(tropism)]
+      ];
+      
+      doc.setFontSize(11);
+      clinicalData.forEach((data, index) => {
+        const y = yPosition + (index * 8);
+        doc.setFont(undefined, 'bold');
+        doc.text(toAscii(data[0]), 15, y);
+        doc.setFont(undefined, 'normal');
+        doc.text(toAscii(data[1]), 80, y);
+      });
+      
+      yPosition += 40;
+      checkPageBreak(50);
+      
+      // Current Regimen Section
+      if (currentRegimen.length > 0) {
+        doc.setFillColor(240, 240, 240);
+        doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+        
         doc.setFontSize(14);
-        doc.text('Ghi Chu:', 20, 250);
-        doc.setFontSize(12);
-        const splitNotes = doc.splitTextToSize(notes, 170);
-        doc.text(splitNotes, 30, 260);
+        doc.setFont(undefined, 'bold');
+        doc.text('PHAC DO HIEN TAI', 15, yPosition + 5);
+        yPosition += 20;
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        currentRegimen.forEach((regimen, index) => {
+          const arv = arvOptions.find(option => option.value === regimen);
+          doc.text(`• ${toAscii(arv?.label || regimen)}`, 20, yPosition + (index * 7));
+        });
+        
+        yPosition += currentRegimen.length * 7 + 15;
+        checkPageBreak(50);
       }
       
-      // Save the PDF
+      // Comorbidities Section
+      if (comorbidities.length > 0) {
+        doc.setFillColor(240, 240, 240);
+        doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+        
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('BENH DONG MAC', 15, yPosition + 5);
+        yPosition += 20;
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        comorbidities.forEach((comorbidity, index) => {
+          const option = comorbidityOptions.find(opt => opt.value === comorbidity);
+          doc.text(`• ${toAscii(option?.label || comorbidity)}`, 20, yPosition + (index * 7));
+        });
+        
+        yPosition += comorbidities.length * 7 + 15;
+        checkPageBreak(50);
+      }
+      
+      // Co-medications Section
+      if (coMedications.length > 0) {
+        doc.setFillColor(240, 240, 240);
+        doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+        
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('THUOC PHOI HOP', 15, yPosition + 5);
+        yPosition += 20;
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        coMedications.forEach((medication, index) => {
+          doc.text(`• ${toAscii(medication)}`, 20, yPosition + (index * 7));
+        });
+        
+        yPosition += coMedications.length * 7 + 15;
+        checkPageBreak(80);
+      }
+        // Recommended Regimen Section - Most Important
+      doc.setFillColor(46, 125, 50); // Green background for recommendations
+      doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('KHUYEN NGHI DIEU TRI', 15, yPosition + 5);
+      yPosition += 20;
+      
+      doc.setTextColor(0, 0, 0);
+      
+      // Generate comprehensive recommendations table
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Bang xep hang phac do ARV (dua tren thong so ca nhan):', 15, yPosition);
+      yPosition += 15;
+      
+      // Add the recommendations table
+      yPosition = generateARVRecommendationsTable(doc, yPosition);
+      
+      // Add selected regimens if any
+      if (preferredRegimen.length > 0) {
+        checkPageBreak(40);
+        yPosition += 10;
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Phac do da chon boi bac si:', 15, yPosition);
+        yPosition += 15;
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        
+        preferredRegimen.forEach((regimen, index) => {
+          const arv = arvOptions.find(option => option.value === regimen);
+          const score = calculateRegimenScore(regimen);
+          
+          doc.setFont(undefined, 'bold');
+          doc.text(`${index + 1}. ${toAscii(arv?.label || regimen)}`, 20, yPosition);
+          doc.setFont(undefined, 'normal');
+          doc.text(`Diem so: ${score.toFixed(2)}`, pageWidth - 60, yPosition);
+          yPosition += 10;
+          
+          // Add rationale
+          const rationale = getRegimenRationale(regimen);
+          if (rationale) {
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            const splitRationale = doc.splitTextToSize(toAscii(rationale), pageWidth - 50);
+            doc.text(splitRationale, 25, yPosition);
+            yPosition += splitRationale.length * 5 + 5;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+          }
+        });
+      } else {
+        doc.setFontSize(11);
+        doc.text('Bac si chua chon phac do cu the. Bang tren la khuyen nghi tu dong.', 15, yPosition);
+        yPosition += 15;
+      }
+      
+      checkPageBreak(60);
+      
+      // Clinical Considerations
+      yPosition += 10;
+      doc.setFillColor(255, 245, 157); // Light yellow for warnings
+      doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+      
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('LUU Y LAM SANG', 15, yPosition + 5);
+      yPosition += 20;
+      
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      const considerations = getClinicalConsiderations();
+      considerations.forEach((consideration, index) => {
+        const splitText = doc.splitTextToSize(toAscii(consideration), pageWidth - 30);
+        doc.text(`• ${splitText[0]}`, 20, yPosition);
+        if (splitText.length > 1) {
+          for (let i = 1; i < splitText.length; i++) {
+            yPosition += 6;
+            doc.text(`  ${splitText[i]}`, 20, yPosition);
+          }
+        }
+        yPosition += 8;
+      });
+      
+      // Notes Section
+      if (notes.trim()) {
+        checkPageBreak(50);
+        yPosition += 10;
+        
+        doc.setFillColor(240, 240, 240);
+        doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+        
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('GHI CHU BAC SI', 15, yPosition + 5);
+        yPosition += 20;
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        const splitNotes = doc.splitTextToSize(toAscii(notes), pageWidth - 30);
+        doc.text(splitNotes, 15, yPosition);
+        yPosition += splitNotes.length * 6 + 15;
+      }
+      
+      // Footer
+      checkPageBreak(30);
+      yPosition = pageHeight - 25;
+      
+      doc.setFillColor(240, 240, 240);
+      doc.rect(0, yPosition - 5, pageWidth, 30, 'F');
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(100, 100, 100);
+      
+      const footerText = [
+        `Bao cao duoc tao tu cong cu khuyen nghi ARV`,
+        `Ngay tao: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')}`,
+        `Luu y: Day chi la cong cu ho tro. Quyet dinh cuoi cung thuoc ve bac si dieu tri.`
+      ];
+      
+      footerText.forEach((text, index) => {
+        doc.text(toAscii(text), pageWidth/2, yPosition + 5 + (index * 5), { align: 'center' });
+      });
+      
+      // Generate and return PDF
       const pdfBlob = doc.output('blob');
-      const pdfFile = new File([pdfBlob], `ARV_Recommendation_${appointment?.patientId || 'new'}.pdf`, { type: 'application/pdf' });
+      const pdfFile = new File([pdfBlob], `ARV_Recommendation_${appointment?.userId || Date.now()}.pdf`, { 
+        type: 'application/pdf' 
+      });
+      
+      console.log('📄 Enhanced PDF generated:', {
+        name: pdfFile.name,
+        size: `${(pdfBlob.size / 1024).toFixed(2)} KB`,
+        pages: doc.internal.getNumberOfPages()
+      });
       
       // Create a base64 string of the PDF
       const reader = new FileReader();
       reader.readAsDataURL(pdfBlob);
       reader.onloadend = function() {
-        const base64data = reader.result;
+        const base64data = reader.result.split(',')[1]; // Remove data:application/pdf;base64, prefix
         
-        // Call onSelect with the PDF file and its base64 data
+        // Call onSelect with the enhanced PDF file
         if (onSelect) {
           onSelect({
             name: pdfFile.name,
-            size: `${(pdfBlob.size / 1024).toFixed(2)} KB`,
-            date: new Date().toISOString().split('T')[0],
+            type: 'application/pdf',
+            size: pdfBlob.size,
+            data: base64data, // Base64 data without prefix
             file: pdfFile,
-            data: base64data
+            lastModified: Date.now()
           });
         }
       };
+      
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại.');
+      console.error('Error generating enhanced PDF:', error);
+      alert('Có lỗi xảy ra khi tạo báo cáo PDF. Vui lòng thử lại.\n\nChi tiết lỗi: ' + error.message);
     }
+  };
+
+  // Add state for PDF preview
+  const [previewPdfUrl, setPreviewPdfUrl] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  
+  // Function to generate and preview PDF
+  const handlePreviewPDF = () => {
+    try {
+      console.log('=== GENERATING PDF PREVIEW ===');
+      generatePDFForPreview();
+    } catch (error) {
+      console.error('Error generating PDF preview:', error);
+      alert('Có lỗi xảy ra khi tạo bản xem trước PDF. Vui lòng thử lại.');
+    }
+  };
+  
+  // Function to generate PDF for preview (without calling onSelect)
+  const generatePDFForPreview = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      let yPosition = 20;
+      
+      // Helper function to add a new page if needed
+      const checkPageBreak = (requiredSpace) => {
+        if (yPosition + requiredSpace > pageHeight - 20) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      };
+      
+      // Helper function for Vietnamese text conversion
+      const toAscii = (text) => {
+        return text
+          .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
+          .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
+          .replace(/[ìíịỉĩ]/g, 'i')
+          .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
+          .replace(/[ùúụủũưừứựửữ]/g, 'u')
+          .replace(/[ỳýỵỷỹ]/g, 'y')
+          .replace(/đ/g, 'd')
+          .replace(/[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/g, 'A')
+          .replace(/[ÈÉẸẺẼÊỀẾỆỂỄ]/g, 'E')
+          .replace(/[ÌÍỊỈĨ]/g, 'I')
+          .replace(/[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/g, 'O')
+          .replace(/[ÙÚỤỦŨƯỪỨỰỬỮ]/g, 'U')
+          .replace(/[ỲÝỴỶỸ]/g, 'Y')
+          .replace(/Đ/g, 'D');
+      };
+      
+      // Use the same PDF generation logic as the main function
+      // Header
+      doc.setFillColor(46, 125, 50);
+      doc.rect(0, 0, pageWidth, 30, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('BAO CAO KHUYEN NGHI ARV - BAN XEM TRUOC', pageWidth/2, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text('HIV Antiretroviral Treatment Recommendation Report - Preview', pageWidth/2, 22, { align: 'center' });
+      
+      // Add preview watermark
+      doc.setTextColor(200, 200, 200);
+      doc.setFontSize(40);
+      doc.text('BAN XEM TRUOC', pageWidth/2, pageHeight/2, { 
+        align: 'center', 
+        angle: 45 
+      });
+      
+      // Reset text color and continue with normal content
+      doc.setTextColor(0, 0, 0);
+      yPosition = 45;
+      
+      // Add a simplified version of the content for preview
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Noi dung bao cao se bao gom:', 15, yPosition);
+      yPosition += 20;
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      const contentItems = [
+        '• Thong tin benh nhan va bac si dieu tri',
+        '• Thong so lam sang (Viral Load, CD4, HLA-B5701, Tropism)',
+        '• Phac do ARV hien tai (neu co)',
+        '• Danh sach benh dong mac',
+        '• Thuoc phoi hop dang su dung',
+        '• Bang khuyen nghi phac do ARV voi diem so',
+        '• Phan tich ly do lua chon cho tung phac do',
+        '• Luu y lam sang va theo doi',
+        '• Ghi chu cua bac si'
+      ];
+      
+      contentItems.forEach((item, index) => {
+        doc.text(toAscii(item), 20, yPosition + (index * 10));
+      });
+      
+      yPosition += contentItems.length * 10 + 20;
+      
+      // Add current selections summary
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Tom tat lua chon hien tai:', 15, yPosition);
+      yPosition += 15;
+      
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      
+      doc.text(`Viral Load: ${getViralLoadDisplay(viralLoad)}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`CD4 Count: ${getCd4Display(cd4Count)}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`HLA-B5701: ${hlaB5701 === 'positive' ? 'Duong tinh' : 'Am tinh'}`, 20, yPosition);
+      yPosition += 8;
+      
+      if (comorbidities.length > 0) {
+        yPosition += 5;
+        doc.text(`Benh dong mac: ${comorbidities.length} loai`, 20, yPosition);
+        yPosition += 8;
+      }
+      
+      if (coMedications.length > 0) {
+        doc.text(`Thuoc phoi hop: ${coMedications.length} loai`, 20, yPosition);
+        yPosition += 8;
+      }
+      
+      if (preferredRegimen.length > 0) {
+        doc.text(`Phac do duoc chon: ${preferredRegimen.length} loai`, 20, yPosition);
+        yPosition += 8;
+      }
+      
+      // Footer
+      yPosition = pageHeight - 40;
+      doc.setFillColor(240, 240, 240);
+      doc.rect(0, yPosition, pageWidth, 40, 'F');
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Day la ban xem truoc. Nhan "Tao Bao Cao PDF" de tao bao cao hoan chinh.', pageWidth/2, yPosition + 15, { align: 'center' });
+      doc.text(`Ngay tao: ${new Date().toLocaleDateString('vi-VN')}`, pageWidth/2, yPosition + 25, { align: 'center' });
+      
+      // Generate blob and create URL
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      setPreviewPdfUrl(pdfUrl);
+      setShowPreview(true);
+      
+    } catch (error) {
+      console.error('Error generating PDF preview:', error);
+      alert('Có lỗi xảy ra khi tạo bản xem trước PDF.');
+    }
+  };
+  
+  // Function to close preview
+  const handleClosePreview = () => {
+    if (previewPdfUrl) {
+      URL.revokeObjectURL(previewPdfUrl);
+      setPreviewPdfUrl(null);
+    }
+    setShowPreview(false);
+  };
+
+  // Helper functions for enhanced PDF generation
+  const getViralLoadDisplay = (vl) => {
+    const displays = {
+      'unknown': 'Khong ro',
+      'suppressed_6m': 'Duoc kiem soat (>6 thang)',
+      'suppressed_recent': 'Duoc kiem soat (<6 thang)',
+      'low': 'Thap (200-100,000)',
+      'high': 'Cao (100,000-500,000)',
+      'very_high': 'Rat cao (>=500,000)'
+    };
+    return displays[vl] || vl;
+  };
+  
+  const getCd4Display = (cd4) => {
+    const displays = {
+      'unknown': 'Khong ro',
+      'le_50': '<= 50',
+      'le_100': '<= 100',
+      'le_200': '<= 200',
+      'gt_200': '> 200'
+    };
+    return displays[cd4] || cd4;
+  };
+  
+  const getTropismDisplay = (trop) => {
+    const displays = {
+      'unknown': 'Khong ro',
+      'r5': 'Virus R5',
+      'x4': 'Virus X4',
+      'dual': 'Virus Huong Thu The Kep'
+    };
+    return displays[trop] || trop;
+  };
+  
+  const calculateRegimenScore = (regimen) => {
+    let score = 5.0; // Base score
+    
+    // Adjust based on viral load
+    if (viralLoad === 'suppressed_6m') score += 1.0;
+    if (viralLoad === 'very_high') score -= 0.5;
+    
+    // Adjust based on CD4
+    if (cd4Count === 'gt_200') score += 0.5;
+    if (cd4Count === 'le_50') score -= 1.0;
+    
+    // Adjust based on comorbidities
+    if (comorbidities.includes('liver')) score -= 0.3;
+    if (comorbidities.includes('renal')) score -= 0.3;
+    if (comorbidities.includes('cardiovascular')) score -= 0.2;
+    
+    // Preferred regimens get bonus points
+    const firstLineRegimens = ['BIC/TAF/FTC', 'DTG/ABC/3TC', 'DTG/TDF/FTC', 'DTG/3TC'];
+    if (firstLineRegimens.includes(regimen)) score += 1.0;
+    
+    return Math.max(0, Math.min(10, score));
+  };
+  
+  const getRegimenRationale = (regimen) => {
+    const rationales = {
+      'BIC/TAF/FTC': 'Phac do hang dau voi hieu qua cao, it tuong tac thuoc va an toan cho than.',
+      'DTG/ABC/3TC': 'Phac do hieu qua cao, nhung can kiem tra HLA-B5701 truoc khi su dung ABC.',
+      'DTG/TDF/FTC': 'Phac do co hieu qua tot, phu hop cho benh nhan co nguy co thap ve than va xuong.',
+      'DTG/3TC': 'Phac do 2 thuoc, thich hop cho benh nhan co tai luong virus duoc kiem soat tot.',
+      'EFV/TDF/FTC': 'Phac do truyen thong, nhung can luu y tac dung phu ve than kinh.',
+      'DRV/r': 'Thuoc uc che protease manh, phu hop cho truong hop kang thuoc.',
+      'RAL': 'Thuoc uc che integrase an toan, nhung can uong 2 lan/ngay.'
+    };
+    
+    return rationales[regimen] || 'Phac do duoc lua chon dua tren dac diem ca nhan cua benh nhan.';
+  };
+  
+  const generateRecommendations = () => {
+    const recs = [];
+    
+    if (cd4Count === 'le_50') {
+      recs.push('Uu tien bat dau dieu tri ARV gap, theo doi sat hon.');
+    }
+    
+    if (hlaB5701 === 'positive') {
+      recs.push('Tranh su dung ABC do nguy co phan ung di ung.');
+    }
+    
+    if (comorbidities.includes('renal')) {
+      recs.push('Uu tien TAF thay vi TDF de bao ve chuc nang than.');
+    }
+    
+    if (comorbidities.includes('liver')) {
+      recs.push('Can than khi su dung cac thuoc co tac dong len gan.');
+    }
+    
+    if (viralLoad === 'very_high') {
+      recs.push('Uu tien phac do co rao can gen cao truoc kang thuoc.');
+    }
+    
+    return recs;
+  };
+  
+  const getClinicalConsiderations = () => {
+    const considerations = [];
+    
+    considerations.push('Theo doi chat che tai luong virus va so luong CD4 hang quy.');
+    considerations.push('Danh gia tuong tac thuoc truoc khi ke don.');
+    considerations.push('Giao duc benh nhan ve tham su thuoc va tac dung phu.');
+    
+    if (comorbidities.includes('cardiovascular')) {
+      considerations.push('Theo doi nguy co tim mach, tranh ABC neu co the.');
+    }
+    
+    if (comorbidities.includes('osteoporosis')) {
+      considerations.push('Theo doi mat do xuong, co the tranh TDF.');
+    }
+    
+    if (coMedications.length > 0) {
+      considerations.push('Kiem tra tuong tac voi cac thuoc phoi hop da chon.');
+    }
+    
+    considerations.push('Tai kham theo lich hen de danh gia hieu qua dieu tri.');
+    
+    return considerations;
   };
 
   const handleSubmit = (e) => {
@@ -332,6 +855,173 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     generatePDF();
   };
   
+  // Function to generate ARV recommendations table similar to HIV-ASSIST
+  const generateARVRecommendationsTable = (doc, yPos) => {
+    const tableData = [];
+    const headers = ['Regimen', 'Score', 'Pills/Day', 'Frequency', 'Rationale'];
+    
+    // Get recommendations based on current selections
+    const recommendedRegimens = getTopRecommendations();
+    
+    recommendedRegimens.forEach(regimen => {
+      const arv = arvOptions.find(option => option.value === regimen.code);
+      const score = calculateRegimenScore(regimen.code);
+      const pillsPerDay = getRegimePillsPerDay(regimen.code);
+      const frequency = getRegimenFrequency(regimen.code);
+      const rationale = getShortRationale(regimen.code);
+      
+      tableData.push([
+        arv?.label || regimen.code,
+        score.toFixed(2),
+        pillsPerDay,
+        frequency,
+        rationale
+      ]);
+    });
+    
+    // Use autoTable plugin if available
+    if (doc.autoTable) {
+      doc.autoTable({
+        head: [headers],
+        body: tableData,
+        startY: yPos,
+        theme: 'striped',
+        headStyles: { fillColor: [46, 125, 50] },
+        margin: { left: 15, right: 15 },
+        styles: { fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 20, halign: 'center' },
+          2: { cellWidth: 25, halign: 'center' },
+          3: { cellWidth: 25, halign: 'center' },
+          4: { cellWidth: 60 }
+        }
+      });
+      
+      return doc.lastAutoTable.finalY + 10;
+    } else {
+      // Fallback: manual table creation
+      let currentY = yPos;
+      const cellHeight = 8;
+      const colWidths = [60, 20, 25, 25, 60];
+      let currentX = 15;
+      
+      // Draw headers
+      doc.setFillColor(46, 125, 50);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(10);
+      
+      headers.forEach((header, i) => {
+        doc.rect(currentX, currentY, colWidths[i], cellHeight, 'F');
+        doc.text(header, currentX + 2, currentY + 6);
+        currentX += colWidths[i];
+      });
+      
+      currentY += cellHeight;
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      
+      // Draw data rows
+      tableData.forEach((row, rowIndex) => {
+        currentX = 15;
+        const fillColor = rowIndex % 2 === 0 ? [245, 245, 245] : [255, 255, 255];
+        
+        row.forEach((cell, colIndex) => {
+          doc.setFillColor(...fillColor);
+          doc.rect(currentX, currentY, colWidths[colIndex], cellHeight, 'F');
+          
+          // Text wrapping for longer content
+          const cellText = cell.toString();
+          if (colIndex === 0 || colIndex === 4) { // Regimen name or rationale
+            const splitText = doc.splitTextToSize(cellText, colWidths[colIndex] - 4);
+            doc.text(splitText[0], currentX + 2, currentY + 6);
+          } else {
+            doc.text(cellText, currentX + colWidths[colIndex]/2, currentY + 6, { align: 'center' });
+          }
+          
+          currentX += colWidths[colIndex];
+        });
+        
+        currentY += cellHeight;
+      });
+      
+      return currentY + 10;
+    }
+  };
+  
+  // Helper functions for the recommendations table
+  const getTopRecommendations = () => {
+    // Generate top 5 recommendations based on current parameters
+    const allRegimens = [
+      'BIC/TAF/FTC', 'DTG/ABC/3TC', 'DTG/TDF/FTC', 'DTG/3TC', 
+      'EFV/TDF/FTC', 'DRV/r+TDF/FTC', 'RAL+TDF/FTC', 'RPV/TAF/FTC',
+      'DOR/TDF/3TC', 'EVG/c/TAF/FTC'
+    ];
+    
+    // Score and sort regimens
+    const scoredRegimens = allRegimens.map(regimen => ({
+      code: regimen,
+      score: calculateRegimenScore(regimen)
+    }));
+    
+    scoredRegimens.sort((a, b) => b.score - a.score);
+    
+    return scoredRegimens.slice(0, 5); // Top 5
+  };
+  
+  const getRegimePillsPerDay = (regimen) => {
+    const pillCounts = {
+      'BIC/TAF/FTC': '1',
+      'DTG/ABC/3TC': '1', 
+      'DTG/TDF/FTC': '2',
+      'DTG/3TC': '1',
+      'EFV/TDF/FTC': '1',
+      'DRV/r+TDF/FTC': '3',
+      'RAL+TDF/FTC': '3',
+      'RPV/TAF/FTC': '1',
+      'DOR/TDF/3TC': '1',
+      'EVG/c/TAF/FTC': '1'
+    };
+    
+    return pillCounts[regimen] || '2-3';
+  };
+  
+  const getRegimenFrequency = (regimen) => {
+    const frequencies = {
+      'BIC/TAF/FTC': '1x/day',
+      'DTG/ABC/3TC': '1x/day',
+      'DTG/TDF/FTC': '1x/day',
+      'DTG/3TC': '1x/day', 
+      'EFV/TDF/FTC': '1x/day',
+      'DRV/r+TDF/FTC': '1x/day',
+      'RAL+TDF/FTC': '2x/day',
+      'RPV/TAF/FTC': '1x/day',
+      'DOR/TDF/3TC': '1x/day',
+      'EVG/c/TAF/FTC': '1x/day'
+    };
+    
+    return frequencies[regimen] || '1-2x/day';
+  };
+  
+  const getShortRationale = (regimen) => {
+    const rationales = {
+      'BIC/TAF/FTC': 'First-line, renal safe',
+      'DTG/ABC/3TC': 'High efficacy, check HLA-B5701',
+      'DTG/TDF/FTC': 'Effective, bone monitoring',
+      'DTG/3TC': '2-drug regimen, high barrier',
+      'EFV/TDF/FTC': 'Traditional, CNS effects',
+      'DRV/r+TDF/FTC': 'High barrier, resistance',
+      'RAL+TDF/FTC': 'Well-tolerated, BID dosing',
+      'RPV/TAF/FTC': 'Low resistance barrier',
+      'DOR/TDF/3TC': 'New NNRTI option',
+      'EVG/c/TAF/FTC': 'Boosted INSTI, interactions'
+    };
+    
+    return rationales[regimen] || 'Individualized choice';
+  };
+
   return (
     <div className="arv-tool-container">
       <Container fluid>
@@ -542,9 +1232,16 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
                 <Form.Text className="text-muted">
                   Ghi chú này sẽ được bao gồm trong báo cáo khuyến nghị điều trị
                 </Form.Text>
-              </Form.Group>
-
-              <div className="d-flex justify-content-center mt-4">
+              </Form.Group>              <div className="d-flex justify-content-center gap-3 mt-4">
+                <Button 
+                  type="button" 
+                  variant="outline-primary" 
+                  size="lg"
+                  onClick={handlePreviewPDF}
+                >
+                  <FontAwesomeIcon icon={faEye} className="me-2" />
+                  Xem Trước PDF
+                </Button>
                 <Button type="submit" variant="primary" size="lg">
                   <FontAwesomeIcon icon={faFilePdf} className="me-2" />
                   Tạo Báo Cáo PDF
@@ -553,9 +1250,42 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
             </Form>
           </Card.Body>
         </Card>
+
+        {/* PDF Preview Modal */}
+        {showPreview && (
+          <div className="pdf-preview-modal">
+            <div className="modal-content">
+              <span className="close" onClick={handleClosePreview}>&times;</span>
+              
+              <h2>Xem Trước Báo Cáo PDF</h2>
+              
+              <div className="pdf-preview-body">
+                {previewPdfUrl && (
+                  <iframe 
+                    src={previewPdfUrl} 
+                    title="PDF Preview"
+                    width="100%"
+                    height="500px"
+                    frameBorder="0"
+                  ></iframe>
+                )}
+              </div>
+              
+              <div className="d-flex justify-content-end mt-3">
+                <Button variant="secondary" onClick={handleClosePreview} className="me-2">
+                  Đóng
+                </Button>
+                <Button variant="primary" onClick={generatePDF} size="lg">
+                  <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+                  Tạo Báo Cáo PDF Hoàn Chỉnh
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Container>
     </div>
   );
 };
 
-export default ARVSelectionTool; 
+export default ARVSelectionTool;
