@@ -54,7 +54,7 @@ export const getRoleName = (user) => {
 // Helper function để lấy dashboard route dựa trên role của user
 export const getDashboardRoute = (user) => {
   if (isCustomer(user)) {
-    return '/patient/dashboard';
+    return '/'; // CUSTOMER chuyển về trang chủ thay vì dashboard
   } else if (isStaff(user)) {
     return '/staff/dashboard';
   } else {

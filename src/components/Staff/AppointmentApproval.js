@@ -26,7 +26,8 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('pending'); // 'pending' hoặc 'all'  // Load appointments
+  const [viewMode, setViewMode] = useState('pending'); // 'pending' hoặc 'all'
+  const [statusFilter, setStatusFilter] = useState('all'); // Filter theo status cho viewMode 'all'// Load appointments
   useEffect(() => {
     console.log('AppointmentApproval useEffect - checking auth...');
     const token = localStorage.getItem('token');
@@ -47,6 +48,13 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
       console.log('Loading all appointments...');
       loadAllAppointments();
     }  }, [viewMode]);
+  // Reset statusFilter khi chuyển viewMode
+  useEffect(() => {
+    if (viewMode === 'pending') {
+      setStatusFilter('all'); // Reset filter khi chuyển về pending mode
+    }
+  }, [viewMode]);
+
   const loadPendingAppointments = async () => {
     try {
       setLoading(true);
@@ -286,12 +294,28 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
     const status = appointment.status?.toUpperCase() || 'PENDING';
     return status === 'PENDING';
   };
+
+  // Filter appointments theo status khi ở chế độ 'all'
+  const getFilteredAppointments = () => {
+    if (viewMode === 'pending') {
+      return appointments; // Không cần filter vì đã filter khi load
+    }
+    
+    if (statusFilter === 'all') {
+      return appointments;
+    }
+    
+    return appointments.filter(appointment => {
+      const status = appointment.status?.toUpperCase();
+      return status === statusFilter.toUpperCase();
+    });
+  };
+
   return (
     <Container fluid className="appointment-approval py-4">
       <Row className="mb-4">
         <Col>
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-primary text-white">
+          <Card className="border-0 shadow-sm">            <Card.Header className="bg-primary text-white">
               <Row className="align-items-center">
                 <Col>
                   <h4 className="mb-0">
@@ -300,23 +324,44 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                   </h4>
                 </Col>
                 <Col xs="auto">
-                  <div className="btn-group" role="group">
-                    <Button
-                      variant={viewMode === 'pending' ? 'light' : 'outline-light'}
-                      size="sm"
-                      onClick={() => setViewMode('pending')}
-                    >
-                      <FontAwesomeIcon icon={faClock} className="me-1" />
-                      Chờ duyệt
-                    </Button>
-                    <Button
-                      variant={viewMode === 'all' ? 'light' : 'outline-light'}
-                      size="sm"
-                      onClick={() => setViewMode('all')}
-                    >
-                      <FontAwesomeIcon icon={faCalendarCheck} className="me-1" />
-                      Tất cả
-                    </Button>
+                  <div className="d-flex gap-2 align-items-center">
+                    {/* Status Filter - chỉ hiển thị khi viewMode là 'all' */}
+                    {viewMode === 'all' && (
+                      <Form.Select
+                        size="sm"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        style={{ width: 'auto', minWidth: '120px' }}
+                        className="text-dark"
+                      >
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="pending">Chờ duyệt</option>
+                        <option value="accepted">Đã duyệt</option>
+                        <option value="denied">Đã từ chối</option>
+                        <option value="completed">Đã hoàn thành</option>
+                        <option value="cancelled">Đã hủy</option>
+                      </Form.Select>
+                    )}
+                    
+                    {/* View Mode Buttons */}
+                    <div className="btn-group" role="group">
+                      <Button
+                        variant={viewMode === 'pending' ? 'light' : 'outline-light'}
+                        size="sm"
+                        onClick={() => setViewMode('pending')}
+                      >
+                        <FontAwesomeIcon icon={faClock} className="me-1" />
+                        Chờ duyệt
+                      </Button>
+                      <Button
+                        variant={viewMode === 'all' ? 'light' : 'outline-light'}
+                        size="sm"
+                        onClick={() => setViewMode('all')}
+                      >
+                        <FontAwesomeIcon icon={faCalendarCheck} className="me-1" />
+                        Tất cả
+                      </Button>
+                    </div>
                   </div>
                 </Col>
               </Row>
@@ -328,21 +373,30 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                   {error}
                 </Alert>
               )}
-              
-              {loading ? (
+                {loading ? (
                 <div className="text-center py-5">
                   <Spinner animation="border" role="status" className="me-2" />
                   <span>Đang tải danh sách lịch hẹn...</span>
                 </div>
-              ) : appointments.length === 0 ? (
+              ) : getFilteredAppointments().length === 0 ? (
                 <div className="text-center py-5">
                   <FontAwesomeIcon icon={faCalendarCheck} size="3x" className="text-muted mb-3" />
-                  <h5 className="text-muted">Không có lịch hẹn nào cần duyệt</h5>
-                  <p className="text-muted">Tất cả lịch hẹn đã được xử lý hoặc chưa có yêu cầu mới.</p>
+                  <h5 className="text-muted">
+                    {appointments.length === 0 
+                      ? (viewMode === 'pending' ? 'Không có lịch hẹn nào cần duyệt' : 'Không có lịch hẹn nào')
+                      : 'Không có lịch hẹn phù hợp với bộ lọc'
+                    }
+                  </h5>
+                  <p className="text-muted">
+                    {appointments.length === 0 
+                      ? 'Tất cả lịch hẹn đã được xử lý hoặc chưa có yêu cầu mới.'
+                      : 'Thử thay đổi bộ lọc trạng thái để xem thêm lịch hẹn.'
+                    }
+                  </p>
                 </div>
               ) : (
                 <Row>
-                  {appointments.map((appointment) => (
+                  {getFilteredAppointments().map((appointment) => (
                     <Col lg={6} xl={4} key={appointment.id} className="mb-4">
                       <Card className="h-100 shadow-sm border-0">                        <Card.Header className="bg-light">
                           <div className="d-flex justify-content-between align-items-center">                            <h6 className="mb-0">

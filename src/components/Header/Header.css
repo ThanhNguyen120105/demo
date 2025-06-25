@@ -31,19 +31,31 @@
   width: 100%;
 }
 
-.top-bar-contact, .top-bar-actions {
+.top-bar-left {
+  flex: 0 0 auto;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.top-bar-contact {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.top-bar-auth {
   display: flex;
   align-items: center;
 }
 
-.top-bar-actions {
-  gap: 12px;
-}
-
-.contact-item, .action-item {
-  margin-right: 15px;
+.contact-item {
   display: flex;
   align-items: center;
+  font-size: 12px;
   transition: all 0.3s ease;
   position: relative;
   padding: 2px 0;

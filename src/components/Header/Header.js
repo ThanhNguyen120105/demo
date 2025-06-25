@@ -13,7 +13,6 @@ import {
   faEnvelope,
   faLocationArrow,
   faUserPlus,
-  faVial,
   faSignOutAlt,
   faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
@@ -76,30 +75,32 @@ const Header = () => {
     <header className="header">
       {/* Top Bar */}
       <div className="top-bar">
-        <Container>
-          <div className="top-bar-content">
-            <div className="top-bar-contact">
-              <div className="contact-item">
-                <FontAwesomeIcon icon={faPhone} className="pulse" />
-                <span>Đường dây nóng: (800) 123-4567</span>
-              </div>
-              <div className="contact-item">
-                <FontAwesomeIcon icon={faHospital} />
-                <span>Cấp cứu 24/7</span>
-              </div>
-              <div className="contact-item">
-                <FontAwesomeIcon icon={faLocationArrow} />
-                <span>123 Đường Trung tâm Y tế</span>
-              </div>            </div>            <div className="top-bar-actions">
-              <div className="action-item">
-                <Link to="/api-test" className="action-link">
-                  <FontAwesomeIcon icon={faVial} />
-                  <span>API Test</span>
-                </Link>
+        <Container>          <div className="top-bar-content">
+            <div className="top-bar-left">
+              {/* Có thể để logo hoặc tên công ty ở đây */}
+            </div>
+            
+            <div className="top-bar-right">
+              {/* Phần thông tin liên hệ */}
+              <div className="top-bar-contact">
+                <div className="contact-item">
+                  <FontAwesomeIcon icon={faPhone} className="pulse" />
+                  <span>Đường dây nóng: (800) 123-4567</span>
+                </div>
+                <div className="contact-item">
+                  <FontAwesomeIcon icon={faHospital} />
+                  <span>Cấp cứu 24/7</span>
+                </div>
+                <div className="contact-item">
+                  <FontAwesomeIcon icon={faLocationArrow} />
+                  <span>123 Đường Trung tâm Y tế</span>
+                </div>
               </div>
               
-              {/* Auth section trong top bar */}
+              {/* Divider */}
               <div className="top-bar-divider"></div>
+              
+              {/* Auth section */}
               <div className="top-bar-auth">
                 {isAuthenticated ? (
                   <div className="user-dropdown top-user-dropdown" ref={dropdownRef}>
@@ -148,8 +149,7 @@ const Header = () => {
                       <FontAwesomeIcon icon={faUserPlus} />
                       <span>Đăng ký</span>
                     </Link>
-                  </div>
-                )}
+                  </div>                )}
               </div>
             </div>
           </div>

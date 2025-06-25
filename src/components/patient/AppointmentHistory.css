@@ -1,7 +1,9 @@
 /* AppointmentHistory Component Styles */
 
 .appointment-history {
-  margin: 20px 0;
+  margin: 20px auto;
+  width: 80%;
+  max-width: 1200px;
 }
 
 .appointment-history .card-header {
@@ -12,6 +14,8 @@
 
 .appointment-history .table {
   margin-bottom: 0;
+  min-width: 900px; /* Giảm từ 1200px xuống 900px */
+  width: 100%;
 }
 
 .appointment-history .table th {
@@ -25,6 +29,44 @@
 .appointment-history .table td {
   padding: 1rem 0.75rem;
   vertical-align: middle;
+}
+
+/* Điều chỉnh width các cột cho bảng 80% */
+.appointment-history .table th:nth-child(1),
+.appointment-history .table td:nth-child(1) {
+  width: 200px !important;
+  min-width: 200px;
+  text-align: left;
+}
+
+.appointment-history .table th:nth-child(2),
+.appointment-history .table td:nth-child(2) {
+  width: 120px !important;
+  min-width: 120px;
+}
+
+.appointment-history .table th:nth-child(3),
+.appointment-history .table td:nth-child(3) {
+  width: 150px !important;
+  min-width: 150px;
+}
+
+.appointment-history .table th:nth-child(4),
+.appointment-history .table td:nth-child(4) {
+  width: 130px !important;
+  min-width: 130px;
+}
+
+.appointment-history .table th:nth-child(5),
+.appointment-history .table td:nth-child(5) {
+  width: 130px !important;
+  min-width: 130px;
+}
+
+.appointment-history .table th:nth-child(6),
+.appointment-history .table td:nth-child(6) {
+  width: 100px !important;
+  min-width: 100px;
 }
 
 /* Tạo hiệu ứng hover cho các row */
@@ -148,3 +190,100 @@
   display: block;
   border-left: 3px solid #007bff;
 }
+
+/* Responsive cho bảng 80% width */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .appointment-history {
+    width: 85%;
+  }
+  
+  .appointment-history .table {
+    min-width: 950px;
+    font-size: 0.9rem;
+  }
+  
+  .appointment-history .table th:nth-child(1),
+  .appointment-history .table td:nth-child(1) {
+    width: 220px !important;
+    min-width: 220px;
+  }
+  
+  .appointment-history .table th:nth-child(2),
+  .appointment-history .table td:nth-child(2) {
+    width: 130px !important;
+    min-width: 130px;
+  }
+  
+  .appointment-history .table th:nth-child(3),
+  .appointment-history .table td:nth-child(3) {
+    width: 160px !important;
+    min-width: 160px;
+  }
+  
+  .appointment-history .table th:nth-child(4),
+  .appointment-history .table td:nth-child(4) {
+    width: 140px !important;
+    min-width: 140px;
+  }
+  
+  .appointment-history .table th:nth-child(5),
+  .appointment-history .table td:nth-child(5) {
+    width: 140px !important;
+    min-width: 140px;
+  }
+  
+  .appointment-history .table th:nth-child(6),
+  .appointment-history .table td:nth-child(6) {
+    width: 110px !important;
+    min-width: 110px;
+  }
+}
+
+@media (min-width: 1367px) {
+  .appointment-history {
+    width: 80%;
+  }
+  
+  .appointment-history .table {
+    min-width: 1000px;
+    font-size: 0.95rem;
+  }
+  
+  .appointment-history .table th:nth-child(1),
+  .appointment-history .table td:nth-child(1) {
+    width: 240px !important;
+    min-width: 240px;
+  }
+  
+  .appointment-history .table th:nth-child(2),
+  .appointment-history .table td:nth-child(2) {
+    width: 140px !important;
+    min-width: 140px;
+  }
+  
+  .appointment-history .table th:nth-child(3),
+  .appointment-history .table td:nth-child(3) {
+    width: 170px !important;
+    min-width: 170px;
+  }
+  
+  .appointment-history .table th:nth-child(4),
+  .appointment-history .table td:nth-child(4) {
+    width: 150px !important;
+    min-width: 150px;
+  }
+  
+  .appointment-history .table th:nth-child(5),
+  .appointment-history .table td:nth-child(5) {
+    width: 150px !important;
+    min-width: 150px;
+  }
+  
+  .appointment-history .table th:nth-child(6),
+  .appointment-history .table td:nth-child(6) {
+    width: 120px !important;
+    min-width: 120px;
+  }
+}
+
+/* Responsive design */

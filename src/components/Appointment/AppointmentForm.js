@@ -604,7 +604,7 @@ const AppointmentForm = () => {
           {/* Bước 1: Chọn chi tiết dịch vụ HIV */}
           {formStep === 1 && (
             <div className="form-step-container animated fadeIn">
-              <h4 className="text-center mb-4">Bước 1: Chọn loại dịch vụ HIV</h4>              <div className="alert alert-info mb-4">
+              <h4 className="text-center mb-4">Bước 1: Chọn dịch vụ HIV</h4>              <div className="alert alert-info mb-4">
                 <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
                 Dịch vụ: <strong>{getServiceTypeName(formData.registrationType)}</strong>
               </div><div className="service-detail-grid">
