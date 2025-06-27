@@ -27,6 +27,7 @@ const AppointmentApproval = () => {
   const [approvalNotes, setApprovalNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  
 
   // Load pending appointments
   useEffect(() => {

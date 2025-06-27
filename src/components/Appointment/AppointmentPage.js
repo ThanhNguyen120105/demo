@@ -1,10 +1,10 @@
 import React from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarCheck, faUserMd, faExclamationTriangle, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { USER_ROLES, canBookAppointment, getRoleId, getRoleName } from '../../constants/userRoles';
+import { canBookAppointment, getRoleId, getRoleName } from '../../constants/userRoles';
 import AppointmentForm from './AppointmentForm';
 import './AppointmentPage.css';
 
@@ -76,17 +76,6 @@ const AppointmentPage = () => {
   return (
     <div className="simple-appointment-page">
       <Container className="py-4">
-        <Row className="justify-content-center mb-4">
-          <Col md={10} lg={8} className="text-center">
-            <h1 className="page-title mb-3">
-              <FontAwesomeIcon icon={faCalendarCheck} className="me-2" /> 
-              Đặt Lịch Hẹn Khám Bệnh
-            </h1>
-            <p className="lead text-muted">
-              Chào mừng {user?.fullName || user?.name || 'bạn'}! Hãy đặt lịch hẹn để được chăm sóc sức khỏe tốt nhất.
-            </p>
-          </Col>
-        </Row>
         <Row className="justify-content-center">
           <Col md={12} lg={10}>
             <AppointmentForm />

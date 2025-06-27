@@ -10,7 +10,6 @@ import {
   faStethoscope,
   faRefresh,
   faEye,
-  faInfoCircle,
   faFlask,
   faFileMedical,
   faVial,
@@ -29,7 +28,8 @@ const AppointmentHistory = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [appointmentDetail, setAppointmentDetail] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);  const [showMedicalResultModal, setShowMedicalResultModal] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showMedicalResultModal, setShowMedicalResultModal] = useState(false);
   const [medicalResult, setMedicalResult] = useState(null);
   const [loadingMedicalResult, setLoadingMedicalResult] = useState(false);
 
@@ -118,12 +118,10 @@ const AppointmentHistory = () => {
     
     try {
       console.log('Loading medical result for ID:', medicalResultId);
-      const result = await medicalResultAPI.getMedicalResultById(medicalResultId);
-        if (result.success) {
+      const result = await medicalResultAPI.getMedicalResult(medicalResultId);
+      
+      if (result.success) {
         console.log('Medical result loaded:', result.data);
-        console.log('ARV Results:', result.data.arvResults);
-        console.log('Medications:', result.data.medications);
-        console.log('Patient Progress Evaluation:', result.data.patientProgressEvaluation);
         setMedicalResult(result.data);
       } else {
         console.error('Failed to load medical result:', result.message);
@@ -276,15 +274,23 @@ const AppointmentHistory = () => {
                           <span className="fw-medium text-nowrap">{appointment.doctorName}</span>
                         </div>
                       </td>                      <td>
-                        <Badge bg="info" pill style={{ fontSize: '0.75rem' }}>
-                          {getAppointmentTypeLabel(appointment.appointmentType)}
-                        </Badge>
+                        <div className="d-flex align-items-center gap-2">
+                          <Badge bg="info" pill style={{ fontSize: '0.75rem' }}>
+                            {getAppointmentTypeLabel(appointment.appointmentType)}
+                          </Badge>
+                          {appointment.medicalResultId && (
+                            <Badge bg="success" pill style={{ fontSize: '0.65rem' }} title="Có kết quả xét nghiệm">
+                              <FontAwesomeIcon icon={faFlask} size="sm" />
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td>
                         {getStatusBadge(appointment.status)}
                       </td>
                       <td>
-                        {canCancelAppointment(appointment) ? (                          <Button
+                        {canCancelAppointment(appointment) ? (
+                          <Button
                             variant="outline-danger"
                             size="sm"
                             onClick={() => handleCancelClick(appointment)}
@@ -294,15 +300,29 @@ const AppointmentHistory = () => {
                             Hủy
                           </Button>
                         ) : (
-                          <Button
-                            variant="outline-info"
-                            size="sm"
-                            onClick={() => handleViewDetail(appointment)}
-                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
-                          >
-                            <FontAwesomeIcon icon={faEye} className="me-1" size="sm" />
-                            Xem
-                          </Button>
+                          <div className="d-flex gap-1 flex-wrap">
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              onClick={() => handleViewDetail(appointment)}
+                              style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
+                            >
+                              <FontAwesomeIcon icon={faEye} className="me-1" size="sm" />
+                              Chi tiết
+                            </Button>
+                            {appointment.medicalResultId && (
+                              <Button
+                                variant="outline-success"
+                                size="sm"
+                                onClick={() => handleViewMedicalResult(appointment.medicalResultId)}
+                                style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
+                                title="Xem kết quả xét nghiệm"
+                              >
+                                <FontAwesomeIcon icon={faFlask} className="me-1" size="sm" />
+                                KQ XN
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -360,189 +380,78 @@ const AppointmentHistory = () => {
       <Modal 
         show={showDetailModal} 
         onHide={() => setShowDetailModal(false)} 
-        centered 
-        size="lg"
-        style={{ zIndex: 1050 }}
+        centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faInfoCircle} className="text-info me-2" />
-            Chi tiết lịch hẹn
-          </Modal.Title>
+          <Modal.Title>Chi tiết lịch hẹn</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {loadingDetail ? (
-            <div className="text-center py-4">
+            <div className="text-center">
               <Spinner animation="border" variant="primary" />
-              <p className="mt-2 mb-0">Đang tải chi tiết lịch hẹn...</p>
+              <p className="mt-2">Đang tải...</p>
             </div>
           ) : appointmentDetail ? (
             <div>
-              {/* Thông tin cơ bản */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <h6 className="text-primary mb-2">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                    Thông tin lịch hẹn
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    <p className="mb-2">
-                      <strong>Mã lịch hẹn:</strong> 
-                      <span className="text-muted ms-2">{appointmentDetail.id}</span>
-                    </p>
-                    <p className="mb-2">
-                      <strong>Ngày khám:</strong> 
-                      <span className="ms-2">{formatDate(appointmentDetail.appointmentDate)}</span>
-                    </p>
-                    <p className="mb-2">
-                      <strong>Giờ khám:</strong> 
-                      <span className="ms-2">
-                        {formatTimeSlot(appointmentDetail.slotStartTime, appointmentDetail.slotEndTime)}
-                      </span>
-                    </p>
-                    <p className="mb-2">
-                      <strong>Loại khám:</strong> 
-                      <Badge bg="info" className="ms-2">
-                        {getAppointmentTypeLabel(appointmentDetail.appointmentType)}
-                      </Badge>
-                    </p>
-                    <p className="mb-0">
-                      <strong>Trạng thái:</strong> 
-                      <span className="ms-2">{getStatusBadge(appointmentDetail.status)}</span>
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="col-md-6">
-                  <h6 className="text-success mb-2">
-                    <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                    Thông tin bác sĩ
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    <p className="mb-2">
-                      <strong>Tên bác sĩ:</strong> 
-                      <span className="ms-2">{appointmentDetail.doctorName}</span>
-                    </p>
-                    {appointmentDetail.doctorSpecialty && (
-                      <p className="mb-2">
-                        <strong>Chuyên khoa:</strong> 
-                        <span className="ms-2">{appointmentDetail.doctorSpecialty}</span>
-                      </p>
-                    )}
-                    {appointmentDetail.doctorPhone && (
-                      <p className="mb-0">
-                        <strong>Điện thoại:</strong> 
-                        <span className="ms-2">{appointmentDetail.doctorPhone}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Thông tin bệnh nhân */}
-              {(appointmentDetail.alternativeName || appointmentDetail.alternativePhoneNumber || appointmentDetail.reason) && (
-                <div className="mb-3">
-                  <h6 className="text-warning mb-2">
-                    <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                    Thông tin khám bệnh
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    {appointmentDetail.alternativeName && (
-                      <p className="mb-2">
-                        <strong>Tên người khám:</strong> 
-                        <span className="ms-2">{appointmentDetail.alternativeName}</span>
-                      </p>
-                    )}
-                    {appointmentDetail.alternativePhoneNumber && (
-                      <p className="mb-2">
-                        <strong>Số điện thoại:</strong> 
-                        <span className="ms-2">{appointmentDetail.alternativePhoneNumber}</span>
-                      </p>
-                    )}
-                    {appointmentDetail.reason && (
-                      <p className="mb-0">
-                        <strong>Lý do khám:</strong> 
-                        <span className="ms-2">{appointmentDetail.reason}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}              {/* Ghi chú bổ sung */}
-              {appointmentDetail.notes && (
-                <div className="mb-3">
-                  <h6 className="text-secondary mb-2">
-                    <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                    Ghi chú
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    <p className="mb-0">{appointmentDetail.notes}</p>
-                  </div>
-                </div>
+              <p><strong>Mã lịch hẹn:</strong> {appointmentDetail.id}</p>
+              <p><strong>Ngày khám:</strong> {formatDate(appointmentDetail.appointmentDate)}</p>
+              <p><strong>Giờ khám:</strong> {formatTimeSlot(appointmentDetail.slotStartTime, appointmentDetail.slotEndTime)}</p>
+              <p><strong>Bác sĩ:</strong> {appointmentDetail.doctorName}</p>
+              <p><strong>Loại khám:</strong> {getAppointmentTypeLabel(appointmentDetail.appointmentType)}</p>
+              <p><strong>Trạng thái:</strong> {getStatusBadge(appointmentDetail.status)}</p>
+              {appointmentDetail.alternativeName && (
+                <p><strong>Tên người khám:</strong> {appointmentDetail.alternativeName}</p>
               )}
-
+              {appointmentDetail.alternativePhoneNumber && (
+                <p><strong>Số điện thoại:</strong> {appointmentDetail.alternativePhoneNumber}</p>
+              )}
+              {appointmentDetail.reason && (
+                <p><strong>Lý do khám:</strong> {appointmentDetail.reason}</p>
+              )}
+              {appointmentDetail.notes && (
+                <p><strong>Ghi chú:</strong> {appointmentDetail.notes}</p>
+              )}
+              
               {/* Kết quả xét nghiệm (nếu có) */}
               {appointmentDetail.medicalResultId && (
-                <div className="mb-3">
+                <div className="mt-3 p-3 bg-light rounded">
                   <h6 className="text-info mb-2">
                     <FontAwesomeIcon icon={faFileMedical} className="me-2" />
                     Kết quả xét nghiệm
                   </h6>
-                  <div className="bg-light p-3 rounded text-center">
-                    <p className="mb-2">
-                      <small className="text-muted">Mã kết quả: {appointmentDetail.medicalResultId}</small>
-                    </p>
-                    <Button
-                      variant="info"
-                      size="sm"
-                      onClick={() => handleViewMedicalResult(appointmentDetail.medicalResultId)}
-                    >
-                      <FontAwesomeIcon icon={faFlask} className="me-2" />
-                      Xem chi tiết kết quả xét nghiệm
-                    </Button>
-                  </div>
+                  <p className="mb-2">
+                    <small className="text-muted">Mã kết quả: {appointmentDetail.medicalResultId}</small>
+                  </p>
+                  <Button
+                    variant="info"
+                    size="sm"
+                    onClick={() => handleViewMedicalResult(appointmentDetail.medicalResultId)}
+                  >
+                    <FontAwesomeIcon icon={faFlask} className="me-2" />
+                    Xem chi tiết kết quả xét nghiệm
+                  </Button>
                 </div>
               )}
-
-              {/* Thông tin thời gian */}
-              <div className="row">
-                {appointmentDetail.createdAt && (
-                  <div className="col-md-6">
-                    <small className="text-muted">
-                      <strong>Thời gian đặt:</strong> {' '}
-                      {new Date(appointmentDetail.createdAt).toLocaleString('vi-VN')}
-                    </small>
-                  </div>
-                )}
-                {appointmentDetail.updatedAt && (
-                  <div className="col-md-6">
-                    <small className="text-muted">
-                      <strong>Cập nhật lần cuối:</strong> {' '}
-                      {new Date(appointmentDetail.updatedAt).toLocaleString('vi-VN')}
-                    </small>
-                  </div>
-                )}
-              </div>
             </div>
           ) : (
-            <Alert variant="danger">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-              Không thể tải chi tiết lịch hẹn. Vui lòng thử lại.
-            </Alert>
+            <p>Không thể tải thông tin chi tiết.</p>
           )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
             Đóng
-          </Button>        </Modal.Footer>
+          </Button>
+        </Modal.Footer>
       </Modal>
 
-      {/* Modal Kết quả xét nghiệm */}
+      {/* Modal xem kết quả xét nghiệm */}
       <Modal 
         show={showMedicalResultModal} 
         onHide={() => setShowMedicalResultModal(false)} 
         size="xl"
         centered
-        style={{ zIndex: 1055 }}
+        scrollable
+        dialogClassName="medical-result-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>
@@ -555,195 +464,278 @@ const AppointmentHistory = () => {
             )}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="px-4 py-3">
+        <Modal.Body className="px-4 py-3" style={{ paddingLeft: '5%' }}>
           {loadingMedicalResult ? (
             <div className="text-center py-4">
               <Spinner animation="border" variant="info" />
               <p className="mt-2 mb-0">Đang tải kết quả xét nghiệm...</p>
             </div>
           ) : medicalResult ? (
-            <div className="medical-report-form">
-              {/* Phần kết quả xét nghiệm */}
+            <div className="medical-report-view">
+              {/* Thông tin cơ bản bệnh nhân */}
+              <Row className="mb-4">
+                <Col md={12}>
+                  <Card className="h-100">
+                    <Card.Header className="bg-primary text-white py-2">
+                      <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                      Thông tin bệnh nhân
+                    </Card.Header>
+                    <Card.Body>
+                      <Row>
+                        <Col md={3}>
+                          <div className="mb-3">
+                            <label className="form-label">Cân nặng (kg)</label>
+                            <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                              {medicalResult.weight || 'Chưa nhập'}
+                            </div>
+                          </div>
+                        </Col>
+                        <Col md={3}>
+                          <div className="mb-3">
+                            <label className="form-label">Chiều cao (cm)</label>
+                            <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                              {medicalResult.height || 'Chưa nhập'}
+                            </div>
+                          </div>
+                        </Col>
+                        <Col md={3}>
+                          <div className="mb-3">
+                            <label className="form-label">BMI</label>
+                            <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                              {medicalResult.bmi || 'Chưa nhập'}
+                            </div>
+                          </div>
+                        </Col>
+                        <Col md={3}>
+                          <div className="mb-3">
+                            <label className="form-label">Nhiệt độ (°C)</label>
+                            <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                              {medicalResult.temperature || 'Chưa nhập'}
+                            </div>
+                          </div>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col md={4}>
+                          <div className="mb-3">
+                            <label className="form-label">Nhịp tim (bpm)</label>
+                            <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                              {medicalResult.heartRate || 'Chưa nhập'}
+                            </div>
+                          </div>
+                        </Col>
+                        <Col md={8}>
+                          <div className="mb-3">
+                            <label className="form-label">Huyết áp (mmHg)</label>
+                            <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                              {medicalResult.bloodPressure || 'Chưa nhập'}
+                            </div>
+                          </div>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Xét nghiệm HIV */}
               <Card className="mb-3">
-                <Card.Header className="bg-warning text-dark py-2">
+                <Card.Header className="bg-info text-white py-2">
                   <FontAwesomeIcon icon={faVial} className="me-2" />
-                  Kết quả xét nghiệm
+                  Xét nghiệm HIV
                 </Card.Header>
                 <Card.Body>
-                  <h6 className="mb-3">Xét nghiệm HIV</h6>
                   <Row>
                     <Col md={6}>
                       <div className="mb-3">
-                        <label className="form-label">Chỉ số CD4</label>
+                        <label className="form-label">Chỉ số CD4 (tế bào/mm³)</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.cd4Count ? `${medicalResult.cd4Count} tế bào/mm³` : 'Chưa có dữ liệu'}
+                          {medicalResult.cd4Count || 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={6}>
                       <div className="mb-3">
-                        <label className="form-label">Tải lượng virus</label>
+                        <label className="form-label">Tải lượng virus (bản sao/mL)</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.viralLoad ? `${medicalResult.viralLoad} bản sao/mL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-
-                  <h6 className="mb-3 mt-4">Huyết học</h6>
-                  <Row>
-                    <Col md={4}>
-                      <div className="mb-3">
-                        <label className="form-label">Hemoglobin</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.hemoglobin ? `${medicalResult.hemoglobin} g/dL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={4}>
-                      <div className="mb-3">
-                        <label className="form-label">Bạch cầu</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.whiteBloodCell ? `${medicalResult.whiteBloodCell} × 10³/μL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={4}>
-                      <div className="mb-3">
-                        <label className="form-label">Tiểu cầu</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.platelets ? `${medicalResult.platelets} × 10³/μL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-
-                  <h6 className="mb-3 mt-4">Sinh hóa</h6>
-                  <Row>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">Đường huyết</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.glucose ? `${medicalResult.glucose} mg/dL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">Creatinine</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.creatinine ? `${medicalResult.creatinine} mg/dL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">ALT</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.alt ? `${medicalResult.alt} U/L` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">AST</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.ast ? `${medicalResult.ast} U/L` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-
-                  <h6 className="mb-3 mt-4">Chỉ số mỡ máu</h6>
-                  <Row>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">Cholesterol toàn phần</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.totalCholesterol ? `${medicalResult.totalCholesterol} mg/dL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">LDL</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.ldl ? `${medicalResult.ldl} mg/dL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">HDL</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.hdl ? `${medicalResult.hdl} mg/dL` : 'Chưa có dữ liệu'}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={3}>
-                      <div className="mb-3">
-                        <label className="form-label">Triglycerides</label>
-                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.triglycerides ? `${medicalResult.triglycerides} mg/dL` : 'Chưa có dữ liệu'}
+                          {medicalResult.viralLoad || 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                   </Row>
                 </Card.Body>
-              </Card>              {/* Phần ARV (chỉ xem) - Tạm thời hiển thị luôn để debug */}
+              </Card>
+
+              {/* Huyết học */}
+              <Card className="mb-3">
+                <Card.Header className="bg-success text-white py-2">
+                  <FontAwesomeIcon icon={faVial} className="me-2" />
+                  Huyết học
+                </Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={4}>
+                      <div className="mb-3">
+                        <label className="form-label">Hemoglobin (g/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.hemoglobin || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={4}>
+                      <div className="mb-3">
+                        <label className="form-label">Bạch cầu (× 10³/μL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.whiteBloodCell || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={4}>
+                      <div className="mb-3">
+                        <label className="form-label">Tiểu cầu (× 10³/μL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.platelets || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Sinh hóa */}
+              <Card className="mb-3">
+                <Card.Header className="bg-warning text-dark py-2">
+                  <FontAwesomeIcon icon={faVial} className="me-2" />
+                  Sinh hóa
+                </Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">Đường huyết (mg/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.glucose || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">Creatinine (mg/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.creatinine || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">ALT (U/L)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.alt || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">AST (U/L)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.ast || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Chỉ số mỡ máu */}
+              <Card className="mb-3">
+                <Card.Header className="bg-secondary text-white py-2">
+                  <FontAwesomeIcon icon={faVial} className="me-2" />
+                  Chỉ số mỡ máu
+                </Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">Cholesterol toàn phần (mg/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.totalCholesterol || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">LDL (mg/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.ldl || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">HDL (mg/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.hdl || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={3}>
+                      <div className="mb-3">
+                        <label className="form-label">Triglycerides (mg/dL)</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                          {medicalResult.triglycerides || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Phần ARV */}
               <Card className="mb-3">
                 <Card.Header className="bg-danger text-white py-2">
                   <FontAwesomeIcon icon={faFilePdf} className="me-2" />
                   Kết quả ARV
                 </Card.Header>
                 <Card.Body>
-                  <div className="bg-light p-3 rounded">
-                    {medicalResult.arvResults ? (
-                      <>
-                        <p className="mb-0">
-                          <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
-                          <strong>Báo cáo ARV:</strong> {medicalResult.arvResults.fileName || 'Có kết quả ARV'}
-                        </p>
-                        {medicalResult.arvResults.recommendations && (
-                          <p className="mb-0 mt-2">
-                            <strong>Khuyến nghị:</strong> {medicalResult.arvResults.recommendations}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="mb-0 text-muted">
-                        <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
-                        <strong>Báo cáo ARV:</strong> Chưa có dữ liệu ARV
-                      </p>
-                    )}
+                  <div className="mb-3">
+                    <label className="form-label">Báo cáo ARV</label>
+                    <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                      {medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL || 'Chưa nhập'}
+                    </div>
                   </div>
+                  {medicalResult.arvResults?.recommendations && (
+                    <div className="mb-3">
+                      <label className="form-label">Khuyến nghị ARV</label>
+                      <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '60px', whiteSpace: 'pre-wrap' }}>
+                        {medicalResult.arvResults.recommendations}
+                      </div>
+                    </div>
+                  )}
                 </Card.Body>
               </Card>
 
-              {/* Phần thuốc (chỉ xem) - Tạm thời hiển thị luôn để debug */}
+              {/* Phần thuốc điều trị */}
               <Card className="mb-3">
                 <Card.Header className="bg-success text-white py-2">
                   <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
                   Thuốc điều trị
                 </Card.Header>
                 <Card.Body>
-                  {medicalResult.medications && medicalResult.medications.length > 0 ? (
+                  {medicalResult.medicalResultMedicines && medicalResult.medicalResultMedicines.length > 0 ? (
                     <div className="table-responsive">
-                      <table className="table table-striped mb-0">
-                        <thead>
+                      <table className="table table-sm mb-0">
+                        <thead className="table-light">
                           <tr>
                             <th>Tên thuốc</th>
                             <th>Liều lượng</th>
-                            <th>Tần suất</th>
                             <th>Trạng thái</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {medicalResult.medications.map((med, index) => (
+                          {medicalResult.medicalResultMedicines.map((med, index) => (
                             <tr key={index}>
-                              <td>{med.name || 'Chưa có dữ liệu'}</td>
-                              <td>{med.dosage || 'Chưa có dữ liệu'}</td>
-                              <td>{med.frequency || 'Chưa có dữ liệu'}</td>
+                              <td>{med.medicineName || med.name || 'Chưa nhập'}</td>
+                              <td>{med.dosage || 'Chưa nhập'}</td>
                               <td>
                                 <Badge 
                                   bg={
@@ -753,7 +745,7 @@ const AppointmentHistory = () => {
                                     med.status === 'Đã ngừng' ? 'danger' : 'secondary'
                                   }
                                 >
-                                  {med.status || 'Chưa có dữ liệu'}
+                                  {med.status || 'Chưa nhập'}
                                 </Badge>
                               </td>
                             </tr>
@@ -762,30 +754,46 @@ const AppointmentHistory = () => {
                       </table>
                     </div>
                   ) : (
-                    <div className="bg-light p-3 rounded">
-                      <p className="mb-0 text-muted">
-                        <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
-                        Chưa có dữ liệu thuốc điều trị
-                      </p>
+                    <div className="text-center py-3 text-muted">
+                      Chưa có thông tin thuốc điều trị
                     </div>
                   )}
                 </Card.Body>
               </Card>
 
               {/* Đánh giá tiến triển bệnh nhân */}
-              {medicalResult.patientProgressEvaluation && (
-                <Card className="mb-3">
-                  <Card.Header className="bg-info text-white py-2">
-                    <FontAwesomeIcon icon={faUserMd} className="me-2" /> 
-                    Đánh giá của bác sĩ
-                  </Card.Header>
-                  <Card.Body>
+              <Card className="mb-3">
+                <Card.Header className="bg-info text-white py-2">
+                  <FontAwesomeIcon icon={faUserMd} className="me-2" /> 
+                  Đánh giá của bác sĩ
+                </Card.Header>
+                <Card.Body>
+                  <div className="mb-3">
+                    <label className="form-label">Đánh giá tiến triển bệnh nhân</label>
                     <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '100px', whiteSpace: 'pre-wrap' }}>
-                      {medicalResult.patientProgressEvaluation}
+                      {medicalResult.patientProgressEvaluation || 'Chưa nhập'}
                     </div>
-                  </Card.Body>
-                </Card>
-              )}
+                  </div>
+                  <Row>
+                    <Col md={6}>
+                      <div className="mb-3">
+                        <label className="form-label">Kế hoạch điều trị</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '80px', whiteSpace: 'pre-wrap' }}>
+                          {medicalResult.plan || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={6}>
+                      <div className="mb-3">
+                        <label className="form-label">Khuyến nghị</label>
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '80px', whiteSpace: 'pre-wrap' }}>
+                          {medicalResult.recommendation || 'Chưa nhập'}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
 
               {/* Thông tin thời gian */}
               <Card>

@@ -604,10 +604,9 @@ const AppointmentForm = () => {
           {/* Bước 1: Chọn chi tiết dịch vụ HIV */}
           {formStep === 1 && (
             <div className="form-step-container animated fadeIn">
-              <h4 className="text-center mb-4">Bước 1: Chọn dịch vụ HIV</h4>              <div className="alert alert-info mb-4">
-                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                Dịch vụ: <strong>{getServiceTypeName(formData.registrationType)}</strong>
-              </div><div className="service-detail-grid">
+              <h4 className="text-center mb-4">Bước 1: Chọn dịch vụ HIV</h4>
+
+              <div className="service-detail-grid">
                 <div 
                   className={`service-detail-option ${formData.serviceDetail === 'hiv-testing' ? 'active' : ''}`}
                   onClick={() => setFormData({...formData, serviceDetail: 'hiv-testing', serviceId: 1})}
@@ -665,11 +664,6 @@ const AppointmentForm = () => {
           {formStep === 2 && (
             <div className="form-step-container animated fadeIn">
               <h4 className="text-center mb-4">Bước 2: Chọn loại hình khám</h4>
-
-              <div className="alert alert-info mb-4">
-                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong>
-              </div>
 
               <div className="form-group">
                 <Form.Label>
@@ -772,15 +766,6 @@ const AppointmentForm = () => {
           {formStep === 3 && (
             <div className="form-step-container animated fadeIn">
               <h4 className="text-center mb-4">Bước 3: Chọn ngày và giờ khám</h4>
-
-              <div className="alert alert-info mb-4">
-                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                Dịch vụ: <strong>{getServiceDetailName(formData.registrationType, formData.serviceDetail)}</strong> - 
-                Loại khám: <strong>{formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}</strong>
-                {formData.doctor && (
-                  <span> - Bác sĩ: <strong>{availableDoctors.find(d => d.id === formData.doctor)?.name}</strong></span>
-                )}
-              </div>
 
               <div className="form-group">
                 <label className="form-label">
@@ -1163,87 +1148,459 @@ const AppointmentForm = () => {
         </Form>
       </div>
 
-      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
-        <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="text-center w-100">
-            <FontAwesomeIcon 
-              icon={faCheckCircle} 
-              className="text-success me-2"
-              size="2x"
-            />
-            <br />
-            Đặt Lịch Thành Công
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="text-center">
-          <div className="alert alert-success">
-            <h5 className="mb-3">Cảm ơn bạn đã đặt lịch khám!</h5>
-            <p className="mb-2">
-              <strong>Dịch vụ:</strong> {getServiceTypeName(formData.registrationType)}
-            </p>
-            {formData.serviceDetail && (
-              <p className="mb-2">
-                <strong>Chi tiết:</strong> {getServiceDetailName(formData.registrationType, formData.serviceDetail)}
+      <Modal 
+        show={showSuccessModal} 
+        onHide={() => {
+          setShowSuccessModal(false);
+          // Reset form về bước đầu
+          setFormData({
+            serviceType: 'hiv-care',
+            serviceDetail: '',
+            serviceId: null,
+            doctor: '',
+            date: '',
+            time: '',
+            healthIssues: '',
+            customerId: '',
+            phone: '',
+            dob: '',
+            name: '',
+            registrationType: 'hiv-care',
+            consultationType: 'direct'
+          });
+          setFormStep(1);
+        }} 
+        centered
+        size="lg"
+        className="success-modal"
+        scrollable={true}
+        dialogClassName="modal-dialog-scrollable"
+      >
+        <Modal.Body className="p-0">
+          <div className="success-modal-content">
+            {/* Header Section với Animation */}
+            <div className="success-header">
+              <div className="success-icon-wrapper">
+                <div className="success-icon-circle">
+                  <FontAwesomeIcon 
+                    icon={faCheckCircle} 
+                    className="success-icon"
+                  />
+                </div>
+              </div>
+              <h2 className="success-title">Đặt lịch thành công!</h2>
+              <p className="success-subtitle">
+                Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi
               </p>
-            )}
-            {formData.date && (
-              <p className="mb-2">
-                <strong>Ngày khám:</strong> {new Date(formData.date).toLocaleDateString('vi-VN')}
-                {formData.time && <span> - <strong>Giờ:</strong> {getSelectedSlotInfo()}</span>}
-              </p>
-            )}
-            <p className="mb-0">
-              <strong>Liên hệ:</strong> {formData.phone}
-            </p>
-          </div>
+            </div>
 
-          <div className="alert alert-info">
-            <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-            <strong>Thông báo quan trọng:</strong><br/>
-            <small>
-              • Lịch hẹn của bạn đang được xử lý<br/>
-              • Chúng tôi sẽ gọi điện xác nhận trong vòng 24h<br/>
-              • Vui lòng mang theo CMND/CCCD và thẻ BHYT (nếu có)<br/>
-              • Đến trước giờ hẹn 30 phút để làm thủ tục
-            </small>
-          </div>
+            {/* Important Notice */}
+            <div className="important-notice">
+              <div className="notice-header">
+                <FontAwesomeIcon icon={faInfoCircle} className="notice-icon" />
+                <span>Lưu ý quan trọng</span>
+              </div>
+              <div className="notice-content">
+                <div className="notice-item">
+                  <FontAwesomeIcon icon={faCheckCircle} className="notice-bullet" />
+                  Lịch hẹn đang được xử lý và sẽ được xác nhận trong vòng 24h
+                </div>
+                <div className="notice-item">
+                  <FontAwesomeIcon icon={faCheckCircle} className="notice-bullet" />
+                  Vui lòng mang theo CMND/CCCD và thẻ BHYT (nếu có)
+                </div>
+                <div className="notice-item">
+                  <FontAwesomeIcon icon={faCheckCircle} className="notice-bullet" />
+                  Đến trước giờ hẹn 30 phút để làm thủ tục
+                </div>
+              </div>
+            </div>
 
-          <div className="contact-reminder">
-            <p className="mb-1"><strong>Hotline hỗ trợ:</strong></p>
-            <h4 className="text-primary mb-2">1900.888.866</h4>
-            <small className="text-muted">
-              Thời gian làm việc: T2-T6 (7:30-21:00) | T7-CN (7:30-16:30)
-            </small>
+            {/* Contact Support */}
+            <div className="contact-support">
+              <div className="support-content">
+                <FontAwesomeIcon icon={faPhone} className="support-icon" />
+                <div className="support-text">
+                  <div className="support-label">Hỗ trợ 24/7</div>
+                  <div className="support-number">1900.888.866</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="modal-actions">
+              <Button 
+                variant="outline-secondary"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  // Reset form về bước đầu
+                  setFormData({
+                    serviceType: 'hiv-care',
+                    serviceDetail: '',
+                    serviceId: null,
+                    doctor: '',
+                    date: '',
+                    time: '',
+                    healthIssues: '',
+                    customerId: '',
+                    phone: '',
+                    dob: '',
+                    name: '',
+                    registrationType: 'hiv-care',
+                    consultationType: 'direct'
+                  });
+                  setFormStep(1);
+                }}
+                className="action-btn secondary-btn"
+              >
+                Đóng
+              </Button>
+              <Button 
+                variant="primary"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  // Reset form
+                  setFormData({
+                    serviceType: 'hiv-care',
+                    serviceDetail: '',
+                    serviceId: null,
+                    doctor: '',
+                    date: '',
+                    time: '',
+                    healthIssues: '',
+                    customerId: '',
+                    phone: '',
+                    dob: '',
+                    name: '',
+                    registrationType: 'hiv-care',
+                    consultationType: 'direct'
+                  });
+                  setFormStep(1);
+                }}
+                className="action-btn primary-btn"
+              >
+                <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                Đặt lịch mới
+              </Button>
+            </div>
           </div>
         </Modal.Body>
-        <Modal.Footer className="border-0 justify-content-center">
-          <Button 
-            variant="primary" 
-            onClick={() => {
-              setShowSuccessModal(false);              // Reset form
-              setFormData({
-                serviceType: 'hiv-care',
-                serviceDetail: '',
-                serviceId: null,
-                doctor: '',
-                date: '',
-                time: '',
-                healthIssues: '',
-                customerId: '',
-                phone: '',
-                dob: '',
-                name: '',
-                registrationType: 'hiv-care',
-                consultationType: 'direct'
-              });
-              setFormStep(1);
-            }}
-            className="px-4"
-          >
-            Đặt Lịch Mới
-          </Button>
-        </Modal.Footer>
       </Modal>
+
+      <style jsx>{`
+        .success-modal .modal-dialog {
+          max-width: 600px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 1rem 0;
+        }
+
+        .success-modal .modal-content {
+          border: none;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          max-height: 90vh;
+          overflow-y: auto;
+          width: 100%;
+          margin: auto;
+        }
+
+        .modal-dialog-scrollable {
+          max-width: 600px;
+          width: 100%;
+        }
+
+        .success-modal-content {
+          padding: 0;
+          background: linear-gradient(135deg, #f8fffe 0%, #f0f9ff 100%);
+        }
+
+        .success-header {
+          text-align: center;
+          padding: 1.5rem 2rem 1rem;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .success-header::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+          animation: pulse-bg 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-bg {
+          0%, 100% { transform: scale(1); opacity: 0.5; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .success-icon-wrapper {
+          position: relative;
+          z-index: 2;
+          margin-bottom: 0.75rem;
+        }
+
+        .success-icon-circle {
+          width: 50px;
+          height: 50px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto;
+          backdrop-filter: blur(10px);
+          animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          position: relative;
+        }
+
+        @keyframes bounce-in {
+          0% { transform: scale(0); opacity: 0; }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-icon {
+          font-size: 3rem;
+          color: white;
+          animation: check-draw 0.8s ease-in-out 0.3s both;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        @keyframes check-draw {
+          0% { transform: translate(-50%, -50%) scale(0); }
+          50% { transform: translate(-50%, -50%) scale(1.2); }
+          100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .success-title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin: 0 0 0.4rem;
+          position: relative;
+          z-index: 2;
+          animation: slide-up 0.6s ease-out 0.2s both;
+        }
+
+        .success-subtitle {
+          font-size: 1rem;
+          opacity: 0.95;
+          margin: 0;
+          position: relative;
+          z-index: 2;
+          animation: slide-up 0.6s ease-out 0.4s both;
+        }
+
+        @keyframes slide-up {
+          0% { transform: translateY(20px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .important-notice {
+          margin: 16px 1.5rem 1rem;
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-radius: 12px;
+          padding: 1rem;
+          border: 1px solid #f59e0b;
+        }
+
+        .notice-header {
+          display: flex;
+          align-items: center;
+          font-weight: 600;
+          color: #92400e;
+          margin-bottom: 0.5rem;
+          font-size: 0.95rem;
+        }
+
+        .notice-icon {
+          color: #f59e0b;
+          margin-right: 0.4rem;
+          font-size: 1rem;
+        }
+
+        .notice-content {
+          space-y: 0.4rem;
+        }
+
+        .notice-item {
+          display: flex;
+          align-items: flex-start;
+          color: #78350f;
+          margin-bottom: 0.4rem;
+          font-size: 0.85rem;
+          line-height: 1.4;
+        }
+
+        .notice-bullet {
+          color: #059669;
+          margin-right: 0.6rem;
+          margin-top: 0.1rem;
+          font-size: 0.75rem;
+          flex-shrink: 0;
+        }
+
+        .contact-support {
+          margin: 0 1.5rem 1rem;
+          background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+          border-radius: 12px;
+          padding: 0.75rem 1rem;
+          border: 1px solid #8b5cf6;
+        }
+
+        .support-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .support-icon {
+          color: #7c3aed;
+          font-size: 1.25rem;
+          margin-right: 0.75rem;
+        }
+
+        .support-text {
+          text-align: center;
+        }
+
+        .support-label {
+          color: #5b21b6;
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+
+        .support-number {
+          color: #4c1d95;
+          font-size: 1.1rem;
+          font-weight: 700;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 1rem;
+          padding: 1rem 1.5rem;
+          background: white;
+        }
+
+        .action-btn {
+          flex: 1;
+          padding: 0.6rem 1.25rem;
+          border-radius: 10px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+          border: none;
+        }
+
+        .secondary-btn {
+          background: #f1f5f9;
+          color: #475569;
+          border: 2px solid #e2e8f0 !important;
+        }
+
+        .secondary-btn:hover {
+          background: #e2e8f0;
+          color: #334155;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .primary-btn {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
+          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .primary-btn:hover {
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        @media (max-width: 768px) {
+          .success-modal .modal-dialog {
+            margin: 0.5rem auto;
+            min-height: calc(100vh - 1rem);
+            padding: 0.5rem 0;
+          }
+          
+          .modal-dialog-scrollable {
+            max-width: 95%;
+            width: 95%;
+          }
+          
+          .success-header {
+            padding: 1rem 1rem 0.75rem;
+          }
+          
+          .success-title {
+            font-size: 1.3rem;
+          }
+          
+          .important-notice,
+          .contact-support {
+            margin: 0 0.75rem 0.75rem;
+          }
+          
+          .modal-actions {
+            padding: 0.75rem;
+            flex-direction: column;
+          }
+        }
+
+        @media (max-height: 600px) {
+          .success-modal .modal-dialog {
+            margin: 0.25rem auto;
+            min-height: calc(100vh - 0.5rem);
+            padding: 0.25rem 0;
+          }
+          
+          .success-header {
+            padding: 0.75rem 2rem 0.5rem;
+          }
+          
+          .success-icon-circle {
+            width: 40px;
+            height: 40px;
+          }
+          
+          .success-icon {
+            font-size: 2.4rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+          }
+          
+          .success-title {
+            font-size: 1.25rem;
+          }
+          
+          .important-notice,
+          .contact-support {
+            margin: 0.5rem 1rem;
+            padding: 0.75rem;
+          }
+          
+          .modal-actions {
+            padding: 0.75rem 1rem;
+          }
+        }
+      `}</style>
     </Container>
   );
 };
