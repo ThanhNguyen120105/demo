@@ -4,11 +4,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faSignInAlt, faUserMd, faStethoscope } from '@fortawesome/free-solid-svg-icons';
 import { authAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
 
 const DoctorLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAuthenticated, updateUserAuth } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -22,22 +24,10 @@ const DoctorLogin = () => {
 
   // Kiểm tra xem đã đăng nhập chưa và có phải doctor không
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
-    
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user.role === 'DOCTOR') {
-          navigate('/doctor/dashboard', { replace: true });
-        }
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
+    if (isAuthenticated && user && user.role === 'DOCTOR') {
+      navigate('/doctor/dashboard', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, isAuthenticated, user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -62,10 +52,22 @@ const DoctorLogin = () => {
     setError('');
 
     try {
+      console.log('DoctorLogin - Attempting login for:', email);
       const result = await authAPI.loginAsDoctor({ email, password });
+      console.log('DoctorLogin - Login result:', result);
       
       if (result.success) {
         setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
+        
+        // Cập nhật AuthContext với thông tin doctor
+        const doctorUser = {
+          ...result.data,
+          token: result.token || localStorage.getItem('token'),
+          role: 'DOCTOR'
+        };
+        
+        console.log('DoctorLogin - Setting doctor user in AuthContext:', doctorUser);
+        updateUserAuth(doctorUser, true);
         
         // Chờ một chút để hiển thị message
         setTimeout(() => {

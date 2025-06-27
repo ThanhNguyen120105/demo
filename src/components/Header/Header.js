@@ -17,6 +17,7 @@ import {
   faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDisplayName } from '../../utils/userUtils';
 import { getDashboardRoute, isDoctor, isCustomer, isStaff } from '../../constants/userRoles';
 import { getUserInfoFromToken } from '../../utils/jwtUtils';
 import './Header.css';
@@ -34,53 +35,7 @@ const Header = () => {
   console.log('Header - User data:', user);
   console.log('Header - isAuthenticated:', isAuthenticated);
   console.log('Header - localStorage user:', localStorage.getItem('user'));
-    // Helper function để lấy display name
-  const getDisplayName = (user) => {
-    if (!user) return 'Người dùng';
-    
-    // Debug: log tất cả properties của user
-    console.log('Header - All user properties:', Object.keys(user));
-    console.log('Header - User fullName:', user.fullName);
-    console.log('Header - User name:', user.name);
-    console.log('Header - User username:', user.username);
-    console.log('Header - User email:', user.email);
-    console.log('Header - User doctorName:', user.doctorName);
-    console.log('Header - User displayName:', user.displayName);
-    
-    // Nếu không có thông tin user đầy đủ, thử decode từ token
-    if (!user.fullName && !user.name && !user.username && !user.email && user.token) {
-      console.log('Header - Trying to decode user info from token');
-      const tokenInfo = getUserInfoFromToken(user.token);
-      console.log('Header - Token info:', tokenInfo);
-      
-      if (tokenInfo && tokenInfo.fullName) {
-        return tokenInfo.fullName;
-      }
-      if (tokenInfo && tokenInfo.email) {
-        return tokenInfo.email.split('@')[0];
-      }
-    }
-    
-    // Logic cũ
-    const candidates = [
-      user.fullName,
-      user.name, 
-      user.username,
-      user.doctorName,
-      user.displayName,
-      user.email?.split('@')[0]
-    ];
-    
-    for (const candidate of candidates) {
-      if (candidate && 
-          candidate !== 'User' && 
-          candidate !== 'user' && 
-          !candidate.includes('@example.com')) {
-        return candidate;
-      }
-    }    
-    return 'Người dùng';
-  };
+
   const handleLogout = () => {
     logout();
     setExpanded(false);

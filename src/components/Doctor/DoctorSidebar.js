@@ -1,19 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ListGroup, Button, Badge, Col, Modal } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserMd,
-  faClipboardList, faCog, faSignOutAlt, faFileAlt,
+  faClipboardList, faSignOutAlt, faFileAlt,
   faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
+import { doctorAPI, appointmentAPI } from '../../services/api';
+import { getUserInfoFromToken } from '../../utils/jwtUtils';
 
-const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unansweredCount = 5 }) => {
+const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [currentDoctor, setCurrentDoctor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [appointmentsCount, setAppointmentsCount] = useState(0);
+
+  // Lấy số lượng lịch hẹn chưa hoàn thành trong hôm nay
+  const fetchAppointmentsCount = async () => {
+    try {
+      const appointmentsResponse = await appointmentAPI.getAcceptedAppointmentsForDoctor();
+      
+      if (appointmentsResponse.success && appointmentsResponse.data) {
+        // Lấy ngày hôm nay
+        const today = new Date().toDateString();
+        
+        // Lọc appointments có status = 'ACCEPTED' và trong hôm nay
+        const todayIncompleteAppointments = appointmentsResponse.data.filter(appointment => {
+          const isAccepted = appointment.status && appointment.status.toUpperCase() === 'ACCEPTED';
+          const isToday = appointment.appointmentDate && 
+            new Date(appointment.appointmentDate).toDateString() === today;
+          return isAccepted && isToday;
+        });
+        
+        setAppointmentsCount(todayIncompleteAppointments.length);
+      } else {
+        setAppointmentsCount(0);
+      }
+    } catch (error) {
+      console.error('DoctorSidebar - Error fetching appointments:', error);
+      setAppointmentsCount(0);
+    }
+  };
+
+  // Lấy thông tin bác sĩ hiện tại
+  useEffect(() => {
+    const fetchCurrentDoctorInfo = async () => {
+      try {
+        setLoading(true);
+        
+        // Lấy thông tin user từ token
+        let userInfo = null;
+        if (user && user.token) {
+          userInfo = getUserInfoFromToken(user.token);
+        }
+        
+        // Gọi API lấy tất cả bác sĩ
+        const doctorsResponse = await doctorAPI.getAllDoctors();
+        
+        if (doctorsResponse.success && doctorsResponse.data) {
+          // Tìm bác sĩ hiện tại dựa trên thông tin từ token
+          const doctors = doctorsResponse.data;
+          let foundDoctor = null;
+          
+          if (userInfo) {
+            // So sánh theo email hoặc ID
+            foundDoctor = doctors.find(doctor => 
+              doctor.email === userInfo.email || 
+              doctor.id === userInfo.id ||
+              doctor.id === userInfo.sub
+            );
+          }
+          
+          if (foundDoctor) {
+            setCurrentDoctor(foundDoctor);
+          } else {
+            // Fallback: sử dụng thông tin từ token
+            if (userInfo) {
+              setCurrentDoctor({
+                fullName: userInfo.fullName || 'Bác sĩ',
+                email: userInfo.email,
+                specialization: 'Chuyên khoa HIV/AIDS',
+                id: userInfo.id || userInfo.sub
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('DoctorSidebar - Error fetching doctor info:', error);
+        // Fallback: sử dụng thông tin từ token nếu có
+        if (user && user.token) {
+          const userInfo = getUserInfoFromToken(user.token);
+          if (userInfo) {
+            setCurrentDoctor({
+              fullName: userInfo.fullName || 'Bác sĩ',
+              email: userInfo.email,
+              specialization: 'Chuyên khoa HIV/AIDS',
+              id: userInfo.id || userInfo.sub
+            });
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchCurrentDoctorInfo();
+      fetchAppointmentsCount();
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -32,8 +132,24 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
         <div className="doctor-avatar">
           <FontAwesomeIcon icon={faUserMd} className="avatar-icon" />
         </div>
-        <h4 className="doctor-name">BS. Nguyễn Văn A</h4>
-        <p className="doctor-specialty">Chuyên Gia Bệnh Truyền Nhiễm</p>
+        {loading ? (
+          <>
+            <h4 className="doctor-name">Đang tải...</h4>
+            <p className="doctor-specialty">...</p>
+          </>
+        ) : currentDoctor ? (
+          <>
+            <h4 className="doctor-name">BS. {currentDoctor.fullName}</h4>
+            <p className="doctor-specialty">
+              {currentDoctor.specialization || 'Chuyên khoa HIV/AIDS'}
+            </p>
+          </>
+        ) : (
+          <>
+            <h4 className="doctor-name">BS. Nguyễn Văn A</h4>
+            <p className="doctor-specialty">Chuyên khoa HIV/AIDS</p>
+          </>
+        )}
       </div>
       
       <ListGroup className="sidebar-menu">
@@ -55,7 +171,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           <FontAwesomeIcon icon={faCalendarCheck} className="menu-icon" />
           Lịch Hẹn
           {appointmentsCount > 0 && (
-            <Badge bg="primary" className="ms-auto">{appointmentsCount}</Badge>
+            <Badge bg="warning" className="ms-auto">{appointmentsCount}</Badge>
           )}
         </ListGroup.Item>
         <ListGroup.Item 
@@ -77,16 +193,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
           as={Link} to="/doctor/medical-records"
         >
           <FontAwesomeIcon icon={faFileAlt} className="menu-icon" />
-          Hồ Sơ Y Tế
-        </ListGroup.Item>
-        <ListGroup.Item 
-          action 
-          active={activeTab === 'settings'} 
-          onClick={() => setActiveTab('settings')}
-          as={Link} to="/doctor/settings"
-        >
-          <FontAwesomeIcon icon={faCog} className="menu-icon" />
-          Cài Đặt
+          Hồ Sơ Cá Nhân
         </ListGroup.Item>
       </ListGroup>
         <div className="sidebar-footer">
@@ -101,7 +208,12 @@ const DoctorSidebar = ({ activeTab, setActiveTab, appointmentsCount = 0, unanswe
       </div>
 
       {/* Logout Confirmation Modal */}
-      <Modal show={showLogoutModal} onHide={() => setShowLogoutModal(false)} centered>
+      <Modal 
+        show={showLogoutModal} 
+        onHide={() => setShowLogoutModal(false)} 
+        centered
+        className="logout-confirmation-modal"
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faSignOutAlt} className="text-warning me-2" />

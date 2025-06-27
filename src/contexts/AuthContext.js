@@ -24,14 +24,18 @@ export const AuthProvider = ({ children }) => {
     
     console.log('AuthContext - useEffect - token:', token);
     console.log('AuthContext - useEffect - savedUser:', savedUser);
-      if (token && savedUser) {
+    
+    if (token && savedUser) {
       // Đảm bảo token được lưu trong user object
       const userWithToken = {
         ...savedUser,
         token: token
       };
+      console.log('AuthContext - Setting user from localStorage:', userWithToken);
       setUser(userWithToken);
       setIsAuthenticated(true);
+    } else {
+      console.log('AuthContext - No valid token or user found in localStorage');
     }
   }, []);
 
@@ -166,6 +170,13 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
+  // Update user and auth status manually (for special cases like doctor login)
+  const updateUserAuth = (userData, authStatus = true) => {
+    console.log('AuthContext - Manual user update:', userData);
+    setUser(userData);
+    setIsAuthenticated(authStatus);
+  };
+
   const value = {
     user,
     isLoading,
@@ -174,7 +185,10 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
-    clearError
+    clearError,
+    updateUserAuth,
+    setUser,
+    setIsAuthenticated
   };
 
   return (

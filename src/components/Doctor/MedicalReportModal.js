@@ -22,10 +22,27 @@ const MedicalReportModal = ({
   onRemoveMedicine
 }) => {
   const [showARVTool, setShowARVTool] = useState(false);
+  const [showDeleteARVConfirm, setShowDeleteARVConfirm] = useState(false);
+  const [arvToDelete, setARVToDelete] = useState(null); // 'file' for new file, 'url' for existing URL
 
   const handleARVSelect = (pdfFile) => {
     onChange('arvResultFile', pdfFile);
     setShowARVTool(false);
+  };
+
+  const handleDeleteARVConfirm = (type) => {
+    setARVToDelete(type);
+    setShowDeleteARVConfirm(true);
+  };
+
+  const performDeleteARV = () => {
+    if (arvToDelete === 'file') {
+      onChange('arvResultFile', null);
+    } else if (arvToDelete === 'url') {
+      onChange('arvRegimenResultURL', null);
+    }
+    setShowDeleteARVConfirm(false);
+    setARVToDelete(null);
   };
 
   // Hàm xóa một thuốc khỏi danh sách
@@ -98,7 +115,7 @@ const MedicalReportModal = ({
               <Row>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Cân nặng *</Form.Label>
+                    <Form.Label>Cân nặng</Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -111,7 +128,7 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Chiều cao *</Form.Label>
+                    <Form.Label>Chiều cao</Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -126,12 +143,12 @@ const MedicalReportModal = ({
                   <Form.Group className="mb-3">
                     <Form.Label>BMI</Form.Label>
                     <Form.Control 
-                      type="number" 
-                      step="0.1"
+                      type="text" 
                       placeholder="kg/m²" 
                       value={report.bmi || ''}
-                      onChange={(e) => onChange('bmi', e.target.value)}
-                      readOnly={readOnly}
+                      readOnly={true}
+                      className="bg-light"
+                      title="BMI được tính tự động từ cân nặng và chiều cao"
                     />
                   </Form.Group>
                 </Col>
@@ -150,7 +167,7 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Huyết áp *</Form.Label>
+                    <Form.Label>Huyết áp</Form.Label>
                     <Form.Control 
                       type="text" 
                       placeholder="120/80 mmHg" 
@@ -162,7 +179,7 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Nhịp tim *</Form.Label>
+                    <Form.Label>Nhịp tim</Form.Label>
                     <Form.Control 
                       type="number" 
                       placeholder="bpm" 
@@ -187,7 +204,7 @@ const MedicalReportModal = ({
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Chỉ số CD4 *</Form.Label>
+                    <Form.Label>Chỉ số CD4</Form.Label>
                     <Form.Control 
                       type="number" 
                       step="1"
@@ -201,7 +218,7 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Tải lượng virus *</Form.Label>
+                    <Form.Label>Tải lượng virus</Form.Label>
                     <Form.Control 
                       type="text" 
                       placeholder="< 20" 
@@ -218,7 +235,7 @@ const MedicalReportModal = ({
               <Row>
                 <Col md={4}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Hemoglobin *</Form.Label>
+                    <Form.Label>Hemoglobin</Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -232,7 +249,7 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={4}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Bạch cầu *</Form.Label>
+                    <Form.Label>Bạch cầu</Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -246,7 +263,7 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={4}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Tiểu cầu *</Form.Label>
+                    <Form.Label>Tiểu cầu</Form.Label>
                     <Form.Control 
                       type="number" 
                       step="1"
@@ -401,7 +418,19 @@ const MedicalReportModal = ({
                       <FontAwesomeIcon icon={faEye} className="me-1" />
                       Xem
                     </Button>
+                    {!readOnly && (
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => handleDeleteARVConfirm('url')}
+                      >
+                        <FontAwesomeIcon icon={faTimes} className="me-1" />
+                        Xóa
+                      </Button>
+                    )}
                   </div>
+                  <Badge bg="info" className="me-2">Báo cáo hiện có</Badge>
+                  <span className="text-muted small">Đã được lưu trong hệ thống</span>
                 </div>
               )}
               
@@ -423,11 +452,7 @@ const MedicalReportModal = ({
                     <Button 
                       variant="outline-danger" 
                       size="sm"
-                      onClick={() => {
-                        if (window.confirm('Bạn có chắc muốn xóa báo cáo ARV này?')) {
-                          onChange('arvResultFile', null);
-                        }
-                      }}
+                      onClick={() => handleDeleteARVConfirm('file')}
                     >
                       <FontAwesomeIcon icon={faTimes} className="me-1" />
                       Xóa
@@ -555,47 +580,12 @@ const MedicalReportModal = ({
               </Form.Group>
             </Card.Body>
           </Card>
-        </Modal.Body>        <Modal.Footer>
+        </Modal.Body>        
+        <Modal.Footer>
           <Button variant="secondary" onClick={onHide}>
-            {readOnly ? 'Đóng' : 'Đóng'}
+            Đóng
           </Button>
           {!readOnly && (
-            <Button 
-              variant="warning" 
-              onClick={() => {
-                // Debug token directly from modal
-                const token = localStorage.getItem('token');
-                if (!token) {
-                  alert('❌ Không tìm thấy token');
-                  return;
-                }
-                
-                try {
-                  // Simple decode to check token
-                  const base64Payload = token.split('.')[1];
-                  const payload = JSON.parse(atob(base64Payload));
-                  console.log('🔍 Modal Token Debug:', payload);
-                  
-                  const roleInfo = {
-                    roles: payload.roles,
-                    authorities: payload.authorities,
-                    role: payload.role,
-                    userType: payload.userType,
-                    sub: payload.sub,
-                    exp: new Date(payload.exp * 1000),
-                    now: new Date()
-                  };
-                  
-                  alert(`🔍 Token Debug:\n\n${JSON.stringify(roleInfo, null, 2)}`);
-                } catch (e) {
-                  alert('❌ Lỗi decode token: ' + e.message);
-                }
-              }}
-            >
-              🔍 Debug Token
-            </Button>
-          )}
-          {!readOnly && report.medicalResultId && (
             <Button variant="primary" onClick={onSave}>
               Lưu báo cáo y tế
             </Button>
@@ -604,7 +594,13 @@ const MedicalReportModal = ({
       </Modal>
       
       {showARVTool && (
-        <Modal show={showARVTool} onHide={() => setShowARVTool(false)} size="xl" centered>
+        <Modal 
+          show={showARVTool} 
+          onHide={() => setShowARVTool(false)} 
+          size="xl" 
+          centered
+          className="arv-tool-modal"
+        >
           <Modal.Header closeButton>
             <Modal.Title>Công Cụ Lựa Chọn Phác Đồ ARV</Modal.Title>
           </Modal.Header>
@@ -616,6 +612,73 @@ const MedicalReportModal = ({
           </Modal.Body>
         </Modal>
       )}
+
+      {/* Modal xác nhận xóa ARV */}
+      <Modal 
+        show={showDeleteARVConfirm} 
+        onHide={() => {
+          setShowDeleteARVConfirm(false);
+          setARVToDelete(null);
+        }} 
+        centered
+        className="confirmation-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FontAwesomeIcon icon={faTimes} className="text-danger me-2" />
+            Xác nhận xóa báo cáo ARV
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div>
+            <p className="mb-3">Bạn có chắc chắn muốn xóa báo cáo ARV này?</p>
+            <div className="alert alert-warning">
+              <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+              <strong>Cảnh báo:</strong> Sau khi xóa, bạn sẽ cần tạo lại báo cáo ARV nếu cần thiết.
+            </div>
+            
+            {arvToDelete === 'file' && (
+              <div className="arv-info p-3 bg-light rounded">
+                <div className="mb-2">
+                  <strong>📄 Loại:</strong> Báo cáo ARV mới (chưa lưu)
+                </div>
+                <div>
+                  <strong>📝 Tên file:</strong> {report.arvResultFile?.name || 'N/A'}
+                </div>
+              </div>
+            )}
+            
+            {arvToDelete === 'url' && (
+              <div className="arv-info p-3 bg-light rounded">
+                <div className="mb-2">
+                  <strong>📄 Loại:</strong> Báo cáo ARV hiện có (đã lưu)
+                </div>
+                <div>
+                  <strong>🔗 Trạng thái:</strong> Đã được lưu trong hệ thống
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              setShowDeleteARVConfirm(false);
+              setARVToDelete(null);
+            }}
+          >
+            Hủy
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={performDeleteARV}
+          >
+            <FontAwesomeIcon icon={faTimes} className="me-1" />
+            Xác nhận xóa
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };

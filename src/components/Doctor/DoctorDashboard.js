@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
-import MedicalReportModal from './MedicalReportModal';
+import AppointmentDetailModal from '../common/AppointmentDetailModal';
 import { appointmentAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -24,10 +24,11 @@ const DoctorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // State cho Modal Báo cáo Y tế
-  const [showReportModal, setShowReportModal] = useState(false);
+  // State cho Modal Chi tiết lịch hẹn
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [medicalReport, setMedicalReport] = useState(null);
+  const [appointmentDetail, setAppointmentDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // Mapping functions
   const getAppointmentTypeDisplay = (type) => {
@@ -51,19 +52,6 @@ const DoctorDashboard = () => {
     }
   };
 
-  const getStatusDisplay = (status) => {
-    switch (status) {
-      case 'ACCEPTED':
-      case 'COMPLETED':
-        return { text: 'Hoàn thành', variant: 'success' };
-      case 'PENDING':
-        return { text: 'Đang chờ', variant: 'warning' };
-      case 'CANCELLED':
-        return { text: 'Đã hủy', variant: 'danger' };
-      default:
-        return { text: status || 'Không xác định', variant: 'secondary' };
-    }
-  };
 
   // Lấy lịch hẹn từ API
   const fetchAppointments = async () => {
@@ -79,7 +67,32 @@ const DoctorDashboard = () => {
       if (result.success) {
         const appointmentsData = result.data || [];
         console.log('Appointments data:', appointmentsData);
-        setAppointments(appointmentsData);
+        
+        // Fetch chi tiết cho từng appointment để lấy thông tin bệnh nhân
+        const detailedAppointments = await Promise.all(
+          appointmentsData.map(async (appointment) => {
+            try {
+              const detailResult = await appointmentAPI.getAppointmentById(appointment.id);
+              if (detailResult.success && detailResult.data) {
+                return {
+                  ...appointment,
+                  patientName: detailResult.data.patientName || detailResult.data.customerName || detailResult.data.alternativeName,
+                  patientInfo: detailResult.data.patientInfo || detailResult.data.customer,
+                  reason: detailResult.data.reason,
+                  note: detailResult.data.note,
+                  serviceId: detailResult.data.serviceId
+                };
+              }
+              return appointment;
+            } catch (error) {
+              console.error('Error fetching appointment detail for ID:', appointment.id, error);
+              return appointment;
+            }
+          })
+        );
+        
+        console.log('Detailed appointments:', detailedAppointments);
+        setAppointments(detailedAppointments);
       } else {
         console.error('Failed to fetch appointments:', result.message);
         setError(result.message || 'Không thể tải danh sách lịch hẹn');
@@ -113,208 +126,81 @@ const DoctorDashboard = () => {
   const getStats = () => {
     const todayAppointments = getTodayAppointments();
     const completedToday = todayAppointments.filter(apt => 
-      apt.status === 'COMPLETED' || apt.status === 'ACCEPTED'
+      apt.status === 'COMPLETED'
     ).length;
-    const pendingToday = todayAppointments.filter(apt => 
-      apt.status === 'PENDING'
+    const incompleteTotal = appointments.filter(apt => 
+      apt.status === 'ACCEPTED'
     ).length;
 
     return [
       { title: 'Tổng số lịch hẹn', value: appointments.length.toString(), icon: faUsers, color: '#4CAF50' },
       { title: 'Lịch hẹn hôm nay', value: todayAppointments.length.toString(), icon: faCalendarAlt, color: '#2196F3' },
       { title: 'Hoàn thành hôm nay', value: completedToday.toString(), icon: faCheckCircle, color: '#9C27B0' },
-      { title: 'Đang chờ xử lý', value: pendingToday.toString(), icon: faExclamationTriangle, color: '#FF9800' }
+      { title: 'Chưa hoàn thành', value: incompleteTotal.toString(), icon: faExclamationTriangle, color: '#FF9800' }
     ];
   };
-  // Xử lý hiển thị modal medical report
-  const handleShowReportModal = (appointment) => {
+  // Xử lý hiển thị modal chi tiết lịch hẹn
+  const handleShowDetailModal = async (appointment) => {
     setSelectedAppointment(appointment);
+    setShowDetailModal(true);
+    setDetailLoading(true);
     
-    // Khởi tạo giá trị mẫu cho appointment đã hoàn thành
-    let initialReport;
-    if (appointment.status === 'COMPLETED' || appointment.status === 'ACCEPTED') {
-      initialReport = {
-        patientInfo: {
-          name: appointment.alternativeName || appointment.customerName || 'Không có tên',
-          dob: "1985-06-12",
-          gender: "Male",
-          patientId: `P${appointment.id || '000'}`
-        },
-        visitDate: appointment.appointmentDate || new Date().toISOString().split('T')[0],
-        appointmentType: getAppointmentTypeDisplay(appointment.type),
-        service: getServiceDisplay(appointment.serviceId),
-        reason: appointment.reason || 'Không có thông tin',
-        note: appointment.note || 'Không có ghi chú',
-        vitalSigns: {
-          weight: '72 kg',
-          height: '175 cm',
-          bmi: '23.5',
-          temperature: '36.7°C',
-          bloodPressure: '120/80 mmHg',
-          heartRate: '72 bpm'
-        },
-        labResults: {
-          cd4Count: `${Math.floor(Math.random() * 300) + 400} cells/mm³`,
-          viralLoad: 'Undetectable (<20 copies/mL)',
-          hematology: {
-            hgb: '14.2 g/dL',
-            wbc: '5.8 × 10³/μL',
-            platelets: '230 × 10³/μL'
-          },
-          chemistry: {
-            glucose: '92 mg/dL',
-            creatinine: '0.9 mg/dL',
-            alt: '28 U/L',
-            ast: '26 U/L'
-          },
-          lipidPanel: {
-            totalCholesterol: '180 mg/dL',
-            ldl: '105 mg/dL',
-            hdl: '48 mg/dL',
-            triglycerides: '130 mg/dL'
-          }
-        },
-        medications: [
-          {
-            name: 'Biktarvy',
-            dosage: '1 tablet',
-            frequency: 'Once daily',
-            status: 'Continued'
-          },
-          {
-            name: 'Multivitamin',
-            dosage: '1 tablet',
-            frequency: 'Once daily',
-            status: 'New'
-          }
-        ],
-        assessment: 'Patient is clinically stable with good virologic and immunologic response to current antiretroviral therapy.',
-        plan: 'Continue current antiretroviral therapy. Follow up in 3 months with repeat CD4 count and viral load. Encourage safe sex practices.',
-        recommendations: [
-          'Maintain healthy diet and regular exercise',
-          'Avoid alcohol consumption',
-          'Return for follow-up appointment in 3 months',
-          'Call immediately if experiencing any concerning symptoms'
-        ],
-        arvResultFile: {
-          name: `ARV_Report_P${appointment.id || '000'}.pdf`,
-          size: '1.2 MB',
-          date: appointment.appointmentDate || new Date().toISOString().split('T')[0]
-        },
-        doctorInfo: {
-          name: user?.fullName || user?.name || 'Dr. John Doe',
-          specialty: 'HIV Treatment Specialist',
-          signature: user?.fullName || 'J. Doe, MD',
-          date: appointment.appointmentDate || new Date().toISOString().split('T')[0]
-        }
-      };
-    } else {
-      // Dữ liệu rỗng cho appointment chưa hoàn thành
-      initialReport = {
-        patientInfo: {
-          name: appointment.alternativeName || appointment.customerName || 'Không có tên',
-          dob: "1985-06-12",
-          gender: "Male",
-          patientId: `P${appointment.id || '000'}`
-        },
-        visitDate: appointment.appointmentDate || new Date().toISOString().split('T')[0],
-        appointmentType: getAppointmentTypeDisplay(appointment.type),
-        service: getServiceDisplay(appointment.serviceId),
-        reason: appointment.reason || '',
-        note: appointment.note || '',
-        vitalSigns: {
-          weight: '',
-          height: '',
-          bmi: '',
-          temperature: '',
-          bloodPressure: '',
-          heartRate: ''
-        },
-        labResults: {
-          cd4Count: '',
-          viralLoad: '',
-          hematology: {
-            hgb: '',
-            wbc: '',
-            platelets: ''
-          },
-          chemistry: {
-            glucose: '',
-            creatinine: '',
-            alt: '',
-            ast: ''
-          },
-          lipidPanel: {
-            totalCholesterol: '',
-            ldl: '',
-            hdl: '',
-            triglycerides: ''
-          }
-        },
-        medications: [
-          {
-            name: '',
-            dosage: '',
-            frequency: '',            status: 'New'
-          }
-        ],
-        assessment: '',
-        plan: '',
-        recommendations: ['', '', '', ''],
-        arvResultFile: null,
-        doctorInfo: {
-          name: user?.fullName || user?.name || 'Dr. John Doe',
-          specialty: 'HIV Treatment Specialist',
-          signature: user?.fullName || 'J. Doe, MD',
-          date: appointment.appointmentDate || new Date().toISOString().split('T')[0]
-        }
-      };
+    try {
+      // Lấy chi tiết appointment từ API
+      const result = await appointmentAPI.getAppointmentById(appointment.id);
+      if (result.success && result.data) {
+        setAppointmentDetail(result.data);
+      } else {
+        console.error('Failed to fetch appointment detail:', result.message);
+        setAppointmentDetail(null);
+      }
+    } catch (error) {
+      console.error('Error fetching appointment detail:', error);
+      setAppointmentDetail(null);
+    } finally {
+      setDetailLoading(false);
     }
-    
-    setMedicalReport(initialReport);
-    setShowReportModal(true);
   };
   
   // Đóng modal
-  const handleCloseReportModal = () => {
-    setShowReportModal(false);
-    setSelectedAppointment(null);
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    // Delay việc reset state để tránh hiển thị lỗi khi modal đang đóng
+    setTimeout(() => {
+      setSelectedAppointment(null);
+      setAppointmentDetail(null);
+      setDetailLoading(false);
+    }, 200);
   };
-  
-  // Xử lý cập nhật report
-  const handleReportChange = (field, value) => {
-    setMedicalReport(prevReport => {
-      // Xử lý các trường lồng nhau (nested fields)
-      if (field.includes('.')) {
-        const fields = field.split('.');
-        let newReport = {...prevReport};
-        let current = newReport;
-        
-        for (let i = 0; i < fields.length - 1; i++) {
-          current = current[fields[i]];
-        }
-        
-        current[fields[fields.length - 1]] = value;
-        return newReport;
-      }
-      
-      // Xử lý trường đơn
-      return {
-        ...prevReport,
-        [field]: value
-      };
-    });
+
+  // Helper functions cho modal
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Chưa xác định';
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
-    // Lưu report
-  const handleSaveReport = () => {
-    // Cập nhật status của appointment thành completed
-    console.log('Lưu báo cáo y tế:', medicalReport);
-    
-    // Đóng modal sau khi lưu
-    handleCloseReportModal();
-    
-    // Reload dữ liệu
-    fetchAppointments();
+
+  const formatTimeSlot = (startTime, endTime) => {
+    if (!startTime || !endTime) return 'Chưa xác định';
+    return `${startTime} - ${endTime}`;
+  };
+
+  const getAppointmentTypeLabel = (type) => {
+    return getAppointmentTypeDisplay(type);
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'PENDING':
+        return <Badge bg="warning" className="small-badge">Chờ duyệt</Badge>;
+      case 'ACCEPTED':
+        return <Badge bg="success" className="small-badge">Đã duyệt</Badge>;
+      case 'COMPLETED':
+        return <Badge bg="primary" className="small-badge">Đã hoàn thành</Badge>;
+      case 'DENIED':
+        return <Badge bg="danger" className="small-badge">Từ chối</Badge>;
+      default:
+        return <Badge bg="secondary" className="small-badge">{status || 'Không xác định'}</Badge>;
+    }
   };
 
   const stats = getStats();
@@ -335,7 +221,6 @@ const DoctorDashboard = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <div>
                   <h2>Tổng quan</h2>
-                  <p>Chào mừng trở lại, {user?.fullName || user?.name || 'Bác sĩ'}</p>
                 </div>
                 <Button 
                   variant="outline-primary" 
@@ -391,125 +276,7 @@ const DoctorDashboard = () => {
               ))}
             </Row>
             
-            {/* Charts Row */}
-            <Row className="charts-row">
-              <Col lg={8}>
-                <Card className="chart-card">
-                  <Card.Header>
-                    <h5>Lượt khám bệnh (Theo tháng)</h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="chart-area">
-                      {/* Placeholder for chart - in a real app, use a charting library here */}
-                      <div className="chart-placeholder">
-                        <div className="chart-y-axis">
-                          <div className="y-axis-tick">100</div>
-                          <div className="y-axis-tick">80</div>
-                          <div className="y-axis-tick">60</div>
-                          <div className="y-axis-tick">40</div>
-                          <div className="y-axis-tick">20</div>
-                          <div className="y-axis-tick">0</div>
-                        </div>
-                        <div className="chart-grid">
-                          <div className="horizontal-grid-line" style={{ bottom: '20%' }}></div>
-                          <div className="horizontal-grid-line" style={{ bottom: '40%' }}></div>
-                          <div className="horizontal-grid-line" style={{ bottom: '60%' }}></div>
-                          <div className="horizontal-grid-line" style={{ bottom: '80%' }}></div>
-                          <div className="horizontal-grid-line" style={{ bottom: '100%' }}></div>
-                        </div>
-                        <div className="chart-bars">
-                          <div className="chart-bar" style={{ height: '60%' }}>
-                            <div className="chart-value">60</div>
-                            <span>T1</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '75%' }}>
-                            <div className="chart-value">75</div>
-                            <span>T2</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '45%' }}>
-                            <div className="chart-value">45</div>
-                            <span>T3</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '80%' }}>
-                            <div className="chart-value">80</div>
-                            <span>T4</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '65%' }}>
-                            <div className="chart-value">65</div>
-                            <span>T5</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '90%' }}>
-                            <div className="chart-value">90</div>
-                            <span>T6</span>
-                          </div>
-                          <div className="chart-bar accent" style={{ height: '85%' }}>
-                            <div className="chart-value">85</div>
-                            <span>T7</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '70%' }}>
-                            <div className="chart-value">70</div>
-                            <span>T8</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '75%' }}>
-                            <div className="chart-value">75</div>
-                            <span>T9</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '60%' }}>
-                            <div className="chart-value">60</div>
-                            <span>T10</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '50%' }}>
-                            <div className="chart-value">50</div>
-                            <span>T11</span>
-                          </div>
-                          <div className="chart-bar" style={{ height: '65%' }}>
-                            <div className="chart-value">65</div>
-                            <span>T12</span>
-                          </div>
-                        </div>
-                        <div className="x-axis"></div>
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col lg={4}>
-                <Card className="chart-card">
-                  <Card.Header>
-                    <h5>Phân bố bệnh nhân</h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="chart-area">
-                      {/* Placeholder for pie chart */}
-                      <div className="pie-chart-placeholder">
-                        <div className="pie-chart">
-                          {/* Pie chart now uses conic-gradient */}
-                        </div>
-                        <div className="pie-legend">
-                          <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#4CAF50' }}></span>
-                            <span>Bệnh nhân mới (25%)</span>
-                          </div>
-                          <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#2196F3' }}></span>
-                            <span>Tái khám (40%)</span>
-                          </div>
-                          <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#FFC107' }}></span>
-                            <span>Kiểm tra định kỳ (20%)</span>
-                          </div>
-                          <div className="legend-item">
-                            <span className="color-box" style={{ backgroundColor: '#9C27B0' }}></span>
-                            <span>Khẩn cấp (15%)</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-              {/* Today's Appointments */}
+            {/* Today's Appointments */}
             {!loading && !error && (
               <Row className="appointments-row">
                 <Col>
@@ -532,75 +299,38 @@ const DoctorDashboard = () => {
                           <table className="table appointment-table">
                             <thead>
                               <tr>
-                                <th>Thời gian</th>
+                                <th>Giờ khám</th>
                                 <th>Bệnh nhân</th>
-                                <th>Loại khám</th>
-                                <th>Dịch vụ</th>
-                                <th>Triệu chứng</th>
-                                <th>Ghi chú</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th>Chi tiết</th>
                               </tr>
                             </thead>
                             <tbody>
                               {getTodayAppointments().map(appointment => {
-                                const statusInfo = getStatusDisplay(appointment.status);
                                 return (
                                   <tr key={appointment.id}>
                                     <td>
                                       <div className="d-flex align-items-center">
                                         <FontAwesomeIcon icon={faClock} className="me-2 text-muted" />
-                                        {appointment.slotTime || 'Chưa xác định'}
-                                      </div>
-                                    </td>
-                                    <td>
-                                      <div className="d-flex flex-column">
                                         <span className="fw-bold">
-                                          {appointment.alternativeName || appointment.customerName || 'Không có tên'}
+                                          {appointment.slotStartTime && appointment.slotEndTime 
+                                            ? `${appointment.slotStartTime} - ${appointment.slotEndTime}`
+                                            : 'Chưa xác định'}
                                         </span>
-                                        <small className="text-muted">ID: {appointment.id}</small>
                                       </div>
                                     </td>
                                     <td>
-                                      <Badge bg="info" className="me-1">
-                                        {getAppointmentTypeDisplay(appointment.type)}
-                                      </Badge>
-                                    </td>
-                                    <td>
-                                      <small className="text-muted">
-                                        {getServiceDisplay(appointment.serviceId)}
-                                      </small>
-                                    </td>
-                                    <td>
-                                      <small>
-                                        {appointment.reason || 'Không có thông tin'}
-                                      </small>
-                                    </td>
-                                    <td>
-                                      <small>
-                                        {appointment.note || 'Không có ghi chú'}
-                                      </small>
-                                    </td>
-                                    <td>
-                                      <Badge bg={statusInfo.variant}>
-                                        {statusInfo.text}
-                                      </Badge>
+                                      <span className="fw-bold">
+                                        {appointment.patientName || 'Thông tin bệnh nhân chưa có'}
+                                      </span>
                                     </td>
                                     <td>
                                       <Button 
                                         variant="outline-primary" 
-                                        size="sm" 
-                                        className="me-2"
-                                        onClick={() => handleShowReportModal(appointment)}
+                                        size="sm"
+                                        onClick={() => handleShowDetailModal(appointment)}
                                       >
                                         <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                        Chi tiết
-                                      </Button>
-                                      <Button variant="outline-success" size="sm" className="me-2">
-                                        <FontAwesomeIcon icon={faPhone} />
-                                      </Button>
-                                      <Button variant="outline-info" size="sm">
-                                        <FontAwesomeIcon icon={faVideo} />
+                                        Xem chi tiết lịch hẹn
                                       </Button>
                                     </td>
                                   </tr>
@@ -634,18 +364,13 @@ const DoctorDashboard = () => {
                           <thead>
                             <tr>
                               <th>Ngày</th>
-                              <th>Thời gian</th>
+                              <th>Giờ khám</th>
                               <th>Bệnh nhân</th>
-                              <th>Loại khám</th>
-                              <th>Dịch vụ</th>
-                              <th>Triệu chứng</th>
-                              <th>Ghi chú</th>
-                              <th>Trạng thái</th>
+                              <th>Chi tiết</th>
                             </tr>
                           </thead>
                           <tbody>
                             {appointments.slice(0, 10).map((appointment) => {
-                              const statusInfo = getStatusDisplay(appointment.status);
                               return (
                                 <tr key={appointment.id}>
                                   <td className="fw-bold">
@@ -655,40 +380,29 @@ const DoctorDashboard = () => {
                                     }
                                   </td>
                                   <td>
-                                    <small>{appointment.slotTime || 'Chưa xác định'}</small>
-                                  </td>
-                                  <td>
-                                    <div className="d-flex flex-column">
+                                    <div className="d-flex align-items-center">
+                                      <FontAwesomeIcon icon={faClock} className="me-2 text-muted" />
                                       <span className="fw-bold">
-                                        {appointment.alternativeName || appointment.customerName || 'Không có tên'}
+                                        {appointment.slotStartTime && appointment.slotEndTime 
+                                          ? `${appointment.slotStartTime} - ${appointment.slotEndTime}`
+                                          : 'Chưa xác định'}
                                       </span>
-                                      <small className="text-muted">ID: {appointment.id}</small>
                                     </div>
                                   </td>
                                   <td>
-                                    <Badge bg="info" className="me-1">
-                                      {getAppointmentTypeDisplay(appointment.type)}
-                                    </Badge>
+                                    <span className="fw-bold">
+                                      {appointment.patientName || 'Thông tin bệnh nhân chưa có'}
+                                    </span>
                                   </td>
                                   <td>
-                                    <small className="text-muted">
-                                      {getServiceDisplay(appointment.serviceId)}
-                                    </small>
-                                  </td>
-                                  <td>
-                                    <small>
-                                      {appointment.reason || 'Không có thông tin'}
-                                    </small>
-                                  </td>
-                                  <td>
-                                    <small>
-                                      {appointment.note || 'Không có ghi chú'}
-                                    </small>
-                                  </td>
-                                  <td>
-                                    <Badge bg={statusInfo.variant}>
-                                      {statusInfo.text}
-                                    </Badge>
+                                    <Button 
+                                      variant="outline-primary" 
+                                      size="sm"
+                                      onClick={() => handleShowDetailModal(appointment)}
+                                    >
+                                      <FontAwesomeIcon icon={faClipboardList} className="me-1" />
+                                      Xem chi tiết lịch hẹn
+                                    </Button>
                                   </td>
                                 </tr>
                               );
@@ -709,15 +423,17 @@ const DoctorDashboard = () => {
               </Row>
             )}
             
-            {/* Medical Report Modal */}
-            {showReportModal && selectedAppointment && medicalReport && (
-              <MedicalReportModal
-                show={showReportModal}
-                onHide={handleCloseReportModal}
-                report={medicalReport}
-                onChange={handleReportChange}                onSave={handleSaveReport}
-                appointment={selectedAppointment}
-                readOnly={selectedAppointment.status === 'COMPLETED' || selectedAppointment.status === 'ACCEPTED'}
+            {/* Appointment Detail Modal */}
+            {showDetailModal && (
+              <AppointmentDetailModal
+                show={showDetailModal}
+                onHide={handleCloseDetailModal}
+                appointmentDetail={appointmentDetail}
+                loading={detailLoading}
+                formatDate={formatDate}
+                formatTimeSlot={formatTimeSlot}
+                getAppointmentTypeLabel={getAppointmentTypeLabel}
+                getStatusBadge={getStatusBadge}
               />
             )}
           </Col>

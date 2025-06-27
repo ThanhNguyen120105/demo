@@ -123,7 +123,13 @@ const MedicineSelector = ({
   );
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal 
+      show={show} 
+      onHide={onHide} 
+      size="lg" 
+      centered
+      className="medicine-selector-modal"
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           <FontAwesomeIcon icon={faPills} className="me-2" />

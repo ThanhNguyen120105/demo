@@ -18,6 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { appointmentAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import AppointmentDetailModal from '../common/AppointmentDetailModal';
 import './AppointmentHistory.css';
 
 const AppointmentHistory = () => {
@@ -376,75 +377,35 @@ const AppointmentHistory = () => {
             Xác nhận hủy
           </Button>
         </Modal.Footer>
-      </Modal>      {/* Modal chi tiết lịch hẹn */}
-      <Modal 
-        show={showDetailModal} 
-        onHide={() => setShowDetailModal(false)} 
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Chi tiết lịch hẹn</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {loadingDetail ? (
-            <div className="text-center">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-2">Đang tải...</p>
-            </div>
-          ) : appointmentDetail ? (
-            <div>
-              <p><strong>Mã lịch hẹn:</strong> {appointmentDetail.id}</p>
-              <p><strong>Ngày khám:</strong> {formatDate(appointmentDetail.appointmentDate)}</p>
-              <p><strong>Giờ khám:</strong> {formatTimeSlot(appointmentDetail.slotStartTime, appointmentDetail.slotEndTime)}</p>
-              <p><strong>Bác sĩ:</strong> {appointmentDetail.doctorName}</p>
-              <p><strong>Loại khám:</strong> {getAppointmentTypeLabel(appointmentDetail.appointmentType)}</p>
-              <p><strong>Trạng thái:</strong> {getStatusBadge(appointmentDetail.status)}</p>
-              {appointmentDetail.alternativeName && (
-                <p><strong>Tên người khám:</strong> {appointmentDetail.alternativeName}</p>
-              )}
-              {appointmentDetail.alternativePhoneNumber && (
-                <p><strong>Số điện thoại:</strong> {appointmentDetail.alternativePhoneNumber}</p>
-              )}
-              {appointmentDetail.reason && (
-                <p><strong>Lý do khám:</strong> {appointmentDetail.reason}</p>
-              )}
-              {appointmentDetail.notes && (
-                <p><strong>Ghi chú:</strong> {appointmentDetail.notes}</p>
-              )}
-              
-              {/* Kết quả xét nghiệm (nếu có) */}
-              {appointmentDetail.medicalResultId && (
-                <div className="mt-3 p-3 bg-light rounded">
-                  <h6 className="text-info mb-2">
-                    <FontAwesomeIcon icon={faFileMedical} className="me-2" />
-                    Kết quả xét nghiệm
-                  </h6>
-                  <p className="mb-2">
-                    <small className="text-muted">Mã kết quả: {appointmentDetail.medicalResultId}</small>
-                  </p>
-                  <Button
-                    variant="info"
-                    size="sm"
-                    onClick={() => handleViewMedicalResult(appointmentDetail.medicalResultId)}
-                  >
-                    <FontAwesomeIcon icon={faFlask} className="me-2" />
-                    Xem chi tiết kết quả xét nghiệm
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p>Không thể tải thông tin chi tiết.</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-            Đóng
-          </Button>
-        </Modal.Footer>
       </Modal>
 
-      {/* Modal xem kết quả xét nghiệm */}
+      {/* Modal chi tiết lịch hẹn - sử dụng component chung */}
+      <AppointmentDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        appointmentDetail={appointmentDetail}
+        loading={loadingDetail}
+        onViewMedicalResult={handleViewMedicalResult}
+        formatDate={formatDate}
+        formatTimeSlot={formatTimeSlot}
+        getAppointmentTypeLabel={getAppointmentTypeLabel}
+        getStatusBadge={getStatusBadge}
+      />
+
+      {/* Modal chi tiết lịch hẹn - sử dụng component chung */}
+      <AppointmentDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        appointmentDetail={appointmentDetail}
+        loading={loadingDetail}
+        onViewMedicalResult={handleViewMedicalResult}
+        formatDate={formatDate}
+        formatTimeSlot={formatTimeSlot}
+        getAppointmentTypeLabel={getAppointmentTypeLabel}
+        getStatusBadge={getStatusBadge}
+      />
+
+      {/* Modal Kết quả xét nghiệm */}
       <Modal 
         show={showMedicalResultModal} 
         onHide={() => setShowMedicalResultModal(false)} 

@@ -10,13 +10,14 @@ import {
   faChevronLeft, faChevronRight, faSearch, faPlus, faTimes, faCheck, faClock,
   faNotesMedical, faVial, faPrescriptionBottleAlt,
   faStethoscope, faUserFriends, faBaby, faSlidersH, faHeartbeat, 
-  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills
+  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills, faSave, faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
 import ARVSelectionTool from './ARVSelectionTool';
 import MedicineSelector from './MedicineSelector';
 import MedicalReportModal from './MedicalReportModal';
+import AppointmentDetailModal from '../common/AppointmentDetailModal';
 import { appointmentAPI, userAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -87,18 +88,30 @@ const generateCalendarDays = (year, month, appointments) => {
     // Tạo dateStr theo format YYYY-MM-DD để tránh lỗi timezone
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
-    // Filter appointments for this date - chỉ hiển thị dấu chấm vàng cho appointments ACCEPTED
-    const acceptedAppts = appointments.filter(a => {
+    // Filter appointments for this date - bao gồm cả ACCEPTED và COMPLETED
+    const dayAppointments = appointments.filter(a => {
       const matchesDate = a.date === dateStr || a.appointmentDate === dateStr;
-      const isAccepted = a.status === 'accepted' || a.status === 'ACCEPTED';
-      return matchesDate && isAccepted;
+      const isAcceptedOrCompleted = 
+        a.status === 'accepted' || a.status === 'ACCEPTED' ||
+        a.status === 'completed' || a.status === 'COMPLETED';
+      return matchesDate && isAcceptedOrCompleted;
     });
+    
+    // Phân loại appointments theo trạng thái
+    const acceptedAppts = dayAppointments.filter(a => 
+      a.status === 'accepted' || a.status === 'ACCEPTED'
+    );
+    const completedAppts = dayAppointments.filter(a => 
+      a.status === 'completed' || a.status === 'COMPLETED'
+    );
     
     days.push({
       day,
       date: dateStr,
-      appointments: acceptedAppts,
-      hasAppointments: acceptedAppts.length > 0
+      appointments: dayAppointments,
+      acceptedAppointments: acceptedAppts,
+      completedAppointments: completedAppts,
+      hasAppointments: dayAppointments.length > 0
     });
   }
   
@@ -181,6 +194,17 @@ const DoctorAppointments = () => {
   const [showPdfViewer, setShowPdfViewer] = useState(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
   const [showMedicineSelector, setShowMedicineSelector] = useState(false);
+  
+  // State cho AppointmentDetailModal
+  const [showAppointmentDetailModal, setShowAppointmentDetailModal] = useState(false);
+  const [appointmentDetailData, setAppointmentDetailData] = useState(null);
+  const [loadingAppointmentDetail, setLoadingAppointmentDetail] = useState(false);
+  
+  // State cho modal xác nhận
+  const [showCreateReportConfirmModal, setShowCreateReportConfirmModal] = useState(false);
+  const [showCompleteAppointmentConfirmModal, setShowCompleteAppointmentConfirmModal] = useState(false);
+  const [showSaveReportConfirmModal, setShowSaveReportConfirmModal] = useState(false);
+  const [pendingActionAppointment, setPendingActionAppointment] = useState(null);
     // Load appointments từ API khi component mount
   useEffect(() => {
     loadDoctorAppointments();
@@ -196,7 +220,6 @@ const DoctorAppointments = () => {
       
       // Gọi API getAcceptedAppointmentsForDoctor (dành cho doctor)
       const result = await appointmentAPI.getAcceptedAppointmentsForDoctor();
-      console.log('Doctor appointments result:', result);
       
       if (result.success) {
         // Lấy chi tiết từng appointment để có đầy đủ thông tin
@@ -206,12 +229,10 @@ const DoctorAppointments = () => {
         // Load chi tiết từng appointment
         for (const appointment of appointmentList) {
           try {
-            console.log('📋 Getting details for appointment:', appointment.id);
             const detailResult = await appointmentAPI.getAppointmentById(appointment.id);
             
             if (detailResult.success && detailResult.data) {
               const detailedAppt = detailResult.data;
-              console.log('📋 Appointment details received:', detailedAppt);
               
               // Mapping serviceId từ appointmentType nếu không có serviceId
               let serviceId = detailedAppt?.serviceId || appointment?.serviceId;
@@ -227,30 +248,29 @@ const DoctorAppointments = () => {
                     serviceId = 1; // Default to service 1
                     break;
                 }
-                console.log(`🔄 Mapped appointmentType "${detailedAppt.appointmentType}" to serviceId: ${serviceId}`);
               }
               
               // Tên bệnh nhân từ alternativeName (ưu tiên từ chi tiết), fallback về ID
               const patientName = detailedAppt.alternativeName || appointment.alternativeName || `Bệnh nhân #${detailedAppt.userId || appointment.userId || appointment.id}`;
-              console.log(`👤 Patient name: ${patientName} (alternativeName: ${detailedAppt.alternativeName})`);
               
               // Tên dịch vụ từ appointmentService (ưu tiên từ chi tiết)
               const serviceName = detailedAppt.appointmentService || getServiceDisplay({ serviceId, appointmentType: detailedAppt.appointmentType });
-              console.log(`🏥 Service name: ${serviceName} (appointmentService: ${detailedAppt.appointmentService})`);
               
-              // Debug các trường quan trọng
-              console.log(`🔍 Final appointment details:`, {
-                serviceId,
-                serviceName,
-                alternativeName: detailedAppt.alternativeName,
-                userId: detailedAppt.userId,
-                reason: detailedAppt.reason,
-                note: detailedAppt.notes || detailedAppt.note,
-                appointmentType: detailedAppt.appointmentType,
-                slotStartTime: detailedAppt.slotStartTime,
-                slotEndTime: detailedAppt.slotEndTime,
-                appointmentService: detailedAppt.appointmentService
-              });
+              // Debug các trường quan trọng - chỉ trong dev mode
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`Final appointment details:`, {
+                  serviceId,
+                  serviceName,
+                  alternativeName: detailedAppt.alternativeName,
+                  userId: detailedAppt.userId,
+                  reason: detailedAppt.reason,
+                  note: detailedAppt.notes || detailedAppt.note,
+                  appointmentType: detailedAppt.appointmentType,
+                  slotStartTime: detailedAppt.slotStartTime,
+                  slotEndTime: detailedAppt.slotEndTime,
+                  appointmentService: detailedAppt.appointmentService
+                });
+              }
               
               detailedAppointments.push({
                 ...detailedAppt, // Giữ nguyên TẤT CẢ các field từ API chi tiết
@@ -433,7 +453,7 @@ const DoctorAppointments = () => {
     }
     return null;
   };
-  // Add back handleReportChange function
+  // Add back handleReportChange function with BMI auto-calculation
   const handleReportChange = (field, value) => {
     console.log(`🔄 Report field change: ${field} =`, value);
     
@@ -455,10 +475,11 @@ const DoctorAppointments = () => {
     }
     
     setMedicalReport(prevReport => {
+      let newReport = {...prevReport};
+      
       // Xử lý các trường lồng nhau (nested fields)
       if (field.includes('.')) {
         const fields = field.split('.');
-        let newReport = {...prevReport};
         let current = newReport;
         
         for (let i = 0; i < fields.length - 1; i++) {
@@ -466,14 +487,32 @@ const DoctorAppointments = () => {
         }
         
         current[fields[fields.length - 1]] = value;
-        return newReport;
+      } else {
+        // Xử lý trường đơn
+        newReport[field] = value;
       }
       
-      // Xử lý trường đơn
-      return {
-        ...prevReport,
-        [field]: value
-      };
+      // Auto-calculate BMI when weight or height changes
+      if (field === 'weight' || field === 'height') {
+        const weight = parseFloat(field === 'weight' ? value : newReport.weight);
+        const height = parseFloat(field === 'height' ? value : newReport.height);
+        
+        if (weight > 0 && height > 0) {
+          // Convert height from cm to meters and calculate BMI
+          const heightInMeters = height / 100;
+          const bmi = weight / (heightInMeters * heightInMeters);
+          newReport.bmi = bmi.toFixed(1); // Round to 1 decimal place
+          console.log(`🧮 Auto-calculated BMI: ${newReport.bmi} (weight: ${weight}kg, height: ${height}cm)`);
+        } else if (field === 'weight' && (!value || value === '')) {
+          // Clear BMI if weight is cleared
+          newReport.bmi = '';
+        } else if (field === 'height' && (!value || value === '')) {
+          // Clear BMI if height is cleared
+          newReport.bmi = '';
+        }
+      }
+      
+      return newReport;
     });
   };
   // Hàm xử lý thay đổi thông tin thuốc
@@ -616,6 +655,12 @@ const DoctorAppointments = () => {
   };
 
   const handleSaveReport = async () => {
+    // Hiển thị modal xác nhận thay vì thực hiện lưu ngay lập tức
+    setShowSaveReportConfirmModal(true);
+  };
+
+  // Hàm thực hiện lưu báo cáo y tế sau khi xác nhận
+  const performSaveReport = async () => {
     try {
       // ============ TOKEN AND ROLE DEBUGGING ============
       console.log('=== COMPREHENSIVE TOKEN DEBUGGING ===');
@@ -710,30 +755,23 @@ const DoctorAppointments = () => {
       console.log('=== END TOKEN DEBUGGING ===');
       // ============ END TOKEN DEBUGGING ============
 
-      // Validate required fields
+      // Validate required fields - chỉ validate các trường thực sự cần thiết
+      // Theo cấu trúc database, chỉ doctor_id, id, user_id là not null
+      // Các trường khác đều có thể null, nên không cần validate bắt buộc
       const requiredFields = {
-        'Cân nặng': medicalReport.weight,
-        'Chiều cao': medicalReport.height,
-        'Huyết áp': medicalReport.bloodPressure,
-        'Nhịp tim': medicalReport.heartRate,
-        'CD4 Count': medicalReport.cd4Count,
-        'Viral Load': medicalReport.viralLoad,
-        'Hemoglobin': medicalReport.hemoglobin,
-        'Bạch cầu': medicalReport.whiteBloodCell,
-        'Tiểu cầu': medicalReport.platelets,
-        'Đánh giá tiến triển': medicalReport.patientProgressEvaluation,
-        'Kế hoạch điều trị': medicalReport.plan,
-        'Khuyến nghị': medicalReport.recommendation
+        // Loại bỏ tất cả validation bắt buộc vì database cho phép null
+        // Chỉ cần đảm bảo có ít nhất một số thông tin cơ bản
       };
 
-      const missingFields = Object.entries(requiredFields)
-        .filter(([_, value]) => !value || value.toString().trim() === '')
-        .map(([key, _]) => key);
+      // Không validate bắt buộc nữa, cho phép lưu với dữ liệu rỗng
+      // const missingFields = Object.entries(requiredFields)
+      //   .filter(([_, value]) => !value || value.toString().trim() === '')
+      //   .map(([key, _]) => key);
 
-      if (missingFields.length > 0) {
-        alert(`Vui lòng điền đầy đủ các trường bắt buộc:\n${missingFields.join(', ')}`);
-        return;
-      }
+      // if (missingFields.length > 0) {
+      //   alert(`Vui lòng điền đầy đủ các trường bắt buộc:\n${missingFields.join(', ')}`);
+      //   return;
+      // }
 
       // Validate medications
       if (medicalReport.medicalResultMedicines && medicalReport.medicalResultMedicines.length > 0) {
@@ -789,6 +827,7 @@ const DoctorAppointments = () => {
         
         if (!confirmProceed) {
           console.log('User cancelled due to ownership mismatch');
+          setShowSaveReportConfirmModal(false);
           return;
         }
       }      const updateData = {
@@ -903,6 +942,7 @@ const DoctorAppointments = () => {
         }
         await loadDoctorAppointments();
         handleCloseReportModal();
+        setShowSaveReportConfirmModal(false);
         return;
       }// Kiểm tra lỗi 403 với nhiều cách khác nhau
       const is403Error = initialResult.is403 === true ||
@@ -1136,24 +1176,36 @@ const DoctorAppointments = () => {
         alert('Lỗi khi cập nhật báo cáo y tế: ' + (initialResult.message || 'Không rõ nguyên nhân.'));
       }
     } catch (error) {
-      console.error('=== EXCEPTION: Caught error in handleSaveReport ===', error);
+      console.error('=== EXCEPTION: Caught error in performSaveReport ===', error);
       alert('Đã xảy ra lỗi không mong muốn khi lưu báo cáo y tế: ' + error.message);
+    } finally {
+      // Đóng modal xác nhận
+      setShowSaveReportConfirmModal(false);
     }
   };  // Hàm tạo medical result cho appointment
   const handleCreateMedicalResult = async (appointmentId) => {
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    setPendingActionAppointment(appointment);
+    setShowCreateReportConfirmModal(true);
+  };
+
+  // Hàm thực hiện tạo báo cáo y tế sau khi xác nhận
+  const performCreateMedicalResult = async () => {
+    if (!pendingActionAppointment) return;
+    
     try {
-      console.log('Creating medical result for appointment:', appointmentId);
+      console.log('Creating medical result for appointment:', pendingActionAppointment.id);
       
       // Get doctor ID from token to ensure proper ownership
       const tokenDoctorId = getDoctorIdFromToken();
       if (!tokenDoctorId) {
-        alert('Lỗi: Không thể xác định bác sĩ từ token. Vui lòng đăng nhập lại.');
+        console.error('Cannot determine doctor ID from token');
         return;
       }
 
       console.log('Creating medical result with doctor ID:', tokenDoctorId);
       
-      let result = await medicalResultAPI.createMedicalResult(appointmentId);
+      let result = await medicalResultAPI.createMedicalResult(pendingActionAppointment.id);
       
       // If primary creation failed with 404, try alternative endpoints
       if (!result.success && result.message?.includes('404')) {
@@ -1163,10 +1215,10 @@ const DoctorAppointments = () => {
         const { api } = await import('../../services/api');
         
         const alternativeEndpoints = [
-          `/medical-result/create/${appointmentId}`,
-          `/medical-result/createMedicalResult/${appointmentId}`,
-          `/medicalresult/create/${appointmentId}`,
-          `/api/medical-result/create-MedicalResult/${appointmentId}`
+          `/medical-result/create/${pendingActionAppointment.id}`,
+          `/medical-result/createMedicalResult/${pendingActionAppointment.id}`,
+          `/medicalresult/create/${pendingActionAppointment.id}`,
+          `/api/medical-result/create-MedicalResult/${pendingActionAppointment.id}`
         ];
           for (const altEndpoint of alternativeEndpoints) {
           try {
@@ -1190,14 +1242,15 @@ const DoctorAppointments = () => {
       if (result.success) {
         // Reload appointments để cập nhật medicalResultId
         await loadDoctorAppointments();
-        alert('Tạo báo cáo y tế thành công!');
+        console.log('✅ Medical result created successfully');
       } else {
         console.error('All creation attempts failed:', result);
-        alert('Lỗi tạo báo cáo y tế: ' + (result.message || 'Không thể kết nối đến server'));
       }
     } catch (error) {
       console.error('Error creating medical result:', error);
-      alert('Đã xảy ra lỗi khi tạo báo cáo y tế: ' + error.message);
+    } finally {
+      setShowCreateReportConfirmModal(false);
+      setPendingActionAppointment(null);
     }
   };
   // Hàm hiển thị modal nhập báo cáo y tế
@@ -1364,119 +1417,60 @@ const DoctorAppointments = () => {
       alert('Đã xảy ra lỗi khi mở báo cáo y tế');
     }
   };
-  // Hàm hiển thị chi tiết lịch hẹn (chỉ xem, không chỉnh sửa)
-  const handleShowAppointmentDetails = (appointment) => {
-    setSelectedAppointment(appointment);
-    // Hiển thị modal chỉ để xem thông tin, không cho chỉnh sửa
-    const readOnlyReport = {
-      patientInfo: {
-        name: appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`,
-        customerId: appointment.userId || appointment.id
-      },
-      visitDate: appointment.date,
-      appointmentInfo: {
-        time: `${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`,
-        type: getAppointmentTypeDisplay(appointment.appointmentType || appointment.type),
-        service: appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment),
-        symptoms: appointment.reason || appointment.symptoms || 'Không có triệu chứng',
-        notes: appointment.notes || appointment.note || 'Chưa có ghi chú'      },      // Thêm các trường cần thiết để tránh lỗi - mapping với API fields
-      medicalResultMedicines: [],
-      weight: '',
-      height: '',
-      bmi: '',
-      temperature: '',
-      bloodPressure: '',
-      heartRate: '',
-      cd4Count: '',
-      viralLoad: '',
-      hemoglobin: '',
-      whiteBloodCell: '',
-      platelets: '',
-      glucose: '',
-      creatinine: '',
-      alt: '',
-      ast: '',
-      totalCholesterol: '',
-      ldl: '',
-      hdl: '',
-      trigilycerides: '',
-      patientProgressEvaluation: '',
-      plan: '',
-      recommendation: ''
-    };
-    setMedicalReport(readOnlyReport);
-    setShowReportModal(true);
+  // Hàm hiển thị chi tiết lịch hẹn bằng API getAppointmentById
+  const handleShowAppointmentDetails = async (appointment) => {
+    try {
+      setLoadingAppointmentDetail(true);
+      setShowAppointmentDetailModal(true);
+      
+      // Gọi API để lấy chi tiết lịch hẹn
+      const response = await appointmentAPI.getAppointmentById(appointment.id);
+      setAppointmentDetailData(response.data);
+      
+    } catch (error) {
+      console.error('Error fetching appointment details:', error);
+      setAppointmentDetailData(null);
+      alert('Không thể tải thông tin chi tiết lịch hẹn');
+    } finally {
+      setLoadingAppointmentDetail(false);
+    }
   };  // Hàm chuyển trạng thái lịch hẹn từ ACCEPTED sang COMPLETED
   const handleCompleteAppointment = async (appointmentId) => {
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    setPendingActionAppointment(appointment);
+    setShowCompleteAppointmentConfirmModal(true);
+  };
+
+  // Hàm thực hiện hoàn thành lịch hẹn sau khi xác nhận
+  const performCompleteAppointment = async () => {
+    if (!pendingActionAppointment) return;
+    
     try {
       console.log('=== DEBUG: Starting appointment completion ===');
       
-      const appointment = appointments.find(apt => apt.id === appointmentId);
-      if (!appointment) {
-        console.error('❌ Appointment not found in current appointments list');
-        alert('Không tìm thấy lịch hẹn trong danh sách hiện tại');
-        return;
-      }
-      
       console.log('📋 Appointment found:', {
-        id: appointment.id,
-        patientName: appointment.alternativeName,
-        currentStatus: appointment.status,
-        originalStatus: appointment.originalStatus,
-        hasmedicalResult: !!appointment.medicalResultId
+        id: pendingActionAppointment.id,
+        patientName: pendingActionAppointment.alternativeName,
+        currentStatus: pendingActionAppointment.status,
+        originalStatus: pendingActionAppointment.originalStatus,
+        hasmedicalResult: !!pendingActionAppointment.medicalResultId
       });
 
-      // Check if appointment has medical result
-      if (!appointment.medicalResultId) {
-        const proceedWithoutMedical = window.confirm(
-          '⚠️ Cảnh báo: Lịch hẹn này chưa có báo cáo y tế.\n\n' +
-          'Thông thường bạn nên tạo báo cáo y tế trước khi hoàn thành lịch hẹn.\n\n' +
-          'Bạn có muốn tiếp tục hoàn thành mà không có báo cáo y tế không?'
-        );
-        
-        if (!proceedWithoutMedical) {
-          console.log('User cancelled due to missing medical result');
-          return;
-        }
-      }
-
-      // Confirm with user
-      const patientInfo = appointment.alternativeName || `Bệnh nhân #${appointment.userId}`;
-      const confirmMessage = `Bạn có chắc chắn muốn hoàn thành lịch hẹn này?\n\n` +
-                           `👤 Bệnh nhân: ${patientInfo}\n` +
-                           `📅 Ngày: ${appointment.date}\n` +
-                           `⏰ Giờ: ${appointment.slotStartTime} - ${appointment.slotEndTime}\n` +
-                           `🏥 Dịch vụ: ${appointment.serviceName || appointment.appointmentService || 'N/A'}\n\n` +
-                           `Sau khi hoàn thành, trạng thái sẽ chuyển thành "COMPLETED".`;
-                           
-      const confirmed = window.confirm(confirmMessage);
-      if (!confirmed) {
-        console.log('User cancelled appointment completion');
-        return;
-      }
-
       console.log('=== DEBUG: Calling API to update appointment status ===');
-      console.log('Appointment ID:', appointmentId);
+      console.log('Appointment ID:', pendingActionAppointment.id);
       console.log('Target Status: COMPLETED');
       
       // Call API to update status to COMPLETED
-      const result = await appointmentAPI.updateAppointmentStatus(appointmentId, 'COMPLETED');
+      const result = await appointmentAPI.updateAppointmentStatus(pendingActionAppointment.id, 'COMPLETED');
       
       console.log('=== DEBUG: API Response ===', result);
       
       if (result.success) {
         console.log('✅ SUCCESS: Appointment status updated to COMPLETED');
         
-        // Show success message with details
-        let successMessage = '✅ Đã hoàn thành lịch hẹn thành công!\n\n' +
-                           `👤 Bệnh nhân: ${patientInfo}\n` +
-                           `📅 Trạng thái mới: COMPLETED`;
-        
         if (result.endpoint) {
           console.log('📡 Success endpoint:', result.endpoint);
         }
-        
-        alert(successMessage);
         
         // Reload appointments to update the status in UI
         console.log('🔄 Reloading appointments to update UI...');
@@ -1485,25 +1479,12 @@ const DoctorAppointments = () => {
       } else {
         console.error('❌ FAILED: API returned error');
         console.error('Error details:', result);
-        
-        // Enhanced error message based on the error type
-        let errorMessage = 'Lỗi hoàn thành lịch hẹn:\n\n' + result.message;
-        
-        if (result.attemptsLog) {
-          errorMessage += '\n\nCác endpoint đã thử:\n' + result.attemptsLog.join('\n');
-        }
-        
-        if (result.message?.includes('mạng') || result.message?.includes('network')) {
-          errorMessage += '\n\n💡 Gợi ý: Kiểm tra kết nối internet và thử lại.';
-        } else if (result.message?.includes('endpoint')) {
-          errorMessage += '\n\n💡 Gợi ý: Liên hệ admin để kiểm tra cấu hình API backend.';
-        }
-        
-        alert(errorMessage);
       }
     } catch (error) {
       console.error('=== EXCEPTION: Error in handleCompleteAppointment ===', error);
-      alert('Đã xảy ra lỗi không mong muốn khi hoàn thành lịch hẹn:\n\n' + error.message);
+    } finally {
+      setShowCompleteAppointmentConfirmModal(false);
+      setPendingActionAppointment(null);
     }
   };
   // Lọc lịch hẹn đã hoàn thành cho ngày được chọn
@@ -1519,6 +1500,17 @@ const DoctorAppointments = () => {
       const matchesDate = apt.date === date || apt.appointmentDate === date;
       const isAccepted = apt.status === 'accepted' || apt.status === 'ACCEPTED';
       return matchesDate && isAccepted;
+    });
+  };
+
+  // Get all appointments (ACCEPTED + COMPLETED) for the selected date
+  const getAllAppointmentsForDate = (date) => {
+    return appointments.filter(apt => {
+      const matchesDate = apt.date === date || apt.appointmentDate === date;
+      const isAcceptedOrCompleted = 
+        apt.status === 'accepted' || apt.status === 'ACCEPTED' ||
+        apt.status === 'completed' || apt.status === 'COMPLETED';
+      return matchesDate && isAcceptedOrCompleted;
     });
   };
 
@@ -1569,6 +1561,55 @@ const DoctorAppointments = () => {
     alert('❌ All endpoint tests failed. Check console for details.');
   };
 
+  // Utility functions for AppointmentDetailModal
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Không có thông tin';
+    try {
+      return new Date(dateString).toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const formatTimeSlot = (startTime, endTime) => {
+    if (!startTime && !endTime) return 'Không có thông tin';
+    if (startTime && endTime) {
+      return `${startTime} - ${endTime}`;
+    }
+    return startTime || endTime || 'Không có thông tin';
+  };
+
+  const getAppointmentTypeLabel = (type) => {
+    switch (type?.toUpperCase()) {
+      case 'INITIAL':
+        return 'Khám lần đầu';
+      case 'FOLLOW_UP':
+        return 'Tái khám';
+      default:
+        return type || 'Không xác định';
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'PENDING':
+        return <Badge bg="warning" className="small-badge">Chờ duyệt</Badge>;
+      case 'ACCEPTED':
+        return <Badge bg="success" className="small-badge">Đã duyệt</Badge>;
+      case 'COMPLETED':
+        return <Badge bg="primary" className="small-badge">Đã hoàn thành</Badge>;
+      case 'DENIED':
+        return <Badge bg="danger" className="small-badge">Từ chối</Badge>;
+      default:
+        return <Badge bg="secondary" className="small-badge">{status || 'Không xác định'}</Badge>;
+    }
+  };
+
   return (
     <div className="doctor-dashboard">
       <Container fluid>
@@ -1606,7 +1647,7 @@ const DoctorAppointments = () => {
                       <div className="calendar-header">
                         <div className="weekday">Chủ Nhật</div>
                         <div className="weekday">Thứ 2</div>
-                        <div className="weekday">Thứ 3</div>
+                                               <div className="weekday">Thứ 3</div>
                         <div className="weekday">Thứ 4</div>
                         <div className="weekday">Thứ 5</div>
                         <div className="weekday">Thứ 6</div>
@@ -1624,9 +1665,13 @@ const DoctorAppointments = () => {
                                 <div className="day-number">{day.day}</div>
                                 {day.hasAppointments && (
                                   <div className="appointment-indicators">
-                                    {/* Hiển thị dấu chấm vàng cho tất cả accepted appointments */}
-                                    {day.appointments.slice(0, 3).map((appt, i) => (
-                                      <div key={i} className="appointment-dot status-pending"></div>
+                                    {/* Hiển thị dấu chấm vàng cho accepted appointments */}
+                                    {day.acceptedAppointments.slice(0, 3).map((appt, i) => (
+                                      <div key={`accepted-${i}`} className="appointment-dot status-accepted"></div>
+                                    ))}
+                                    {/* Hiển thị dấu chấm xanh cho completed appointments */}
+                                    {day.completedAppointments.slice(0, 3 - day.acceptedAppointments.length).map((appt, i) => (
+                                      <div key={`completed-${i}`} className="appointment-dot status-completed"></div>
                                     ))}
                                     {day.appointments.length > 3 && (
                                       <div className="appointment-more">+{day.appointments.length - 3}</div>
@@ -1647,7 +1692,7 @@ const DoctorAppointments = () => {
                 <Card className="daily-schedule-card">
                   <Card.Header>
                     <h5 className="mb-0">
-                      Lịch hẹn ngày {new Date(selectedDate).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      Lịch hẹn chưa hoàn thành {new Date(selectedDate).toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                     </h5>
                   </Card.Header>
                   <Card.Body className="p-0">
@@ -1743,19 +1788,15 @@ const DoctorAppointments = () => {
             </Row>
             
             <Card className="mt-4">
-              <Card.Header className="d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Lịch hẹn đã hoàn thành hôm nay</h5>
-                <Button variant="outline-primary" size="sm">
-                  Xem tất cả
-                </Button>
+              <Card.Header>
+                <h5 className="mb-0">Lịch hẹn đã hoàn thành {new Date(selectedDate).toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' })}</h5>
               </Card.Header>
               <Card.Body className="p-0">                <div className="table-responsive">
                   <table className="table appointment-table">
                     <thead>
                       <tr>
-                        <th>Ngày và giờ</th>
+                        <th>Giờ khám</th>
                         <th>Bệnh nhân</th>
-                        <th>Loại khám</th>
                         <th>Hành động</th>
                       </tr>
                     </thead>
@@ -1764,21 +1805,25 @@ const DoctorAppointments = () => {
                         <tr key={appointment.id}>
                           <td>{`${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`}</td>
                           <td>
-                            <div className="d-flex flex-column">
-                              <span>{appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`}</span>
-                              <small className="text-muted">ID: {appointment.userId || appointment.id}</small>
-                            </div>
+                            {appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`}
                           </td>
-                          <td>{appointment.type}</td>
                           <td>
                             <Button 
-                              variant="outline-primary" 
+                              variant="outline-info" 
                               size="sm"
                               className="me-2"
                               onClick={() => handleShowAppointmentDetails(appointment)}
                             >
-                              <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                              Chi tiết
+                              <FontAwesomeIcon icon={faEye} className="me-1" />
+                              Xem lịch hẹn
+                            </Button>
+                            <Button 
+                              variant="outline-warning" 
+                              size="sm"
+                              onClick={() => handleShowMedicalReportModal(appointment)}
+                            >
+                              <FontAwesomeIcon icon={faEdit} className="me-1" />
+                              Chỉnh sửa báo cáo y tế
                             </Button>
                           </td>
                         </tr>
@@ -1798,7 +1843,7 @@ const DoctorAppointments = () => {
           onChange={handleReportChange}
           onSave={handleSaveReport}
           appointment={selectedAppointment}
-          readOnly={selectedAppointment?.status === 'completed'}
+          readOnly={false}
           onViewPdf={handleViewPdf}
           onShowMedicineSelector={() => setShowMedicineSelector(true)}
           onMedicineChange={handleMedicineChange}
@@ -1816,6 +1861,237 @@ const DoctorAppointments = () => {
           onRemoveMedicine={handleRemoveMedicine}
           readOnly={false}
         />
+
+        {/* Appointment Detail Modal */}
+        <AppointmentDetailModal
+          show={showAppointmentDetailModal}
+          onHide={() => {
+            setShowAppointmentDetailModal(false);
+            // Delay việc reset state để tránh hiển thị lỗi khi modal đang đóng
+            setTimeout(() => {
+              setAppointmentDetailData(null);
+              setLoadingAppointmentDetail(false);
+            }, 200);
+          }}
+          appointmentDetail={appointmentDetailData}
+          loading={loadingAppointmentDetail}
+          onViewMedicalResult={null} // Doctor không cần xem medical result trong modal này
+          formatDate={formatDate}
+          formatTimeSlot={formatTimeSlot}
+          getAppointmentTypeLabel={getAppointmentTypeLabel}
+          getStatusBadge={getStatusBadge}
+        />
+
+        {/* Modal xác nhận tạo báo cáo y tế */}
+        <Modal 
+          show={showCreateReportConfirmModal} 
+          onHide={() => {
+            setShowCreateReportConfirmModal(false);
+            setPendingActionAppointment(null);
+          }} 
+          centered
+          className="confirmation-modal"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faNotesMedical} className="text-primary me-2" />
+              Xác nhận tạo báo cáo y tế
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {pendingActionAppointment && (
+              <div>
+                <p className="mb-3">Bạn có chắc chắn muốn tạo báo cáo y tế cho lịch hẹn này?</p>
+                <div className="appointment-info p-3 bg-light rounded">
+                  <div className="mb-2">
+                    <strong>👤 Bệnh nhân:</strong> {pendingActionAppointment.alternativeName || `Bệnh nhân #${pendingActionAppointment.userId}`}
+                  </div>
+                  <div className="mb-2">
+                    <strong>📅 Ngày khám:</strong> {pendingActionAppointment.date}
+                  </div>
+                  <div className="mb-2">
+                    <strong>⏰ Giờ khám:</strong> {pendingActionAppointment.slotStartTime} - {pendingActionAppointment.slotEndTime}
+                  </div>
+                  <div>
+                    <strong>🏥 Dịch vụ:</strong> {pendingActionAppointment.serviceName || pendingActionAppointment.appointmentService || 'N/A'}
+                  </div>
+                </div>
+                <div className="alert alert-info mt-3 mb-0">
+                  <FontAwesomeIcon icon={faCheck} className="me-2" />
+                  Sau khi tạo thành công, bạn có thể nhập thông tin chi tiết vào báo cáo.
+                </div>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                setShowCreateReportConfirmModal(false);
+                setPendingActionAppointment(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={performCreateMedicalResult}
+            >
+              <FontAwesomeIcon icon={faNotesMedical} className="me-1" />
+              Xác nhận tạo
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Modal xác nhận hoàn thành lịch hẹn */}
+        <Modal 
+          show={showCompleteAppointmentConfirmModal} 
+          onHide={() => {
+            setShowCompleteAppointmentConfirmModal(false);
+            setPendingActionAppointment(null);
+          }} 
+          centered
+          className="confirmation-modal"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faCheckCircle} className="text-success me-2" />
+              Xác nhận hoàn thành lịch hẹn
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {pendingActionAppointment && (
+              <div>
+                <p className="mb-3">Bạn có chắc chắn muốn hoàn thành lịch hẹn này?</p>
+                <div className="appointment-info p-3 bg-light rounded">
+                  <div className="mb-2">
+                    <strong>👤 Bệnh nhân:</strong> {pendingActionAppointment.alternativeName || `Bệnh nhân #${pendingActionAppointment.userId}`}
+                  </div>
+                  <div className="mb-2">
+                    <strong>📅 Ngày khám:</strong> {pendingActionAppointment.date}
+                  </div>
+                  <div className="mb-2">
+                    <strong>⏰ Giờ khám:</strong> {pendingActionAppointment.slotStartTime} - {pendingActionAppointment.slotEndTime}
+                  </div>
+                  <div className="mb-2">
+                    <strong>🏥 Dịch vụ:</strong> {pendingActionAppointment.serviceName || pendingActionAppointment.appointmentService || 'N/A'}
+                  </div>
+                  <div>
+                    <strong>📋 Báo cáo y tế:</strong> 
+                    {pendingActionAppointment.medicalResultId ? (
+                      <span className="text-success"> ✅ Đã có</span>
+                    ) : (
+                      <span className="text-warning"> ⚠️ Chưa có</span>
+                    )}
+                  </div>
+                </div>
+                
+                {!pendingActionAppointment.medicalResultId && (
+                  <div className="alert alert-warning mt-3">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                    <strong>Cảnh báo:</strong> Lịch hẹn này chưa có báo cáo y tế. Thông thường bạn nên tạo báo cáo y tế trước khi hoàn thành lịch hẹn.
+                  </div>
+                )}
+                
+                <div className="alert alert-info mt-3 mb-0">
+                  <FontAwesomeIcon icon={faCheck} className="me-2" />
+                  Sau khi hoàn thành, trạng thái sẽ chuyển thành <strong>"COMPLETED"</strong> và không thể thay đổi.
+                </div>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                setShowCompleteAppointmentConfirmModal(false);
+                setPendingActionAppointment(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="success" 
+              onClick={performCompleteAppointment}
+            >
+              <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
+              Xác nhận hoàn thành
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Modal xác nhận lưu báo cáo y tế */}
+        <Modal 
+          show={showSaveReportConfirmModal} 
+          onHide={() => setShowSaveReportConfirmModal(false)} 
+          centered
+          className="confirmation-modal"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faSave} className="text-success me-2" />
+              Xác nhận lưu báo cáo y tế
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {selectedAppointment && (
+              <div>
+                <p className="mb-3">Bạn có chắc chắn muốn lưu báo cáo y tế này?</p>
+                <div className="appointment-info p-3 bg-light rounded">
+                  <div className="mb-2">
+                    <strong>👤 Bệnh nhân:</strong> {selectedAppointment.alternativeName || `Bệnh nhân #${selectedAppointment.userId}`}
+                  </div>
+                  <div className="mb-2">
+                    <strong>📅 Ngày khám:</strong> {selectedAppointment.date}
+                  </div>
+                  <div className="mb-2">
+                    <strong>⏰ Giờ khám:</strong> {selectedAppointment.slotStartTime} - {selectedAppointment.slotEndTime}
+                  </div>
+                  <div>
+                    <strong>🏥 Dịch vụ:</strong> {selectedAppointment.serviceName || selectedAppointment.appointmentService || 'N/A'}
+                  </div>
+                </div>
+                
+                {/* Hiển thị thông tin báo cáo sẽ được lưu */}
+                <div className="alert alert-info mt-3">
+                  <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                  <strong>Thông tin báo cáo:</strong>
+                  <ul className="mb-0 mt-2">
+                    <li>✅ Các chỉ số sinh hiệu và xét nghiệm</li>
+                    <li>✅ Đánh giá tiến triển bệnh nhân</li>
+                    <li>✅ Kế hoạch điều trị và khuyến nghị</li>
+                    {medicalReport.medicalResultMedicines && medicalReport.medicalResultMedicines.length > 0 && (
+                      <li>✅ Danh sách thuốc ({medicalReport.medicalResultMedicines.length} loại)</li>
+                    )}
+                    {medicalReport.arvFile && (
+                      <li>✅ Báo cáo ARV đính kèm</li>
+                    )}
+                  </ul>
+                </div>
+                
+                <div className="alert alert-warning mt-3 mb-0">
+                  <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                  Vui lòng kiểm tra kỹ thông tin trước khi lưu. Báo cáo sẽ được cập nhật vào hệ thống.
+                </div>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowSaveReportConfirmModal(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="success" 
+              onClick={performSaveReport}
+            >
+              <FontAwesomeIcon icon={faSave} className="me-1" />
+              Xác nhận lưu
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </Container>
     </div>
   );

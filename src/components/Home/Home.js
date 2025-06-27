@@ -3,6 +3,7 @@ import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDisplayName } from '../../utils/userUtils';
 import { 
   faStethoscope, faUsers, faHeartbeat, faBriefcaseMedical, 
   faMicroscope, faHandHoldingMedical, faCalendarCheck, faUserMd,
@@ -93,25 +94,15 @@ const Home = () => {
 
   return (
     <main>
-      {/* Welcome Message for Logged In User */}
-      {isAuthenticated && user && (
+      {/* Welcome Message for Logged In Customers Only */}
+      {isAuthenticated && user && user.role === 'CUSTOMER' && (
         <section className="welcome-section">
           <Container>
             <Alert variant="info" className="welcome-alert">
               <div className="d-flex align-items-center">
                 <FontAwesomeIcon icon={faHeartbeat} className="me-3" style={{ fontSize: '1.5rem' }} />
                 <div>
-                  <h5 className="mb-1">Chào mừng trở lại, {
-                    user?.fullName && user.fullName !== 'User' 
-                      ? user.fullName 
-                      : user?.name && user.name !== 'User'
-                        ? user.name
-                        : user?.username && user.username !== 'User'
-                          ? user.username
-                          : user?.email && !user.email.includes('@example.com')
-                            ? user.email.split('@')[0]
-                            : 'Người dùng'
-                  }!</h5>
+                  <h5 className="mb-1">Chào mừng trở lại, {getDisplayName(user)}!</h5>
                   <p className="mb-0">Chúng tôi rất vui được phục vụ bạn. Hãy khám phá các dịch vụ chăm sóc sức khỏe của chúng tôi.</p>
                 </div>
               </div>

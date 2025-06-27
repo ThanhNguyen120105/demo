@@ -441,6 +441,7 @@ export const authAPI = {
         return {
           success: true,
           data: userToSave,
+          token: token,
           message: 'Đăng nhập thành công'
         };
       } else if (token) {
@@ -457,6 +458,7 @@ export const authAPI = {
         return {
           success: true,
           data: basicUser,
+          token: token,
           message: 'Đăng nhập thành công'
         };
       }
@@ -910,10 +912,7 @@ export const appointmentAPI = {
   // Lấy chi tiết appointment theo ID
   getAppointmentById: async (appointmentId) => {
     try {
-      console.log('Getting appointment details for ID:', appointmentId);
       const response = await api.get(`/appointment/${appointmentId}`);
-      
-      console.log('Get appointment details response:', response.data);
       
       return {
         success: true,

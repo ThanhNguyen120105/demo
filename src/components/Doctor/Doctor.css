@@ -229,198 +229,7 @@
   font-size: 0.9rem;
 }
 
-/* Chart Cards */
-.charts-row {
-  margin-bottom: 1.5rem;
-}
 
-.chart-card {
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.chart-card .card-header {
-  background-color: #fff;
-  border-bottom: 1px solid #f0f0f0;
-  padding: 1rem 1.25rem;
-}
-
-.chart-card .card-header h5 {
-  margin-bottom: 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.chart-area {
-  padding: 1rem;
-  min-height: 300px;
-}
-
-/* Chart placeholders */
-.chart-placeholder {
-  height: 300px;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 0.5rem;
-  position: relative;
-  margin-left: 40px;
-  margin-bottom: 40px;
-}
-
-.chart-y-axis {
-  position: absolute;
-  left: -40px;
-  top: 0;
-  bottom: 0;
-  width: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-bottom: 0;
-  height: 200px;
-}
-
-.y-axis-tick {
-  color: #6c757d;
-  font-size: 10px;
-  text-align: right;
-  padding-right: 5px;
-  position: relative;
-  height: 0;
-}
-
-.y-axis-tick::after {
-  content: '';
-  position: absolute;
-  right: -5px;
-  top: 50%;
-  width: 4px;
-  height: 1px;
-  background-color: #6c757d;
-}
-
-.chart-grid {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 0;
-  height: 200px;
-}
-
-.horizontal-grid-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: rgba(108, 117, 125, 0.15);
-}
-
-.x-axis {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background-color: #6c757d;
-}
-
-.chart-bars {
-  display: flex;
-  width: 100%;
-  align-items: flex-end;
-  height: 200px;
-  position: relative;
-  z-index: 1;
-}
-
-.chart-bar {
-  flex: 1;
-  background-color: #bbdefb;
-  margin: 0 5px;
-  position: relative;
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s ease;
-  z-index: 2;
-}
-
-.chart-value {
-  position: absolute;
-  top: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #1e88e5;
-}
-
-.chart-bar.accent {
-  background-color: #1e88e5;
-}
-
-.chart-bar:hover {
-  background-color: #1e88e5;
-}
-
-.chart-bar span {
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.8rem;
-  color: #6c757d;
-}
-
-.pie-chart-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 250px;
-}
-
-.pie-chart {
-  width: 150px;
-  height: 150px;
-  position: relative;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-  background: conic-gradient(
-    from 0deg,
-    #4CAF50 0deg 90deg,
-    #FF9800 90deg 180deg,
-    #2196F3 180deg 360deg
-  );
-}
-
-.pie-slice {
-  display: none;
-}
-
-.pie-legend {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.color-box {
-  width: 12px;
-  height: 12px;
-  margin-right: 0.5rem;
-  border-radius: 2px;
-}
 
 /* Appointments Table */
 .appointments-card {
@@ -550,6 +359,14 @@
   background-color: #4CAF50;
 }
 
+.appointment-dot.status-accepted {
+  background-color: #FFC107; /* Màu vàng cho ACCEPTED */
+}
+
+.appointment-dot.status-completed {
+  background-color: #4CAF50; /* Màu xanh lá cho COMPLETED */
+}
+
 .appointment-dot.status-pending {
   background-color: #FFC107;
 }
@@ -593,6 +410,14 @@
 
 .appointment-item.status-confirmed {
   border-left: 4px solid #4CAF50;
+}
+
+.appointment-item.status-accepted {
+  border-left: 4px solid #FFC107; /* Màu vàng cho ACCEPTED */
+}
+
+.appointment-item.status-completed {
+  border-left: 4px solid #4CAF50; /* Màu xanh lá cho COMPLETED */
 }
 
 .appointment-item.status-pending {
@@ -683,16 +508,8 @@
 }
 
 @media (max-width: 768px) {
-  .stat-card, .chart-card, .appointments-card {
+  .stat-card, .appointments-card {
     margin-bottom: 1rem;
-  }
-  
-  .chart-area {
-    min-height: auto;
-  }
-  
-  .chart-placeholder, .pie-chart-placeholder {
-    height: 200px;
   }
   
   .calendar-grid {
@@ -706,19 +523,6 @@
   
   .day-number {
     font-size: 0.9rem;
-  }
-  
-  .chart-placeholder {
-    margin-left: 30px;
-  }
-  
-  .chart-y-axis {
-    left: -30px;
-    width: 30px;
-  }
-  
-  .y-axis-tick {
-    font-size: 9px;
   }
 }
 
@@ -1564,4 +1368,152 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
   .arv-tool-container {
     padding: 10px;
   }
+}
+
+/* Appointment Detail Modal Styles */
+.appointment-details .detail-group {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #007bff;
+}
+
+.appointment-details .detail-label {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.appointment-details .detail-value {
+  color: #212529;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.appointment-details .badge {
+  font-size: 0.875rem !important;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+/* Modal title styling */
+.appointment-detail-modal .modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Ensure consistency with other modals */
+.appointment-detail-modal .modal-body {
+  padding: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.appointment-detail-modal .modal-footer {
+  padding: 1rem 1.5rem;
+}
+
+.appointment-detail-modal .btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Specific styling for Logout Confirmation Modal */
+.logout-confirmation-modal .modal-content {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.logout-confirmation-modal .modal-dialog {
+  max-width: 400px;
+}
+
+/* Specific styling for Medicine Selector Modal */
+.medicine-selector-modal .modal-content {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.medicine-selector-modal .modal-dialog {
+  max-width: 900px;
+}
+
+/* Specific styling for ARV Tool Modal */
+.arv-tool-modal .modal-content {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Confirmation Modal Styles */
+.confirmation-modal .modal-content {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+}
+
+.confirmation-modal .modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  padding: 1.25rem 1.5rem;
+}
+
+.confirmation-modal .modal-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.confirmation-modal .modal-body {
+  padding: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.confirmation-modal .modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  padding: 1rem 1.5rem;
+}
+
+.confirmation-modal .appointment-info {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.confirmation-modal .appointment-info div {
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.confirmation-modal .appointment-info div:last-child {
+  margin-bottom: 0;
+}
+
+/* ARV info styling */
+.confirmation-modal .arv-info {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.confirmation-modal .arv-info div {
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.confirmation-modal .arv-info div:last-child {
+  margin-bottom: 0;
 }

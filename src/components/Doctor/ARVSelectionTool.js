@@ -255,16 +255,16 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       };
       
       // Header
-      doc.setFillColor(46, 125, 50); // Dark green header
+      doc.setFillColor(46, 125, 50);
       doc.rect(0, 0, pageWidth, 30, 'F');
       
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('BAO CAO KHUYEN NGHI ARV', pageWidth/2, 15, { align: 'center' });
       
       doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
       doc.text('HIV Antiretroviral Treatment Recommendation Report', pageWidth/2, 22, { align: 'center' });
       
       // Reset text color
@@ -286,7 +286,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       // Patient details in two columns
       const patientInfo = [
         ['Ho va Ten:', appointment?.alternativeName || appointment?.patientName || 'Chua cap nhat'],
-        ['Ma Benh Nhan:', appointment?.userId || appointment?.patientId || 'N/A'],
+        // ['Ma Benh Nhan:', appointment?.userId || appointment?.patientId || 'N/A'], // Commented out - userId not available in API response
         ['Ngay Kham:', appointment?.date || new Date().toLocaleDateString('vi-VN')],
         ['Bac Si Dieu Tri:', appointment?.doctorName || 'Dr. ' + (appointment?.doctorId || 'Unknown')]
       ];
@@ -335,7 +335,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       yPosition += 40;
       checkPageBreak(50);
       
-      // Current Regimen Section
+      // Current Regimen
       if (currentRegimen.length > 0) {
         doc.setFillColor(240, 240, 240);
         doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
@@ -346,7 +346,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         yPosition += 20;
         
         doc.setFontSize(11);
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         currentRegimen.forEach((regimen, index) => {
           const arv = arvOptions.find(option => option.value === regimen);
           doc.text(`• ${toAscii(arv?.label || regimen)}`, 20, yPosition + (index * 7));
@@ -356,7 +356,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         checkPageBreak(50);
       }
       
-      // Comorbidities Section
+      // Comorbidities
       if (comorbidities.length > 0) {
         doc.setFillColor(240, 240, 240);
         doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
@@ -367,7 +367,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         yPosition += 20;
         
         doc.setFontSize(11);
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         comorbidities.forEach((comorbidity, index) => {
           const option = comorbidityOptions.find(opt => opt.value === comorbidity);
           doc.text(`• ${toAscii(option?.label || comorbidity)}`, 20, yPosition + (index * 7));
@@ -428,8 +428,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         yPosition += 15;
         
         doc.setFontSize(11);
-        doc.setFont(undefined, 'normal');
-        
+        doc.setFont('helvetica', 'normal');
         preferredRegimen.forEach((regimen, index) => {
           const arv = arvOptions.find(option => option.value === regimen);
           const score = calculateRegimenScore(regimen);
