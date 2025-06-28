@@ -32,7 +32,7 @@ const AppointmentDetailModal = ({
       onHide={onHide} 
       centered 
       size="lg"
-      className="modal-90w"
+      className="modal-90w appointment-detail-modal"
     >
       <Modal.Header closeButton>
         <Modal.Title>

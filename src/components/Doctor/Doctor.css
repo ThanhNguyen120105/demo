@@ -229,8 +229,6 @@
   font-size: 0.9rem;
 }
 
-
-
 /* Appointments Table */
 .appointments-card {
   border: none;
@@ -1516,4 +1514,19 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
 
 .confirmation-modal .arv-info div:last-child {
   margin-bottom: 0;
+}
+
+.appointment-detail-modal .modal-dialog {
+  display: flex !important;
+  align-items: center;
+  min-height: 100vh;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .appointment-detail-modal .modal-dialog {
+    min-height: unset;
+    align-items: flex-start;
+    margin: 1rem auto !important;
+  }
 }
