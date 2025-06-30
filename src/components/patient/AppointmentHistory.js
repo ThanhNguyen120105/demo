@@ -920,6 +920,7 @@ const AppointmentHistory = () => {
                   Kết quả ARV
                 </Card.Header>
                 <Card.Body>
+<<<<<<< HEAD
                   {(medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL) ? (
                     <div 
                       className="card border-0"
@@ -1013,6 +1014,58 @@ const AppointmentHistory = () => {
                       </div>
                     </div>
                   )}
+=======
+<<<<<<< HEAD
+                  <div className="mb-3">
+                    <label className="form-label">Báo cáo ARV</label>
+                    {(medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL) ? (
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa', flex: 1 }}>
+                          {medicalResult.arvResults?.fileName || 'Báo cáo ARV'}
+                        </div>
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={() => {
+                            const pdfUrl = medicalResult.arvResults?.fileUrl || medicalResult.arvRegimenResultURL;
+                            if (pdfUrl) {
+                              window.open(pdfUrl, '_blank');
+                            }
+                          }}
+                          title="Xem báo cáo ARV"
+                        >
+                          <FontAwesomeIcon icon={faEye} className="me-1" />
+                          Xem
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                        Chưa nhập
+                      </div>
+                    )}
+                  </div>
+                  {medicalResult.arvResults?.recommendations && (
+                    <div className="mb-3">
+                      <label className="form-label">Khuyến nghị ARV</label>
+                      <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '60px', whiteSpace: 'pre-wrap' }}>
+                        {medicalResult.arvResults.recommendations}
+                      </div>
+                    </div>
+                  )}
+=======
+                   <div className="bg-light p-3 rounded">
+                     <p className="mb-0">
+                       <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
+                       <strong>Báo cáo ARV:</strong> {medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL || 'Chưa có báo cáo'}
+                     </p>
+                     {(medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations) && (
+                       <p className="mb-0 mt-2">
+                         <strong>Khuyến nghị:</strong> {medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations}
+                       </p>
+                     )}
+                   </div>
+>>>>>>> a4d4a3af3b94c0b4c19c2fe5f7cbec73a06c89eb
+>>>>>>> 4c6674ed5c0b773c7835a8c9bd46d77a3ccca378
                 </Card.Body>
               </Card>
 

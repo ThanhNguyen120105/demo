@@ -8,7 +8,7 @@ import QuestionApproval from './QuestionApproval';
 import CreateDoctorAccount from './CreateDoctorAccount';
 
 const StaffDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('appointments'); // Default to appointments (Duyệt đơn) for staff
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -20,7 +20,7 @@ const StaffDashboard = () => {
       case 'createDoctor':
         return <CreateDoctorAccount />;
       default:
-        return <StaffOverview />;
+        return <AppointmentApproval />; // Default to AppointmentApproval instead of StaffOverview
     }
   };
 

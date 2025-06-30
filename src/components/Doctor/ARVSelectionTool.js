@@ -1,28 +1,41 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Form, Button, Table, Badge, Alert, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faDna, faVial, faAllergies,
   faWeight, faHeartbeat, faLungs, faBrain, faStethoscope,
   faPills, faCalendarAlt, faUtensils, faSyringe, faCapsules,
-  faPrescriptionBottleAlt, faFilePdf, faEye, faTrash
+  faPrescriptionBottleAlt, faFilePdf, faEye, faTrash, faStar,
+  faUserMd, faBaby, faVenus, faChild, faCheck, faDownload, faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { vietnameseToAscii } from '../../utils/vietnamese-ascii';
+import { generateVietnamesePDF } from '../../utils/html-pdf-generator';
+import { ARVReportWebViewer, generateWebReport } from '../../utils/vietnamese-web-viewer';
 
 const ARVSelectionTool = ({ onSelect, appointment }) => {
   const [activeTab, setActiveTab] = useState('arv-tool');
   const [viralLoad, setViralLoad] = useState('unknown');
   const [cd4Count, setCd4Count] = useState('unknown');
-  const [hlaB5701, setHlaB5701] = useState('positive');
+  const [hlaB5701, setHlaB5701] = useState('negative');
   const [tropism, setTropism] = useState('unknown');
   const [comorbidities, setComorbidities] = useState([]);
   const [currentRegimen, setCurrentRegimen] = useState([]);
-  const [preferredRegimen, setPreferredRegimen] = useState([]);
+  const [selectedRegimens, setSelectedRegimens] = useState([]);
   const [coMedications, setCoMedications] = useState([]);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState({
+    doctorNotes: '',
+    customRegimen: ''
+  });
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  
+  // New state for special populations
+  const [specialPopulation, setSpecialPopulation] = useState('none');
+  const [recommendedRegimens, setRecommendedRegimens] = useState([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showCustomRegimen, setShowCustomRegimen] = useState(false);
   
   const [formData, setFormData] = useState({
     patientInfo: {
@@ -56,6 +69,14 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     }
   });
   
+  // Special population options
+  const specialPopulationOptions = [
+    { value: 'none', label: 'Không có đặc biệt', icon: faUserMd },
+    { value: 'pregnant', label: 'Phụ nữ mang thai', icon: faVenus },
+    { value: 'pediatric', label: 'Trẻ em (< 18 tuổi)', icon: faChild },
+    { value: 'elderly', label: 'Người cao tuổi (> 65)', icon: faUserMd }
+  ];
+  
   // List of comorbidities
   const comorbidityOptions = [
     { value: 'cardiovascular', label: 'Bệnh Tim Mạch', icon: faHeartbeat },
@@ -70,59 +91,171 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     { value: 'pregnancy', label: 'Thai Kỳ', icon: faWeight }
   ];
   
-  // List of ARV medications
-  const arvOptions = [
-    { value: '3TC', label: '3TC (Lamivudine/Epivir)' },
-    { value: 'FTC', label: 'FTC (Emtricitabine/Emtriva)' },
-    { value: 'ABC', label: 'ABC (Abacavir/Ziagen)' },
-    { value: 'TAF', label: 'TAF (Tenofovir alafenamide/Vemlidy)' },
-    { value: 'TDF', label: 'TDF (Tenofovir diproxil fumarate/Viread)' },
-    { value: 'AZT', label: 'AZT (Zidovudine/Retrovir)' },
-    { value: 'D4T', label: 'D4T (Stavudine/Zerit)' },
-    { value: 'DDI', label: 'DDI (Didanosine/Videx)' },
-    { value: 'EFV', label: 'EFV (Efavirenz/Sustiva)' },
-    { value: 'ETR', label: 'ETR (Etravirine/Intelence)' },
-    { value: 'RPV', label: 'RPV (Rilpivirine/Edurant)' },
-    { value: 'NVP', label: 'NVP (Nevirapine/Viramune)' },
-    { value: 'DOR', label: 'DOR (Doravirine/Pifeltro)' },
-    { value: 'LPV/r', label: 'LPV/r (Lopinavir-ritonavir/Kaletra)' },
-    { value: 'FPV/r', label: 'FPV/r (Fosamprenavir-ritonavir/Lexiva and Norvir)' },
-    { value: 'TPV/r', label: 'TPV/r (Tipranavir-ritonavir/Aptivus and Norvir)' },
-    { value: 'SQV/r', label: 'SQV/r (Saquinavir-ritonavir/Invirase and Norvir)' },
-    { value: 'IDV/r', label: 'IDV/r (Indinavir-ritonavir/Crixivan and Norvir)' },
-    { value: 'NFV', label: 'NFV (Nelfinavir/Viracept)' },
-    { value: 'ATV/r', label: 'ATV/r (Atazanavir-ritonavir/Reyataz and Norvir)' },
-    { value: 'ATV/c', label: 'ATV/c (Atazanavir-cobicistat/Evotaz)' },
-    { value: 'ATV', label: 'ATV (Atazanavir/Reyataz)' },
-    { value: 'DRV', label: 'DRV (Darunavir/Prezista)' },
-    { value: 'DRV/r', label: 'DRV/r (Darunavir-ritonavir/Prezista and Norvir)' },
-    { value: 'DRV/c', label: 'DRV/c (Darunavir-cobicistat/Prezcobix)' },
-    { value: 'RAL', label: 'RAL (Raltegravir/Isentress)' },
-    { value: 'EVG/c', label: 'EVG/c (Elvitegravir/NA)' },
-    { value: 'DTG', label: 'DTG (Dolutegravir/Tivicay)' },
-    { value: 'BIC', label: 'BIC (Bictegravir/NA)' },
-    { value: 'MVC', label: 'MVC (Maraviroc/Selzentry)' },
-    { value: 'IBA', label: 'IBA (Ibalizumab/Trogarzo)' },
-    { value: 'FTR', label: 'FTR (Fostemsavir/Rukobia)' },
-    { value: '3TC/AZT', label: '3TC/AZT (Combivir)' },
-    { value: 'TDF/FTC', label: 'TDF/FTC (Truvada)' },
-    { value: 'ABC/3TC', label: 'ABC/3TC (Epzicom)' },
-    { value: 'TAF/FTC', label: 'TAF/FTC (Descovy)' },
-    { value: 'DTG/RPV', label: 'DTG/RPV (Juluca)' },
-    { value: 'BIC/TAF/FTC', label: 'BIC/TAF/FTC (Biktarvy)' },
-    { value: 'DTG/ABC/3TC', label: 'DTG/ABC/3TC (Triumeq)' },
-    { value: 'EVG/c/TDF/FTC', label: 'EVG/c/TDF/FTC (Stribild)' },
-    { value: 'EVG/c/TAF/FTC', label: 'EVG/c/TAF/FTC (Genvoya)' },
-    { value: 'RPV/TDF/FTC', label: 'RPV/TDF/FTC (Complera)' },
-    { value: 'RPV/TAF/FTC', label: 'RPV/TAF/FTC (Odefsey)' },
-    { value: 'EFV/TDF/FTC', label: 'EFV/TDF/FTC (Atripla)' },
-    { value: 'DRV/c/TAF/FTC', label: 'DRV/c/TAF/FTC (Symtuza)' },
-    { value: 'DOR/TDF/3TC', label: 'DOR/TDF/3TC (Delstrigo)' },
-    { value: 'DTG/3TC', label: 'DTG/3TC (Dovato)' },
-    { value: 'CAB', label: 'CAB (Cabotegravir/Apretude)' },
-    { value: 'CAB/RPV', label: 'CAB/RPV (Cabenuva)' },
-    { value: 'DTG/TDF/3TC', label: 'DTG/TDF/3TC (TLD)' },
-    { value: 'LEN', label: 'LEN (lenacapavir/Sunlenca)' }
+  // Comprehensive ARV regimens with detailed information
+  const arvRegimens = [
+    // First-line regimens
+    {
+      code: 'BIC/TAF/FTC',
+      name: 'Bictegravir/Tenofovir alafenamide/Emtricitabine',
+      shortName: 'BIC + TAF + FTC',
+      displayName: 'Biktarvy',
+      type: 'First-line',
+      components: ['BIC', 'TAF', 'FTC'],
+      pillsPerDay: 1,
+      frequency: '1 lần/ngày',
+      foodRequirement: 'Không yêu cầu',
+      contraindications: ['Dofetilide'],
+      specialPopulations: {
+        pregnant: false,
+        pediatric: true, // ≥25kg
+        elderly: true,
+        renal: true
+      },
+      advantages: ['Hiệu quả cao', 'An toàn cho thận', 'Ít tương tác thuốc'],
+      disadvantages: ['Đắt tiền', 'Tăng cân có thể']
+    },
+    {
+      code: 'DTG/ABC/3TC',
+      name: 'Dolutegravir/Abacavir/Lamivudine',
+      shortName: 'DTG + ABC + 3TC',
+      displayName: 'Triumeq',
+      type: 'First-line',
+      components: ['DTG', 'ABC', '3TC'],
+      pillsPerDay: 1,
+      frequency: '1 lần/ngày',
+      foodRequirement: 'Không yêu cầu',
+      contraindications: ['HLA-B*5701 dương tính'],
+      specialPopulations: {
+        pregnant: true,
+        pediatric: true,
+        elderly: true,
+        renal: true
+      },
+      advantages: ['Hiệu quả cao', 'Rào cản gen cao', 'Ít tương tác thuốc'],
+      disadvantages: ['Cần test HLA-B*5701', 'Nguy cơ tim mạch với ABC']
+    },
+    {
+      code: 'DTG/TDF/3TC',
+      name: 'Dolutegravir/Tenofovir/Lamivudine',
+      shortName: 'DTG + TDF + 3TC',
+      displayName: 'TLD',
+      type: 'First-line',
+      components: ['DTG', 'TDF', '3TC'],
+      pillsPerDay: 1,
+      frequency: '1 lần/ngày',
+      foodRequirement: 'Không yêu cầu',
+      contraindications: ['Bệnh thận nặng'],
+      specialPopulations: {
+        pregnant: true,
+        pediatric: true,
+        elderly: false, // Thận
+        renal: false
+      },
+      advantages: ['Hiệu quả cao', 'Giá rẻ', 'Có sẵn'],
+      disadvantages: ['Độc tính thận và xương với TDF']
+    },
+    {
+      code: 'DTG/3TC',
+      name: 'Dolutegravir/Lamivudine',
+      shortName: 'DTG + 3TC',
+      displayName: 'Dovato',
+      type: 'First-line',
+      components: ['DTG', '3TC'],
+      pillsPerDay: 1,
+      frequency: '1 lần/ngày',
+      foodRequirement: 'Không yêu cầu',
+      contraindications: ['HBV đồng nhiễm', 'Viral load cao'],
+      specialPopulations: {
+        pregnant: false,
+        pediatric: false,
+        elderly: true,
+        renal: true
+      },
+      advantages: ['2 thuốc', 'Ít tác dụng phụ', 'Ít tương tác thuốc'],
+      disadvantages: ['Không dùng cho HBV', 'Cần viral load thấp']
+    },
+    // Second-line and alternative regimens
+    {
+      code: 'DRV/r/TDF/FTC',
+      name: 'Darunavir/ritonavir + Tenofovir/Emtricitabine',
+      shortName: 'DRV/r + TDF + FTC',
+      displayName: 'DRV/r + Truvada',
+      type: 'Second-line',
+      components: ['DRV/r', 'TDF', 'FTC'],
+      pillsPerDay: 3,
+      frequency: '1 lần/ngày',
+      foodRequirement: 'Cùng thức ăn',
+      contraindications: ['Sulfa allergy'],
+      specialPopulations: {
+        pregnant: true,
+        pediatric: true,
+        elderly: false,
+        renal: false
+      },
+      advantages: ['Rào cản gen cao', 'Hiệu quả với kháng thuốc'],
+      disadvantages: ['Nhiều viên', 'Tương tác thuốc', 'Tác dụng phụ GI']
+    },
+    {
+      code: 'RAL/TDF/FTC',
+      name: 'Raltegravir + Tenofovir/Emtricitabine',
+      shortName: 'RAL + TDF + FTC',
+      displayName: 'Isentress + Truvada',
+      type: 'Alternative',
+      components: ['RAL', 'TDF', 'FTC'],
+      pillsPerDay: 3,
+      frequency: '2 lần/ngày',
+      foodRequirement: 'Không yêu cầu',
+      contraindications: ['Không có đặc biệt'],
+      specialPopulations: {
+        pregnant: true,
+        pediatric: true,
+        elderly: true,
+        renal: false
+      },
+      advantages: ['An toàn', 'Ít tương tác thuốc'],
+      disadvantages: ['2 lần/ngày', 'Nhiều viên']
+    },
+    {
+      code: 'EFV/TDF/FTC',
+      name: 'Efavirenz/Tenofovir/Emtricitabine',
+      shortName: 'EFV + TDF + FTC',
+      displayName: 'Atripla',
+      type: 'Alternative',
+      components: ['EFV', 'TDF', 'FTC'],
+      pillsPerDay: 1,
+      frequency: '1 lần/ngày',
+      foodRequirement: 'Tránh thức ăn nhiều mỡ',
+      contraindications: ['Thai kỳ trimester 1', 'Tâm thần nặng'],
+      specialPopulations: {
+        pregnant: false,
+        pediatric: true,
+        elderly: false,
+        renal: false
+      },
+      advantages: ['1 viên/ngày', 'Kinh nghiệm dài'],
+      disadvantages: ['Tác dụng phụ CNS', 'Thai kỳ', 'Độc tính thận']
+    },
+    // Pediatric specific
+    {
+      code: 'LPV/r/ABC/3TC',
+      name: 'Lopinavir/ritonavir + Abacavir/Lamivudine',
+      shortName: 'LPV/r + ABC + 3TC',
+      displayName: 'Kaletra + Epzicom',
+      type: 'Pediatric',
+      components: ['LPV/r', 'ABC', '3TC'],
+      pillsPerDay: 4,
+      frequency: '2 lần/ngày',
+      foodRequirement: 'Cùng thức ăn',
+      contraindications: ['HLA-B*5701 dương tính'],
+      specialPopulations: {
+        pregnant: true,
+        pediatric: true,
+        elderly: false,
+        renal: true
+      },
+      advantages: ['Kinh nghiệm pediatric', 'Dạng siro'],
+      disadvantages: ['Nhiều viên', 'Tác dụng phụ GI', 'Vị đắng']
+    }
   ];
   
   // List of common co-medications
@@ -159,6 +292,177 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     }
   ];
   
+  // Calculate regimen score based on patient parameters
+  const calculateRegimenScore = (regimen) => {
+    let score = 7.0; // Increased base score from 5.0 to 7.0
+    
+    // Special population adjustments
+    if (specialPopulation === 'pregnant' && !regimen.specialPopulations.pregnant) {
+      return 0; // Not suitable for pregnancy
+    }
+    if (specialPopulation === 'pediatric' && !regimen.specialPopulations.pediatric) {
+      score -= 3.0;
+    }
+    if (specialPopulation === 'elderly' && !regimen.specialPopulations.elderly) {
+      score -= 1.0;
+    }
+    
+    // HLA-B5701 contraindication
+    if (hlaB5701 === 'positive' && regimen.components.includes('ABC')) {
+      return 0; // Absolute contraindication
+    }
+    
+    // Viral load considerations
+    if (viralLoad === 'suppressed_6m') {
+      score += 1.0;
+      if (regimen.code === 'DTG/3TC') score += 0.5; // 2-drug regimen bonus for suppressed patients
+    }
+    if (viralLoad === 'very_high') {
+      score -= 0.5;
+      if (regimen.type === 'First-line' && regimen.components.includes('DTG')) {
+        score += 0.5; // DTG bonus for high viral load
+      }
+    }
+    
+    // CD4 considerations
+    if (cd4Count === 'gt_200') {
+      score += 0.5;
+    }
+    if (cd4Count === 'le_50') {
+      score -= 1.0;
+      if (regimen.type === 'First-line') score += 0.5; // Prefer first-line for low CD4
+    }
+    
+    // Comorbidity adjustments
+    if (comorbidities.includes('renal') && !regimen.specialPopulations.renal) {
+      score -= 2.0;
+    }
+    if (comorbidities.includes('liver') && regimen.components.includes('EFV')) {
+      score -= 1.0;
+    }
+    if (comorbidities.includes('cardiovascular') && regimen.components.includes('ABC')) {
+      score -= 0.5;
+    }
+    if (comorbidities.includes('osteoporosis') && regimen.components.includes('TDF')) {
+      score -= 0.5;
+    }
+    if (comorbidities.includes('psychiatric') && regimen.components.includes('EFV')) {
+      score -= 1.5;
+    }
+    
+    // Regimen type bonuses
+    if (regimen.type === 'First-line') {
+      score += 1.0;
+    }
+    
+    // Simplicity bonuses
+    if (regimen.pillsPerDay === 1) {
+      score += 0.5;
+    }
+    if (regimen.frequency === '1 lần/ngày') {
+      score += 0.3;
+    }
+    
+    // Co-medication interactions (simplified)
+    if (coMedications.length > 0) {
+      if (regimen.components.includes('DRV/r') || regimen.components.includes('LPV/r')) {
+        score -= 0.5; // PI interactions
+      }
+      if (regimen.components.includes('EFV')) {
+        score -= 0.3; // EFV interactions
+      }
+    }
+    
+    // Current regimen considerations
+    if (currentRegimen.length > 0) {
+      // Count overlapping components between current regimen and recommended regimen
+      const currentComponents = currentRegimen.filter(comp => comp && comp.trim() !== '');
+      const overlap = regimen.components.filter(comp => 
+        currentComponents.some(current => 
+          current.includes(comp) || comp.includes(current) || 
+          // Handle combination names like DRV/r
+          (current.includes('DRV') && comp.includes('DRV')) ||
+          (current.includes('LPV') && comp.includes('LPV'))
+        )
+      );
+      
+      // Penalty for too much overlap (avoid same regimen)
+      if (overlap.length >= 2) {
+        score -= 2.0; // Significant penalty for similar regimen
+      } else if (overlap.length === 1) {
+        score -= 0.5; // Minor penalty for partial overlap
+      }
+      
+      // Special considerations for treatment-experienced patients
+      // Prefer integrase inhibitors if not currently on one
+      const currentHasINSTI = currentComponents.some(comp => 
+        ['DTG', 'BIC', 'RAL', 'EVG'].some(insti => comp.includes(insti))
+      );
+      
+      if (!currentHasINSTI && regimen.components.some(comp => 
+        ['DTG', 'BIC', 'RAL', 'EVG'].some(insti => comp.includes(insti))
+      )) {
+        score += 1.0; // Bonus for switching to INSTI-based regimen
+      }
+      
+      // Avoid NNRTI if currently on NNRTI (cross-resistance risk)
+      const currentHasNNRTI = currentComponents.some(comp => 
+        ['EFV', 'RPV', 'DOR'].some(nnrti => comp.includes(nnrti))
+      );
+      
+      if (currentHasNNRTI && regimen.components.some(comp => 
+        ['EFV', 'RPV', 'DOR'].some(nnrti => comp.includes(nnrti))
+      )) {
+        score -= 1.5; // Penalty for staying with NNRTI class
+      }
+      
+      // Consider backbone changes
+      const currentHasTDF = currentComponents.some(comp => comp.includes('TDF'));
+      const currentHasTAF = currentComponents.some(comp => comp.includes('TAF'));
+      const currentHasABC = currentComponents.some(comp => comp.includes('ABC'));
+      
+      // If currently on TDF and has renal issues, prefer TAF
+      if (currentHasTDF && comorbidities.includes('renal') && 
+          regimen.components.includes('TAF')) {
+        score += 0.8; // Bonus for switching to safer backbone
+      }
+      
+      // If currently on ABC and has cardiovascular issues, prefer other backbones
+      if (currentHasABC && comorbidities.includes('cardiovascular') && 
+          !regimen.components.includes('ABC')) {
+        score += 0.5; // Bonus for avoiding ABC
+      }
+    }
+    
+    return Math.max(0, Math.min(10, score));
+  };
+  
+  // Generate recommendations when parameters change
+  const generateRecommendations = () => {
+    const scoredRegimens = arvRegimens.map(regimen => ({
+      ...regimen,
+      score: calculateRegimenScore(regimen),
+      suitability: getSuitabilityLevel(calculateRegimenScore(regimen))
+    }));
+    
+    // Sort by score (highest first) and filter out unsuitable ones
+    const filteredAndSorted = scoredRegimens
+      .filter(regimen => regimen.score > 0)
+      .sort((a, b) => b.score - a.score);
+    
+    setRecommendedRegimens(filteredAndSorted);
+    setShowRecommendations(true);
+  };
+  
+  const getSuitabilityLevel = (score) => {
+    if (score >= 8) return { level: 'excellent', label: 'Rất phù hợp', color: 'success' };
+    if (score >= 6) return { level: 'good', label: 'Phù hợp', color: 'primary' };
+    if (score >= 4) return { level: 'fair', label: 'Chấp nhận được', color: 'warning' };
+    if (score > 0) return { level: 'poor', label: 'Ít phù hợp', color: 'danger' };
+    return { level: 'unsuitable', label: 'Không phù hợp', color: 'dark' };
+  };
+  
+  // Event handlers
   const handleComorbidityChange = (e) => {
     const value = e.target.value;
     if (e.target.checked) {
@@ -186,14 +490,20 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     }
   };
   
-  const handlePreferredRegimenChange = (e) => {
-    const value = e.target.value;
-    if (e.target.checked) {
-      setPreferredRegimen([...preferredRegimen, value]);
+  const handleRegimenSelection = (regimen) => {
+    if (selectedRegimens.find(r => r.code === regimen.code)) {
+      setSelectedRegimens(selectedRegimens.filter(r => r.code !== regimen.code));
     } else {
-      setPreferredRegimen(preferredRegimen.filter(item => item !== value));
+      setSelectedRegimens([...selectedRegimens, regimen]);
     }
   };
+  
+  // Generate recommendations when key parameters change
+  useEffect(() => {
+    if (showRecommendations) {
+      generateRecommendations();
+    }
+  }, [viralLoad, cd4Count, hlaB5701, specialPopulation, comorbidities, coMedications]);
   
   // Add file management functions
   const handleFileUpload = (e) => {
@@ -217,10 +527,61 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     const url = URL.createObjectURL(file.file);
     window.open(url, '_blank');
   };
-  // Enhanced PDF generation function with professional format
+
+  // Add state for PDF preview
+  const [previewPdfUrl, setPreviewPdfUrl] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [lastGeneratedPdf, setLastGeneratedPdf] = useState(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  
+  // State cho Web Viewer (XEM TRỰC TIẾP)
+  const [showWebViewer, setShowWebViewer] = useState(false);
+  const [webViewerData, setWebViewerData] = useState(null);
+  
+  // Helper functions for displays
+  const getSpecialPopulationDisplay = (population) => {
+    const option = specialPopulationOptions.find(opt => opt.value === population);
+    return option?.label || 'Không có đặc biệt';
+  };
+  
+  const getViralLoadDisplay = (vl) => {
+    const displays = {
+      'unknown': 'Đang chờ kết quả',
+      'suppressed_6m': 'Được kiểm soát (>6 tháng)',
+      'suppressed_recent': 'Được kiểm soát (<6 tháng)',
+      'low': 'Thấp (200-100,000)',
+      'high': 'Cao (100,000-500,000)',
+      'very_high': 'Rất cao (>=500,000)'
+    };
+    return displays[vl] || vl;
+  };
+  
+  const getCd4Display = (cd4) => {
+    const displays = {
+      'unknown': 'Đang chờ kết quả',
+      'le_50': '<= 50',
+      'le_100': '<= 100',
+      'le_200': '<= 200',
+      'gt_200': '> 200'
+    };
+    return displays[cd4] || cd4;
+  };
+  
+  const getTropismDisplay = (trop) => {
+    const displays = {
+      'unknown': 'Đang chờ kết quả',
+      'r5': 'Virus R5',
+      'x4': 'Virus X4',
+      'dual': 'Virus Hướng Thụ Thể Kép'
+    };
+    return displays[trop] || trop;
+  };
+
+  // Main PDF generation function (ASCII-safe, guaranteed to work)
   const generatePDF = () => {
     try {
-      console.log('=== GENERATING ENHANCED ARV PDF ===');
+      console.log('🎨 Starting ASCII-safe PDF generation...');
+      console.log('📍 Current method: generateASCIIPDF (ASCII-SAFE)');
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
@@ -235,37 +596,18 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         }
       };
       
-      // Helper function for Vietnamese text conversion
-      const toAscii = (text) => {
-        return text
-          .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
-          .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
-          .replace(/[ìíịỉĩ]/g, 'i')
-          .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
-          .replace(/[ùúụủũưừứựửữ]/g, 'u')
-          .replace(/[ỳýỵỷỹ]/g, 'y')
-          .replace(/đ/g, 'd')
-          .replace(/[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/g, 'A')
-          .replace(/[ÈÉẸẺẼÊỀẾỆỂỄ]/g, 'E')
-          .replace(/[ÌÍỊỈĨ]/g, 'I')
-          .replace(/[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/g, 'O')
-          .replace(/[ÙÚỤỦŨƯỪỨỰỬỮ]/g, 'U')
-          .replace(/[ỲÝỴỶỸ]/g, 'Y')
-          .replace(/Đ/g, 'D');
-      };
-      
-      // Header
+      // Header with green background
       doc.setFillColor(46, 125, 50);
       doc.rect(0, 0, pageWidth, 30, 'F');
       
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text('BAO CAO KHUYEN NGHI ARV', pageWidth/2, 15, { align: 'center' });
+      doc.text(vietnameseToAscii('BAO CAO LUA CHON PHAC DO DIEU TRI HIV'), pageWidth/2, 15, { align: 'center' });
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
-      doc.text('HIV Antiretroviral Treatment Recommendation Report', pageWidth/2, 22, { align: 'center' });
+      doc.text('ARV Regimen Selection Report', pageWidth/2, 22, { align: 'center' });
       
       // Reset text color
       doc.setTextColor(0, 0, 0);
@@ -276,19 +618,19 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
       
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('THONG TIN BENH NHAN', 15, yPosition + 5);
+      doc.setFont('helvetica', 'bold');
+      doc.text(vietnameseToAscii('THONG TIN BENH NHAN'), 15, yPosition + 5);
       yPosition += 20;
       
       doc.setFontSize(11);
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
       
-      // Patient details in two columns
+      // Patient details (ASCII-safe)
       const patientInfo = [
-        ['Ho va Ten:', appointment?.alternativeName || appointment?.patientName || 'Chua cap nhat'],
-        // ['Ma Benh Nhan:', appointment?.userId || appointment?.patientId || 'N/A'], // Commented out - userId not available in API response
-        ['Ngay Kham:', appointment?.date || new Date().toLocaleDateString('vi-VN')],
-        ['Bac Si Dieu Tri:', appointment?.doctorName || 'Dr. ' + (appointment?.doctorId || 'Unknown')]
+        [vietnameseToAscii('Ho va Ten:'), vietnameseToAscii(appointment?.alternativeName || appointment?.patientName || 'Chua cap nhat')],
+        [vietnameseToAscii('Ngay Kham:'), appointment?.date || new Date().toLocaleDateString('vi-VN')],
+        [vietnameseToAscii('Bac Si Dieu Tri:'), vietnameseToAscii(appointment?.doctorName || 'Dr. ' + (appointment?.doctorId || 'Unknown'))],
+        [vietnameseToAscii('Nhom Dac Biet:'), vietnameseToAscii(getSpecialPopulationDisplay(specialPopulation))]
       ];
       
       patientInfo.forEach((info, index) => {
@@ -297,10 +639,10 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         const x = col === 0 ? 15 : pageWidth/2 + 10;
         const y = yPosition + (row * 8);
         
-        doc.setFont(undefined, 'bold');
-        doc.text(toAscii(info[0]), x, y);
-        doc.setFont(undefined, 'normal');
-        doc.text(toAscii(info[1]), x + 35, y);
+        doc.setFont('helvetica', 'bold');
+        doc.text(info[0], x, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(info[1], x + 35, y);
       });
       
       yPosition += 25;
@@ -311,50 +653,29 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
       
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('THONG SO LAM SANG', 15, yPosition + 5);
+      doc.setFont('helvetica', 'bold');
+      doc.text(vietnameseToAscii('THONG SO LAM SANG'), 15, yPosition + 5);
       yPosition += 20;
       
-      // Clinical data table
+      // Clinical data (ASCII-safe)
       const clinicalData = [
-        ['Tai Luong Virus:', getViralLoadDisplay(viralLoad)],
-        ['So Luong CD4:', getCd4Display(cd4Count)],
-        ['HLA-B5701:', hlaB5701 === 'positive' ? 'Duong tinh' : 'Am tinh'],
-        ['Tinh Huong Thu The:', getTropismDisplay(tropism)]
+        [vietnameseToAscii('Tai Luong Virus:'), vietnameseToAscii(getViralLoadDisplay(viralLoad))],
+        [vietnameseToAscii('So Luong CD4:'), vietnameseToAscii(getCd4Display(cd4Count))],
+        [vietnameseToAscii('HLA-B5701:'), vietnameseToAscii(hlaB5701 === 'positive' ? 'Duong tinh' : 'Am tinh')],
+        [vietnameseToAscii('Tinh Huong Thu The:'), vietnameseToAscii(getTropismDisplay(tropism))]
       ];
       
       doc.setFontSize(11);
       clinicalData.forEach((data, index) => {
         const y = yPosition + (index * 8);
-        doc.setFont(undefined, 'bold');
-        doc.text(toAscii(data[0]), 15, y);
-        doc.setFont(undefined, 'normal');
-        doc.text(toAscii(data[1]), 80, y);
+        doc.setFont('helvetica', 'bold');
+        doc.text(data[0], 15, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(data[1], 80, y);
       });
       
       yPosition += 40;
       checkPageBreak(50);
-      
-      // Current Regimen
-      if (currentRegimen.length > 0) {
-        doc.setFillColor(240, 240, 240);
-        doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
-        
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('PHAC DO HIEN TAI', 15, yPosition + 5);
-        yPosition += 20;
-        
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        currentRegimen.forEach((regimen, index) => {
-          const arv = arvOptions.find(option => option.value === regimen);
-          doc.text(`• ${toAscii(arv?.label || regimen)}`, 20, yPosition + (index * 7));
-        });
-        
-        yPosition += currentRegimen.length * 7 + 15;
-        checkPageBreak(50);
-      }
       
       // Comorbidities
       if (comorbidities.length > 0) {
@@ -362,15 +683,15 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
         
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('BENH DONG MAC', 15, yPosition + 5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(vietnameseToAscii('BENH DONG MAC'), 15, yPosition + 5);
         yPosition += 20;
         
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         comorbidities.forEach((comorbidity, index) => {
           const option = comorbidityOptions.find(opt => opt.value === comorbidity);
-          doc.text(`• ${toAscii(option?.label || comorbidity)}`, 20, yPosition + (index * 7));
+          doc.text(`• ${vietnameseToAscii(option?.label || comorbidity)}`, 20, yPosition + (index * 7));
         });
         
         yPosition += comorbidities.length * 7 + 15;
@@ -383,109 +704,93 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
         
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('THUOC PHOI HOP', 15, yPosition + 5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(vietnameseToAscii('THUOC PHOI HOP'), 15, yPosition + 5);
         yPosition += 20;
         
         doc.setFontSize(11);
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         coMedications.forEach((medication, index) => {
-          doc.text(`• ${toAscii(medication)}`, 20, yPosition + (index * 7));
+          doc.text(`• ${vietnameseToAscii(medication)}`, 20, yPosition + (index * 7));
         });
         
         yPosition += coMedications.length * 7 + 15;
         checkPageBreak(80);
       }
-        // Recommended Regimen Section - Most Important
-      doc.setFillColor(46, 125, 50); // Green background for recommendations
+      
+      // Selected Regimens Section
+      doc.setFillColor(46, 125, 50);
       doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
       
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('KHUYEN NGHI DIEU TRI', 15, yPosition + 5);
+      doc.setFont('helvetica', 'bold');
+      doc.text(vietnameseToAscii('PHAC DO DUOC CHON BOI BAC SI'), 15, yPosition + 5);
       yPosition += 20;
       
       doc.setTextColor(0, 0, 0);
       
-      // Generate comprehensive recommendations table
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Bang xep hang phac do ARV (dua tren thong so ca nhan):', 15, yPosition);
-      yPosition += 15;
-      
-      // Add the recommendations table
-      yPosition = generateARVRecommendationsTable(doc, yPosition);
-      
-      // Add selected regimens if any
-      if (preferredRegimen.length > 0) {
+      if (selectedRegimens.length > 0) {
+        selectedRegimens.forEach((regimen, index) => {
         checkPageBreak(40);
-        yPosition += 10;
         
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('Phac do da chon boi bac si:', 15, yPosition);
-        yPosition += 15;
-        
-        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+          doc.text(vietnameseToAscii(`${index + 1}. ${regimen.name}`), 15, yPosition);
         doc.setFont('helvetica', 'normal');
-        preferredRegimen.forEach((regimen, index) => {
-          const arv = arvOptions.find(option => option.value === regimen);
-          const score = calculateRegimenScore(regimen);
+          doc.text(vietnameseToAscii(`Diem so: ${regimen.score.toFixed(2)}/10`), pageWidth - 60, yPosition);
+          yPosition += 8;
           
-          doc.setFont(undefined, 'bold');
-          doc.text(`${index + 1}. ${toAscii(arv?.label || regimen)}`, 20, yPosition);
-          doc.setFont(undefined, 'normal');
-          doc.text(`Diem so: ${score.toFixed(2)}`, pageWidth - 60, yPosition);
-          yPosition += 10;
-          
-          // Add rationale
-          const rationale = getRegimenRationale(regimen);
-          if (rationale) {
             doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            const splitRationale = doc.splitTextToSize(toAscii(rationale), pageWidth - 50);
-            doc.text(splitRationale, 25, yPosition);
-            yPosition += splitRationale.length * 5 + 5;
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(11);
+          doc.text(vietnameseToAscii(`Thuong hieu: ${regimen.displayName || regimen.shortName}`), 20, yPosition);
+          yPosition += 6;
+          doc.text(vietnameseToAscii(`Lieu dung: ${regimen.pillsPerDay} vien/ngay, ${regimen.frequency}`), 20, yPosition);
+          yPosition += 6;
+          doc.text(vietnameseToAscii(`Thuc an: ${regimen.foodRequirement}`), 20, yPosition);
+          yPosition += 6;
+          
+          // Advantages
+          if (regimen.advantages && regimen.advantages.length > 0) {
+          doc.setFont('helvetica', 'bold');
+            doc.text(vietnameseToAscii('Uu diem:'), 20, yPosition);
+          doc.setFont('helvetica', 'normal');
+            yPosition += 5;
+            regimen.advantages.forEach(advantage => {
+              doc.text(vietnameseToAscii(`  • ${advantage}`), 25, yPosition);
+              yPosition += 5;
+            });
           }
+          
+          yPosition += 5;
         });
       } else {
         doc.setFontSize(11);
-        doc.text('Bac si chua chon phac do cu the. Bang tren la khuyen nghi tu dong.', 15, yPosition);
+        doc.text(vietnameseToAscii('Bac si chua chon phac do cu the tu danh sach goi y.'), 15, yPosition);
         yPosition += 15;
       }
       
-      checkPageBreak(60);
-      
-      // Clinical Considerations
-      yPosition += 10;
-      doc.setFillColor(255, 245, 157); // Light yellow for warnings
-      doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
-      
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('LUU Y LAM SANG', 15, yPosition + 5);
-      yPosition += 20;
-      
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'normal');
-      const considerations = getClinicalConsiderations();
-      considerations.forEach((consideration, index) => {
-        const splitText = doc.splitTextToSize(toAscii(consideration), pageWidth - 30);
-        doc.text(`• ${splitText[0]}`, 20, yPosition);
-        if (splitText.length > 1) {
-          for (let i = 1; i < splitText.length; i++) {
-            yPosition += 6;
-            doc.text(`  ${splitText[i]}`, 20, yPosition);
-          }
-        }
-        yPosition += 8;
-      });
+      // Custom Regimen Section (ASCII-safe)
+      if (notes.customRegimen && notes.customRegimen.trim()) {
+        checkPageBreak(30);
+        yPosition += 10;
+        
+        doc.setFillColor(255, 248, 220); // Light yellow background
+        doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(vietnameseToAscii('PHAC DO TUY CHINH'), 15, yPosition + 5);
+        yPosition += 20;
+        
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const splitCustomRegimen = doc.splitTextToSize(vietnameseToAscii(notes.customRegimen), pageWidth - 30);
+        doc.text(splitCustomRegimen, 15, yPosition);
+        yPosition += splitCustomRegimen.length * 6 + 15;
+      }
       
       // Notes Section
-      if (notes.trim()) {
+      if (notes.doctorNotes && notes.doctorNotes.trim()) {
         checkPageBreak(50);
         yPosition += 10;
         
@@ -493,13 +798,13 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         doc.rect(10, yPosition - 5, pageWidth - 20, 15, 'F');
         
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('GHI CHU BAC SI', 15, yPosition + 5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(vietnameseToAscii('GHI CHU BAC SI'), 15, yPosition + 5);
         yPosition += 20;
         
         doc.setFontSize(11);
-        doc.setFont(undefined, 'normal');
-        const splitNotes = doc.splitTextToSize(toAscii(notes), pageWidth - 30);
+        doc.setFont('helvetica', 'normal');
+        const splitNotes = doc.splitTextToSize(vietnameseToAscii(notes.doctorNotes), pageWidth - 30);
         doc.text(splitNotes, 15, yPosition);
         yPosition += splitNotes.length * 6 + 15;
       }
@@ -512,44 +817,45 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       doc.rect(0, yPosition - 5, pageWidth, 30, 'F');
       
       doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
       
       const footerText = [
-        `Bao cao duoc tao tu cong cu khuyen nghi ARV`,
-        `Ngay tao: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')}`,
-        `Luu y: Day chi la cong cu ho tro. Quyet dinh cuoi cung thuoc ve bac si dieu tri.`
+        vietnameseToAscii(`Bao cao duoc tao tu cong cu khuyen nghi ARV`),
+        vietnameseToAscii(`Ngay tao: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')}`),
+        vietnameseToAscii(`Luu y: Day chi la cong cu ho tro. Quyet dinh cuoi cung thuoc ve bac si dieu tri.`)
       ];
       
       footerText.forEach((text, index) => {
-        doc.text(toAscii(text), pageWidth/2, yPosition + 5 + (index * 5), { align: 'center' });
+        doc.text(text, pageWidth/2, yPosition + 5 + (index * 5), { align: 'center' });
       });
       
       // Generate and return PDF
       const pdfBlob = doc.output('blob');
-      const pdfFile = new File([pdfBlob], `ARV_Recommendation_${appointment?.userId || Date.now()}.pdf`, { 
+      const pdfFile = new File([pdfBlob], `ARV_ASCII_Report_${appointment?.userId || Date.now()}.pdf`, { 
         type: 'application/pdf' 
       });
       
-      console.log('📄 Enhanced PDF generated:', {
+      console.log('📄 ASCII-safe PDF generated:', {
         name: pdfFile.name,
         size: `${(pdfBlob.size / 1024).toFixed(2)} KB`,
         pages: doc.internal.getNumberOfPages()
       });
       
+      alert('✅ PDF ASCII-safe đã được tạo thành công! (Không có dấu tiếng Việt nhưng đọc được)');
+      
       // Create a base64 string of the PDF
       const reader = new FileReader();
       reader.readAsDataURL(pdfBlob);
       reader.onloadend = function() {
-        const base64data = reader.result.split(',')[1]; // Remove data:application/pdf;base64, prefix
+        const base64data = reader.result.split(',')[1];
         
-        // Call onSelect with the enhanced PDF file
         if (onSelect) {
           onSelect({
             name: pdfFile.name,
             type: 'application/pdf',
             size: pdfBlob.size,
-            data: base64data, // Base64 data without prefix
+            data: base64data,
             file: pdfFile,
             lastModified: Date.now()
           });
@@ -557,468 +863,347 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
       };
       
     } catch (error) {
-      console.error('Error generating enhanced PDF:', error);
-      alert('Có lỗi xảy ra khi tạo báo cáo PDF. Vui lòng thử lại.\n\nChi tiết lỗi: ' + error.message);
+      console.error('Error generating ASCII-safe PDF:', error);
+      alert('Có lỗi xảy ra khi tạo báo cáo PDF ASCII-safe. Vui lòng thử lại.\n\nChi tiết lỗi: ' + error.message);
     }
   };
 
-  // Add state for PDF preview
-  const [previewPdfUrl, setPreviewPdfUrl] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
-  
-  // Function to generate and preview PDF
-  const handlePreviewPDF = () => {
-    try {
-      console.log('=== GENERATING PDF PREVIEW ===');
-      generatePDFForPreview();
-    } catch (error) {
-      console.error('Error generating PDF preview:', error);
-      alert('Có lỗi xảy ra khi tạo bản xem trước PDF. Vui lòng thử lại.');
+  // Tạo HTML static để mở trong tab mới
+  const generateStaticHTML = (data) => {
+    const {
+      appointment,
+      specialPopulation,
+      viralLoad,
+      cd4Count,
+      hlaB5701,
+      tropism,
+      comorbidities,
+      coMedications,
+      selectedRegimens,
+      notes,
+      getSpecialPopulationDisplay,
+      getViralLoadDisplay,
+      getCd4Display,
+      getTropismDisplay,
+      comorbidityOptions
+    } = data;
+
+    return `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo Cáo ARV - ${appointment?.alternativeName || 'Bệnh nhân'}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Roboto', Arial, sans-serif !important; }
+    body { margin: 0; padding: 20px; background: #f8f9fa; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #2e7d32, #4caf50); color: white; padding: 25px; text-align: center; margin: -30px -30px 30px -30px; border-radius: 12px 12px 0 0; }
+    .header h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; }
+    .header p { font-size: 16px; margin: 0; opacity: 0.9; }
+    .section { margin-bottom: 25px; }
+    .section-header { background: #f5f5f5; padding: 12px 15px; border-left: 4px solid #2e7d32; margin-bottom: 15px; border-radius: 4px; }
+    .section-header h3 { font-size: 16px; font-weight: 600; color: #2e7d32; margin: 0; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+    .info-item { display: flex; margin-bottom: 8px; }
+    .info-label { font-weight: 600; min-width: 130px; color: #555; }
+    .info-value { color: #333; }
+    .regimen-item { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
+    .regimen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .regimen-name { font-size: 16px; font-weight: 600; color: #2e7d32; }
+    .regimen-score { background: #2196f3; color: white; padding: 4px 8px; border-radius: 4px; font-size: 14px; font-weight: 500; }
+    .list-item { margin-bottom: 5px; padding-left: 15px; position: relative; }
+    .list-item::before { content: "•"; position: absolute; left: 0; color: #2e7d32; font-weight: bold; }
+    .custom-regimen, .doctor-notes { background: #fff8dc; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-top: 10px; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #666; }
+    @media print { body { background: white; } .container { box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>BÁO CÁO LỰA CHỌN PHÁC ĐỒ ĐIỀU TRỊ HIV</h1>
+      <p>ARV Regimen Selection Report</p>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>THÔNG TIN BỆNH NHÂN</h3>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Họ và Tên:</span>
+          <span class="info-value">${appointment?.alternativeName || 'Chưa cập nhật'}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Ngày Khám:</span>
+          <span class="info-value">${appointment?.date || new Date().toLocaleDateString('vi-VN')}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Bác Sĩ:</span>
+          <span class="info-value">${appointment?.doctorName || 'Bác sĩ điều trị'}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Nhóm Đặc Biệt:</span>
+          <span class="info-value">${getSpecialPopulationDisplay(specialPopulation)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>THÔNG SỐ LÂM SÀNG</h3>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Tải Lượng Virus:</span>
+          <span class="info-value">${getViralLoadDisplay(viralLoad)}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Số Lượng CD4:</span>
+          <span class="info-value">${getCd4Display(cd4Count)}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">HLA-B5701:</span>
+          <span class="info-value">${hlaB5701 === 'positive' ? 'Dương tính' : 'Âm tính'}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Tính Hướng Thụ Thể:</span>
+          <span class="info-value">${getTropismDisplay(tropism)}</span>
+        </div>
+      </div>
+    </div>
+
+    ${comorbidities.length > 0 ? `
+    <div class="section">
+      <div class="section-header">
+        <h3>BỆNH ĐỒNG MẮC</h3>
+      </div>
+      <div>
+        ${comorbidities.map(comorbidity => {
+          const option = comorbidityOptions.find(opt => opt.value === comorbidity);
+          return `<div class="list-item">${option?.label || comorbidity}</div>`;
+        }).join('')}
+      </div>
+    </div>
+    ` : ''}
+
+    ${coMedications.length > 0 ? `
+    <div class="section">
+      <div class="section-header">
+        <h3>THUỐC PHỐI HỢP</h3>
+      </div>
+      <div>
+        ${coMedications.map(medication => `<div class="list-item">${medication}</div>`).join('')}
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="section">
+      <div class="section-header">
+        <h3>PHÁC ĐỒ ĐƯỢC CHỌN BỞI BÁC SĨ</h3>
+      </div>
+      ${selectedRegimens.length > 0 ? 
+        selectedRegimens.map((regimen, index) => `
+          <div class="regimen-item">
+            <div class="regimen-header">
+              <div class="regimen-name">${index + 1}. ${regimen.name}</div>
+              <div class="regimen-score">Điểm: ${regimen.score.toFixed(2)}/10</div>
+            </div>
+            <div>
+              <strong>Thương hiệu:</strong> ${regimen.displayName || regimen.shortName}<br/>
+              <strong>Liều dùng:</strong> ${regimen.pillsPerDay} viên/ngày, ${regimen.frequency}<br/>
+              <strong>Thức ăn:</strong> ${regimen.foodRequirement}<br/>
+              <strong>Ưu điểm:</strong> ${regimen.advantages?.join(', ')}
+            </div>
+          </div>
+        `).join('') 
+        : '<div style="padding: 15px; text-align: center; font-style: italic;">Bác sĩ chưa chọn phác đồ cụ thể từ danh sách gợi ý.</div>'
+      }
+    </div>
+
+    ${notes.customRegimen && notes.customRegimen.trim() ? `
+    <div class="section">
+      <div class="section-header">
+        <h3>PHÁC ĐỒ TÙY CHỈNH</h3>
+      </div>
+      <div class="custom-regimen">${notes.customRegimen}</div>
+    </div>
+    ` : ''}
+
+    ${notes.doctorNotes && notes.doctorNotes.trim() ? `
+    <div class="section">
+      <div class="section-header">
+        <h3>GHI CHÚ BÁC SĨ</h3>
+      </div>
+      <div class="doctor-notes">${notes.doctorNotes}</div>
+    </div>
+    ` : ''}
+
+    <div class="footer">
+      <div>Báo cáo được tạo ngày: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')}</div>
+      <div>Công cụ hỗ trợ chẩn đoán - Quyết định cuối thuộc về bác sĩ điều trị</div>
+    </div>
+  </div>
+
+  <script>
+    // Auto print option
+    if (confirm('Bạn có muốn in báo cáo này không?')) {
+      window.print();
     }
+  </script>
+</body>
+</html>`;
   };
-  
-  // Function to generate PDF for preview (without calling onSelect)
-  const generatePDFForPreview = () => {
+
+  // XEM TRỰC TIẾP TRÊN WEB - FONT TIẾNG VIỆT HOÀN HẢO!
+  const showWebReportViewer = () => {
     try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      let yPosition = 20;
+      console.log('🎨 Hiển thị báo cáo trực tiếp trên web với font tiếng Việt hoàn hảo...');
       
-      // Helper function to add a new page if needed
-      const checkPageBreak = (requiredSpace) => {
-        if (yPosition + requiredSpace > pageHeight - 20) {
-          doc.addPage();
-          yPosition = 20;
+      const reportData = {
+        appointment,
+        specialPopulation,
+        viralLoad,
+        cd4Count,
+        hlaB5701,
+        tropism,
+        comorbidities,
+        coMedications,
+        selectedRegimens,
+        notes,
+        getSpecialPopulationDisplay,
+        getViralLoadDisplay,
+        getCd4Display,
+        getTropismDisplay,
+        comorbidityOptions
+      };
+      
+      // Tạo và hiển thị web report
+      const result = generateWebReport(reportData);
+      
+      if (result.success) {
+        console.log('✅ Web report generated successfully');
+        setWebViewerData(result.data);
+        setShowWebViewer(true);
+        
+        // Callback cho parent component
+        if (onSelect) {
+          onSelect({
+            name: `ARV_Web_Report_${appointment?.userId || Date.now()}.html`,
+            type: 'text/html',
+            method: 'web-viewer',
+            message: 'Báo cáo đang hiển thị trực tiếp trên web',
+            showWebViewer: true
+          });
         }
-      };
-      
-      // Helper function for Vietnamese text conversion
-      const toAscii = (text) => {
-        return text
-          .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
-          .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
-          .replace(/[ìíịỉĩ]/g, 'i')
-          .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
-          .replace(/[ùúụủũưừứựửữ]/g, 'u')
-          .replace(/[ỳýỵỷỹ]/g, 'y')
-          .replace(/đ/g, 'd')
-          .replace(/[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/g, 'A')
-          .replace(/[ÈÉẸẺẼÊỀẾỆỂỄ]/g, 'E')
-          .replace(/[ÌÍỊỈĨ]/g, 'I')
-          .replace(/[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/g, 'O')
-          .replace(/[ÙÚỤỦŨƯỪỨỰỬỮ]/g, 'U')
-          .replace(/[ỲÝỴỶỸ]/g, 'Y')
-          .replace(/Đ/g, 'D');
-      };
-      
-      // Use the same PDF generation logic as the main function
-      // Header
-      doc.setFillColor(46, 125, 50);
-      doc.rect(0, 0, pageWidth, 30, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
-      doc.text('BAO CAO KHUYEN NGHI ARV - BAN XEM TRUOC', pageWidth/2, 15, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      doc.text('HIV Antiretroviral Treatment Recommendation Report - Preview', pageWidth/2, 22, { align: 'center' });
-      
-      // Add preview watermark
-      doc.setTextColor(200, 200, 200);
-      doc.setFontSize(40);
-      doc.text('BAN XEM TRUOC', pageWidth/2, pageHeight/2, { 
-        align: 'center', 
-        angle: 45 
-      });
-      
-      // Reset text color and continue with normal content
-      doc.setTextColor(0, 0, 0);
-      yPosition = 45;
-      
-      // Add a simplified version of the content for preview
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Noi dung bao cao se bao gom:', 15, yPosition);
-      yPosition += 20;
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      const contentItems = [
-        '• Thong tin benh nhan va bac si dieu tri',
-        '• Thong so lam sang (Viral Load, CD4, HLA-B5701, Tropism)',
-        '• Phac do ARV hien tai (neu co)',
-        '• Danh sach benh dong mac',
-        '• Thuoc phoi hop dang su dung',
-        '• Bang khuyen nghi phac do ARV voi diem so',
-        '• Phan tich ly do lua chon cho tung phac do',
-        '• Luu y lam sang va theo doi',
-        '• Ghi chu cua bac si'
-      ];
-      
-      contentItems.forEach((item, index) => {
-        doc.text(toAscii(item), 20, yPosition + (index * 10));
-      });
-      
-      yPosition += contentItems.length * 10 + 20;
-      
-      // Add current selections summary
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Tom tat lua chon hien tai:', 15, yPosition);
-      yPosition += 15;
-      
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'normal');
-      
-      doc.text(`Viral Load: ${getViralLoadDisplay(viralLoad)}`, 20, yPosition);
-      yPosition += 8;
-      doc.text(`CD4 Count: ${getCd4Display(cd4Count)}`, 20, yPosition);
-      yPosition += 8;
-      doc.text(`HLA-B5701: ${hlaB5701 === 'positive' ? 'Duong tinh' : 'Am tinh'}`, 20, yPosition);
-      yPosition += 8;
-      
-      if (comorbidities.length > 0) {
-        yPosition += 5;
-        doc.text(`Benh dong mac: ${comorbidities.length} loai`, 20, yPosition);
-        yPosition += 8;
+        
+        alert('✅ Báo cáo ARV đã sẵn sàng!\n\n🌐 Hiển thị trực tiếp trên web với font tiếng Việt hoàn hảo.\n💡 Không cần tải về, xem ngay trên trang!');
       }
-      
-      if (coMedications.length > 0) {
-        doc.text(`Thuoc phoi hop: ${coMedications.length} loai`, 20, yPosition);
-        yPosition += 8;
-      }
-      
-      if (preferredRegimen.length > 0) {
-        doc.text(`Phac do duoc chon: ${preferredRegimen.length} loai`, 20, yPosition);
-        yPosition += 8;
-      }
-      
-      // Footer
-      yPosition = pageHeight - 40;
-      doc.setFillColor(240, 240, 240);
-      doc.rect(0, yPosition, pageWidth, 40, 'F');
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text('Day la ban xem truoc. Nhan "Tao Bao Cao PDF" de tao bao cao hoan chinh.', pageWidth/2, yPosition + 15, { align: 'center' });
-      doc.text(`Ngay tao: ${new Date().toLocaleDateString('vi-VN')}`, pageWidth/2, yPosition + 25, { align: 'center' });
-      
-      // Generate blob and create URL
-      const pdfBlob = doc.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      
-      setPreviewPdfUrl(pdfUrl);
-      setShowPreview(true);
       
     } catch (error) {
-      console.error('Error generating PDF preview:', error);
-      alert('Có lỗi xảy ra khi tạo bản xem trước PDF.');
+      console.error('❌ Error showing web report:', error);
+      alert('❌ Lỗi khi hiển thị báo cáo web: ' + error.message);
     }
-  };
-  
-  // Function to close preview
-  const handleClosePreview = () => {
-    if (previewPdfUrl) {
-      URL.revokeObjectURL(previewPdfUrl);
-      setPreviewPdfUrl(null);
-    }
-    setShowPreview(false);
   };
 
-  // Helper functions for enhanced PDF generation
-  const getViralLoadDisplay = (vl) => {
-    const displays = {
-      'unknown': 'Khong ro',
-      'suppressed_6m': 'Duoc kiem soat (>6 thang)',
-      'suppressed_recent': 'Duoc kiem soat (<6 thang)',
-      'low': 'Thap (200-100,000)',
-      'high': 'Cao (100,000-500,000)',
-      'very_high': 'Rat cao (>=500,000)'
-    };
-    return displays[vl] || vl;
-  };
-  
-  const getCd4Display = (cd4) => {
-    const displays = {
-      'unknown': 'Khong ro',
-      'le_50': '<= 50',
-      'le_100': '<= 100',
-      'le_200': '<= 200',
-      'gt_200': '> 200'
-    };
-    return displays[cd4] || cd4;
-  };
-  
-  const getTropismDisplay = (trop) => {
-    const displays = {
-      'unknown': 'Khong ro',
-      'r5': 'Virus R5',
-      'x4': 'Virus X4',
-      'dual': 'Virus Huong Thu The Kep'
-    };
-    return displays[trop] || trop;
-  };
-  
-  const calculateRegimenScore = (regimen) => {
-    let score = 5.0; // Base score
-    
-    // Adjust based on viral load
-    if (viralLoad === 'suppressed_6m') score += 1.0;
-    if (viralLoad === 'very_high') score -= 0.5;
-    
-    // Adjust based on CD4
-    if (cd4Count === 'gt_200') score += 0.5;
-    if (cd4Count === 'le_50') score -= 1.0;
-    
-    // Adjust based on comorbidities
-    if (comorbidities.includes('liver')) score -= 0.3;
-    if (comorbidities.includes('renal')) score -= 0.3;
-    if (comorbidities.includes('cardiovascular')) score -= 0.2;
-    
-    // Preferred regimens get bonus points
-    const firstLineRegimens = ['BIC/TAF/FTC', 'DTG/ABC/3TC', 'DTG/TDF/FTC', 'DTG/3TC'];
-    if (firstLineRegimens.includes(regimen)) score += 1.0;
-    
-    return Math.max(0, Math.min(10, score));
-  };
-  
-  const getRegimenRationale = (regimen) => {
-    const rationales = {
-      'BIC/TAF/FTC': 'Phac do hang dau voi hieu qua cao, it tuong tac thuoc va an toan cho than.',
-      'DTG/ABC/3TC': 'Phac do hieu qua cao, nhung can kiem tra HLA-B5701 truoc khi su dung ABC.',
-      'DTG/TDF/FTC': 'Phac do co hieu qua tot, phu hop cho benh nhan co nguy co thap ve than va xuong.',
-      'DTG/3TC': 'Phac do 2 thuoc, thich hop cho benh nhan co tai luong virus duoc kiem soat tot.',
-      'EFV/TDF/FTC': 'Phac do truyen thong, nhung can luu y tac dung phu ve than kinh.',
-      'DRV/r': 'Thuoc uc che protease manh, phu hop cho truong hop kang thuoc.',
-      'RAL': 'Thuoc uc che integrase an toan, nhung can uong 2 lan/ngay.'
-    };
-    
-    return rationales[regimen] || 'Phac do duoc lua chon dua tren dac diem ca nhan cua benh nhan.';
-  };
-  
-  const generateRecommendations = () => {
-    const recs = [];
-    
-    if (cd4Count === 'le_50') {
-      recs.push('Uu tien bat dau dieu tri ARV gap, theo doi sat hon.');
+  // Vietnamese PDF generation with HTML-to-Image method
+  const generateVietnamesePDFMethod = async () => {
+    try {
+      console.log('🎨 Generating Vietnamese PDF with browser print functionality...');
+      alert('Đang tạo báo cáo ARV tiếng Việt...\n\n🔄 Sử dụng tính năng in của trình duyệt để tạo PDF có dấu hoàn hảo.');
+      
+      const pdfData = {
+        appointment,
+        specialPopulation,
+        viralLoad,
+        cd4Count,
+        hlaB5701,
+        tropism,
+        comorbidities,
+        coMedications,
+        selectedRegimens,
+        notes,
+        getSpecialPopulationDisplay,
+        getViralLoadDisplay,
+        getCd4Display,
+        getTropismDisplay,
+        comorbidityOptions
+      };
+      
+      const pdfFile = await generateVietnamesePDF(pdfData);
+      
+      console.log('✅ Browser print PDF initiated successfully');
+      
+      // Handle browser print result
+      if (pdfFile && pdfFile.method === 'browser-print') {
+        // Browser print was initiated, no file to handle
+        console.log('✅ Browser print dialog opened successfully');
+        
+        if (onSelect) {
+          onSelect({
+            name: pdfFile.name,
+            type: 'application/pdf',
+            method: 'browser-print',
+            message: 'PDF được tạo qua tính năng in của trình duyệt'
+          });
+        }
+      } else if (pdfFile && pdfFile.type === 'text/html') {
+        // HTML file was downloaded
+        console.log('✅ HTML file downloaded successfully');
+        
+        if (onSelect) {
+          onSelect({
+            name: pdfFile.name,
+            type: pdfFile.type,
+            size: pdfFile.size,
+            method: 'html-download',
+            message: 'File HTML đã được tải xuống'
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Error generating browser print PDF:', error);
+      alert(`❌ Lỗi tạo PDF với trình duyệt: ${error.message}\n\n🔄 Chuyển sang phương pháp ASCII-safe...`);
+      
+      // Fallback to ASCII-safe
+      generatePDF();
     }
-    
-    if (hlaB5701 === 'positive') {
-      recs.push('Tranh su dung ABC do nguy co phan ung di ung.');
-    }
-    
-    if (comorbidities.includes('renal')) {
-      recs.push('Uu tien TAF thay vi TDF de bao ve chuc nang than.');
-    }
-    
-    if (comorbidities.includes('liver')) {
-      recs.push('Can than khi su dung cac thuoc co tac dong len gan.');
-    }
-    
-    if (viralLoad === 'very_high') {
-      recs.push('Uu tien phac do co rao can gen cao truoc kang thuoc.');
-    }
-    
-    return recs;
-  };
-  
-  const getClinicalConsiderations = () => {
-    const considerations = [];
-    
-    considerations.push('Theo doi chat che tai luong virus va so luong CD4 hang quy.');
-    considerations.push('Danh gia tuong tac thuoc truoc khi ke don.');
-    considerations.push('Giao duc benh nhan ve tham su thuoc va tac dung phu.');
-    
-    if (comorbidities.includes('cardiovascular')) {
-      considerations.push('Theo doi nguy co tim mach, tranh ABC neu co the.');
-    }
-    
-    if (comorbidities.includes('osteoporosis')) {
-      considerations.push('Theo doi mat do xuong, co the tranh TDF.');
-    }
-    
-    if (coMedications.length > 0) {
-      considerations.push('Kiem tra tuong tac voi cac thuoc phoi hop da chon.');
-    }
-    
-    considerations.push('Tai kham theo lich hen de danh gia hieu qua dieu tri.');
-    
-    return considerations;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    generatePDF();
+    generateVietnamesePDFMethod();
   };
-  
-  // Function to generate ARV recommendations table similar to HIV-ASSIST
-  const generateARVRecommendationsTable = (doc, yPos) => {
-    const tableData = [];
-    const headers = ['Regimen', 'Score', 'Pills/Day', 'Frequency', 'Rationale'];
-    
-    // Get recommendations based on current selections
-    const recommendedRegimens = getTopRecommendations();
-    
-    recommendedRegimens.forEach(regimen => {
-      const arv = arvOptions.find(option => option.value === regimen.code);
-      const score = calculateRegimenScore(regimen.code);
-      const pillsPerDay = getRegimePillsPerDay(regimen.code);
-      const frequency = getRegimenFrequency(regimen.code);
-      const rationale = getShortRationale(regimen.code);
-      
-      tableData.push([
-        arv?.label || regimen.code,
-        score.toFixed(2),
-        pillsPerDay,
-        frequency,
-        rationale
-      ]);
-    });
-    
-    // Use autoTable plugin if available
-    if (doc.autoTable) {
-      doc.autoTable({
-        head: [headers],
-        body: tableData,
-        startY: yPos,
-        theme: 'striped',
-        headStyles: { fillColor: [46, 125, 50] },
-        margin: { left: 15, right: 15 },
-        styles: { fontSize: 9, cellPadding: 3 },
-        columnStyles: {
-          0: { cellWidth: 60 },
-          1: { cellWidth: 20, halign: 'center' },
-          2: { cellWidth: 25, halign: 'center' },
-          3: { cellWidth: 25, halign: 'center' },
-          4: { cellWidth: 60 }
-        }
-      });
-      
-      return doc.lastAutoTable.finalY + 10;
-    } else {
-      // Fallback: manual table creation
-      let currentY = yPos;
-      const cellHeight = 8;
-      const colWidths = [60, 20, 25, 25, 60];
-      let currentX = 15;
-      
-      // Draw headers
-      doc.setFillColor(46, 125, 50);
-      doc.setTextColor(255, 255, 255);
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(10);
-      
-      headers.forEach((header, i) => {
-        doc.rect(currentX, currentY, colWidths[i], cellHeight, 'F');
-        doc.text(header, currentX + 2, currentY + 6);
-        currentX += colWidths[i];
-      });
-      
-      currentY += cellHeight;
-      doc.setTextColor(0, 0, 0);
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      
-      // Draw data rows
-      tableData.forEach((row, rowIndex) => {
-        currentX = 15;
-        const fillColor = rowIndex % 2 === 0 ? [245, 245, 245] : [255, 255, 255];
-        
-        row.forEach((cell, colIndex) => {
-          doc.setFillColor(...fillColor);
-          doc.rect(currentX, currentY, colWidths[colIndex], cellHeight, 'F');
-          
-          // Text wrapping for longer content
-          const cellText = cell.toString();
-          if (colIndex === 0 || colIndex === 4) { // Regimen name or rationale
-            const splitText = doc.splitTextToSize(cellText, colWidths[colIndex] - 4);
-            doc.text(splitText[0], currentX + 2, currentY + 6);
-          } else {
-            doc.text(cellText, currentX + colWidths[colIndex]/2, currentY + 6, { align: 'center' });
-          }
-          
-          currentX += colWidths[colIndex];
-        });
-        
-        currentY += cellHeight;
-      });
-      
-      return currentY + 10;
+
+  const downloadLastPdf = () => {
+    if (lastGeneratedPdf) {
+      const url = URL.createObjectURL(lastGeneratedPdf);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = lastGeneratedPdf.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   };
-  
-  // Helper functions for the recommendations table
-  const getTopRecommendations = () => {
-    // Generate top 5 recommendations based on current parameters
-    const allRegimens = [
-      'BIC/TAF/FTC', 'DTG/ABC/3TC', 'DTG/TDF/FTC', 'DTG/3TC', 
-      'EFV/TDF/FTC', 'DRV/r+TDF/FTC', 'RAL+TDF/FTC', 'RPV/TAF/FTC',
-      'DOR/TDF/3TC', 'EVG/c/TAF/FTC'
-    ];
-    
-    // Score and sort regimens
-    const scoredRegimens = allRegimens.map(regimen => ({
-      code: regimen,
-      score: calculateRegimenScore(regimen)
-    }));
-    
-    scoredRegimens.sort((a, b) => b.score - a.score);
-    
-    return scoredRegimens.slice(0, 5); // Top 5
+
+  const closePdfModal = () => {
+    setShowPdfModal(false);
+    if (previewPdfUrl) {
+      URL.revokeObjectURL(previewPdfUrl);
+      setPreviewPdfUrl(null);
+    }
   };
-  
-  const getRegimePillsPerDay = (regimen) => {
-    const pillCounts = {
-      'BIC/TAF/FTC': '1',
-      'DTG/ABC/3TC': '1', 
-      'DTG/TDF/FTC': '2',
-      'DTG/3TC': '1',
-      'EFV/TDF/FTC': '1',
-      'DRV/r+TDF/FTC': '3',
-      'RAL+TDF/FTC': '3',
-      'RPV/TAF/FTC': '1',
-      'DOR/TDF/3TC': '1',
-      'EVG/c/TAF/FTC': '1'
-    };
-    
-    return pillCounts[regimen] || '2-3';
-  };
-  
-  const getRegimenFrequency = (regimen) => {
-    const frequencies = {
-      'BIC/TAF/FTC': '1x/day',
-      'DTG/ABC/3TC': '1x/day',
-      'DTG/TDF/FTC': '1x/day',
-      'DTG/3TC': '1x/day', 
-      'EFV/TDF/FTC': '1x/day',
-      'DRV/r+TDF/FTC': '1x/day',
-      'RAL+TDF/FTC': '2x/day',
-      'RPV/TAF/FTC': '1x/day',
-      'DOR/TDF/3TC': '1x/day',
-      'EVG/c/TAF/FTC': '1x/day'
-    };
-    
-    return frequencies[regimen] || '1-2x/day';
-  };
-  
-  const getShortRationale = (regimen) => {
-    const rationales = {
-      'BIC/TAF/FTC': 'First-line, renal safe',
-      'DTG/ABC/3TC': 'High efficacy, check HLA-B5701',
-      'DTG/TDF/FTC': 'Effective, bone monitoring',
-      'DTG/3TC': '2-drug regimen, high barrier',
-      'EFV/TDF/FTC': 'Traditional, CNS effects',
-      'DRV/r+TDF/FTC': 'High barrier, resistance',
-      'RAL+TDF/FTC': 'Well-tolerated, BID dosing',
-      'RPV/TAF/FTC': 'Low resistance barrier',
-      'DOR/TDF/3TC': 'New NNRTI option',
-      'EVG/c/TAF/FTC': 'Boosted INSTI, interactions'
-    };
-    
-    return rationales[regimen] || 'Individualized choice';
+
+  const openPdfInNewTab = () => {
+    if (previewPdfUrl) {
+      window.open(previewPdfUrl, '_blank');
+    }
   };
 
   return (
@@ -1031,9 +1216,30 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
         
         <Card className="mb-4">
           <Card.Body>
-            <Form onSubmit={handleSubmit}>
+            <Form>
               <Row>
                 <Col md={6}>
+                  {/* Special Population */}
+                  <Form.Group className="mb-4">
+                    <Form.Label className="fw-bold d-flex align-items-center">
+                      <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                      Nhóm Đặc Biệt
+                    </Form.Label>
+                    <Form.Select 
+                      value={specialPopulation}
+                      onChange={(e) => setSpecialPopulation(e.target.value)}
+                    >
+                      {specialPopulationOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <Form.Text className="text-muted">
+                      Lựa chọn này sẽ ảnh hưởng đến khuyến nghị phác đồ
+                    </Form.Text>
+                  </Form.Group>
+
                   {/* Viral Load */}
                   <Form.Group className="mb-4">
                     <Form.Label className="fw-bold d-flex align-items-center">
@@ -1081,7 +1287,7 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
                       value={hlaB5701}
                       onChange={(e) => setHlaB5701(e.target.value)}
                     >
-                      <option value="positive">Dương tính </option>
+                      <option value="positive">Dương tính</option>
                       <option value="negative">Âm tính</option>
                     </Form.Select>
                   </Form.Group>
@@ -1111,52 +1317,144 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
                       <FontAwesomeIcon icon={faCapsules} className="me-2" />
                       Phác Đồ Hiện Tại
                     </Form.Label>
-                    <div className="border rounded p-3" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                      {arvOptions.map(arv => (
+                    
+                    {/* Treatment status */}
+                    <div className="treatment-status-section">
                         <Form.Check
-                          key={`current-${arv.value}`}
+                        type="radio"
+                        id="treatment-naive"
+                        name="treatmentStatus"
+                        label="Chưa điều trị ARV"
+                        checked={currentRegimen.length === 0}
+                        onChange={() => setCurrentRegimen([])}
+                        className="mb-2"
+                      />
+                      <Form.Check
+                        type="radio"
+                        id="treatment-experienced"
+                        name="treatmentStatus"
+                        label="Đang/đã điều trị ARV"
+                        checked={currentRegimen.length > 0}
+                        onChange={() => {
+                          if (currentRegimen.length === 0) {
+                            setCurrentRegimen(['DTG']); // Default selection
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* ARV Components Selection */}
+                    {currentRegimen.length > 0 && (
+                      <div className="current-regimen-section">
+                        <h6 className="mb-3 text-center text-primary">
+                          <FontAwesomeIcon icon={faCapsules} className="me-2" />
+                          Các thành phần thuốc đang sử dụng
+                        </h6>
+                        
+                        {/* INSTI - Integrase Inhibitors */}
+                        <div className="drug-class-section">
+                          <h6 className="drug-class-title text-primary">
+                            <FontAwesomeIcon icon={faDna} className="me-2" />
+                            Chất ức chế Integrase (INSTI)
+                          </h6>
+                          <Row>
+                            {['DTG', 'BIC', 'RAL', 'EVG'].map(drug => (
+                              <Col md={3} sm={6} key={drug}>
+                                <Form.Check
                           type="checkbox"
-                          id={`current-${arv.value}`}
-                          label={arv.label}
-                          value={arv.value}
-                          checked={currentRegimen.includes(arv.value)}
+                                  id={`current-${drug}`}
+                                  label={drug}
+                                  checked={currentRegimen.includes(drug)}
                           onChange={handleCurrentRegimenChange}
-                          className="mb-2"
+                                  value={drug}
+                                  className="drug-checkbox"
                         />
+                              </Col>
                       ))}
+                          </Row>
                     </div>
-                    <Form.Text className="text-muted">
-                      Chọn phác đồ ARV hiện tại của bệnh nhân (nếu có)
-                    </Form.Text>
-                  </Form.Group>
-                  
-                  {/* Co-medications */}
-                  <Form.Group className="mb-4">
-                    <Form.Label className="fw-bold d-flex align-items-center">
-                      <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
-                      Thuốc Phối Hợp
-                    </Form.Label>
-                    <div className="border rounded p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                      {medicationCategories.map((category, index) => (
-                        <div key={index} className="mb-3">
-                          <h6 className="medication-category">{category.category}</h6>
-                          {category.options.map((med, medIndex) => (
+
+                        {/* NRTI - Nucleoside RTIs */}
+                        <div className="drug-class-section">
+                          <h6 className="drug-class-title text-success">
+                            <FontAwesomeIcon icon={faVial} className="me-2" />
+                            Chất ức chế Reverse Transcriptase Nucleoside (NRTI)
+                          </h6>
+                          <Row>
+                            {['TDF', 'TAF', 'ABC', '3TC', 'FTC', 'AZT'].map(drug => (
+                              <Col md={3} sm={6} key={drug}>
                             <Form.Check
-                              key={`med-${index}-${medIndex}`}
                               type="checkbox"
-                              id={`med-${med.replace(/\s+/g, '-').toLowerCase()}`}
-                              label={med}
-                              value={med}
-                              checked={coMedications.includes(med)}
-                              onChange={handleCoMedicationChange}
-                              className="mb-1 ms-3"
-                            />
-                          ))}
+                                  id={`current-${drug}`}
+                                  label={drug}
+                                  checked={currentRegimen.includes(drug)}
+                                  onChange={handleCurrentRegimenChange}
+                                  value={drug}
+                                  className="drug-checkbox"
+                                />
+                              </Col>
+                            ))}
+                          </Row>
                         </div>
-                      ))}
+
+                        {/* NNRTI - Non-Nucleoside RTIs */}
+                        <div className="drug-class-section">
+                          <h6 className="drug-class-title text-warning">
+                            <FontAwesomeIcon icon={faPills} className="me-2" />
+                            Chất ức chế Reverse Transcriptase Non-Nucleoside (NNRTI)
+                          </h6>
+                          <Row>
+                            {['EFV', 'RPV', 'DOR'].map(drug => (
+                              <Col md={3} sm={6} key={drug}>
+                                <Form.Check
+                                  type="checkbox"
+                                  id={`current-${drug}`}
+                                  label={drug}
+                                  checked={currentRegimen.includes(drug)}
+                                  onChange={handleCurrentRegimenChange}
+                                  value={drug}
+                                  className="drug-checkbox"
+                                />
+                              </Col>
+                            ))}
+                          </Row>
                     </div>
+
+                        {/* PI - Protease Inhibitors */}
+                        <div className="drug-class-section">
+                          <h6 className="drug-class-title text-danger">
+                            <FontAwesomeIcon icon={faCapsules} className="me-2" />
+                            Chất ức chế Protease (PI)
+                          </h6>
+                          <Row>
+                            {['DRV/r', 'LPV/r', 'ATV/r'].map(drug => (
+                              <Col md={3} sm={6} key={drug}>
+                                <Form.Check
+                                  type="checkbox"
+                                  id={`current-${drug}`}
+                                  label={drug}
+                                  checked={currentRegimen.includes(drug)}
+                                  onChange={handleCurrentRegimenChange}
+                                  value={drug}
+                                  className="drug-checkbox"
+                                />
+                              </Col>
+                            ))}
+                          </Row>
+                        </div>
+
+                        {/* Current regimen display */}
+                        {currentRegimen.length > 0 && (
+                          <div className="current-regimen-display">
+                            <strong>Phác đồ hiện tại: </strong>
+                            {currentRegimen.join(' + ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <Form.Text className="text-muted">
-                      Chọn các thuốc khác mà bệnh nhân đang sử dụng
+                      Thông tin này sẽ được sử dụng để tránh khuyến nghị phác đồ tương tự và phát hiện kháng thuốc tiềm ẩn
                     </Form.Text>
                   </Form.Group>
                   
@@ -1186,103 +1484,359 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
                       ))}
                     </div>
                   </Form.Group>
-                </Col>
-              </Row>
               
-              {/* Preferred Regimen - Full Width */}
+                  {/* Co-medications */}
               <Form.Group className="mb-4">
                 <Form.Label className="fw-bold d-flex align-items-center">
-                  <FontAwesomeIcon icon={faSyringe} className="me-2" />
-                  Phác Đồ Ưu Tiên
+                      <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
+                      Thuốc Phối Hợp
                 </Form.Label>
-                <Row>
-                  {arvOptions.map((arv, index) => (
-                    <Col md={4} key={`preferred-${arv.value}`} className="mb-2">
+                    <div className="border rounded p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                      {medicationCategories.map((category, index) => (
+                        <div key={index} className="mb-3">
+                          <h6 className="medication-category">{category.category}</h6>
+                          {category.options.map((med, medIndex) => (
                       <Form.Check
+                              key={`med-${index}-${medIndex}`}
                         type="checkbox"
-                        id={`preferred-${arv.value}`}
-                        label={arv.label}
-                        value={arv.value}
-                        checked={preferredRegimen.includes(arv.value)}
-                        onChange={handlePreferredRegimenChange}
-                        className="small-text"
-                      />
-                    </Col>
-                  ))}
-                </Row>
+                              id={`med-${med.replace(/\s+/g, '-').toLowerCase()}`}
+                              label={med}
+                              value={med}
+                              checked={coMedications.includes(med)}
+                              onChange={handleCoMedicationChange}
+                              className="mb-1 ms-3"
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                 <Form.Text className="text-muted">
-                  Chọn phác đồ ART mà bạn đang cân nhắc cho bệnh nhân này
+                      Chọn các thuốc khác mà bệnh nhân đang sử dụng
                 </Form.Text>
               </Form.Group>
+                </Col>
+              </Row>
 
-              {/* Notes Section */}
-              <Form.Group className="mb-4">
-                <Form.Label className="fw-bold d-flex align-items-center">
-                  <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
-                  Ghi Chú
-                </Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  placeholder="Nhập các ghi chú bổ sung về bệnh nhân, lịch sử điều trị, hoặc các cân nhắc đặc biệt khác..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-                <Form.Text className="text-muted">
-                  Ghi chú này sẽ được bao gồm trong báo cáo khuyến nghị điều trị
-                </Form.Text>
-              </Form.Group>              <div className="d-flex justify-content-center gap-3 mt-4">
+              <div className="d-flex justify-content-center mb-4">
                 <Button 
                   type="button" 
-                  variant="outline-primary" 
+                  variant="success" 
                   size="lg"
-                  onClick={handlePreviewPDF}
+                  onClick={generateRecommendations}
+                  className="me-3"
                 >
-                  <FontAwesomeIcon icon={faEye} className="me-2" />
-                  Xem Trước PDF
-                </Button>
-                <Button type="submit" variant="primary" size="lg">
-                  <FontAwesomeIcon icon={faFilePdf} className="me-2" />
-                  Tạo Báo Cáo PDF
+                  <FontAwesomeIcon icon={faStar} className="me-2" />
+                  Tạo Gợi Ý Phác Đồ ARV
                 </Button>
               </div>
             </Form>
           </Card.Body>
         </Card>
 
-        {/* PDF Preview Modal */}
-        {showPreview && (
-          <div className="pdf-preview-modal">
-            <div className="modal-content">
-              <span className="close" onClick={handleClosePreview}>&times;</span>
+        {/* Recommendations Table */}
+        {showRecommendations && recommendedRegimens.length > 0 && (
+          <Card className="mb-4">
+            <Card.Header>
+              <h4 className="mb-0">
+                <FontAwesomeIcon icon={faStar} className="me-2" />
+                Khuyến Nghị Phác Đồ ARV
+              </h4>
+            </Card.Header>
+            <Card.Body>
+              <Alert variant="info" className="mb-3">
+                      <FontAwesomeIcon icon={faStethoscope} className="me-2" />
+                Dựa trên thông số lâm sàng đã nhập, dưới đây là các phác đồ được khuyến nghị theo thứ tự ưu tiên:
+              </Alert>
               
-              <h2>Xem Trước Báo Cáo PDF</h2>
+              <Table responsive striped hover>
+                <thead className="table-dark">
+                  <tr>
+                    <th>Chọn</th>
+                    <th>Phác Đồ</th>
+                    <th>Điểm Số</th>
+                    <th>Phù Hợp</th>
+                    <th>Liều Dùng</th>
+                    <th>Ưu Điểm</th>
+                    <th>Lưu Ý</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recommendedRegimens.slice(0, 8).map((regimen, index) => (
+                    <tr key={regimen.code} className={selectedRegimens.find(r => r.code === regimen.code) ? 'table-success' : ''}>
+                      <td>
+                        <Form.Check
+                          type="checkbox"
+                          checked={selectedRegimens.find(r => r.code === regimen.code) ? true : false}
+                          onChange={() => handleRegimenSelection(regimen)}
+                        />
+                      </td>
+                      <td>
+                        <strong>{regimen.shortName}</strong>
+                        <br />
+                        <small className="text-muted">{regimen.displayName}</small>
+                      </td>
+                      <td>
+                        <Badge bg="primary" className="fs-6">
+                          {regimen.score.toFixed(1)}/10
+                        </Badge>
+                      </td>
+                      <td>
+                        <Badge bg={regimen.suitability.color}>
+                          {regimen.suitability.label}
+                        </Badge>
+                      </td>
+                      <td>
+                        <div>{regimen.pillsPerDay} viên/ngày</div>
+                        <small className="text-muted">{regimen.frequency}</small>
+                      </td>
+                      <td>
+                        <ul className="mb-0" style={{ fontSize: '0.85rem' }}>
+                          {regimen.advantages.slice(0, 2).map((advantage, i) => (
+                            <li key={i}>{advantage}</li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: '0.85rem' }}>
+                          {regimen.foodRequirement !== 'Không yêu cầu' && (
+                            <div>🍽️ {regimen.foodRequirement}</div>
+                          )}
+                          {regimen.contraindications.length > 0 && (
+                            <div className="text-danger">
+                              ⚠️ {regimen.contraindications[0]}
+                    </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
               
-              <div className="pdf-preview-body">
-                {previewPdfUrl && (
-                  <iframe 
-                    src={previewPdfUrl} 
-                    title="PDF Preview"
-                    width="100%"
-                    height="500px"
-                    frameBorder="0"
-                  ></iframe>
+              {selectedRegimens.length > 0 && (
+                <Alert variant="success" className="mt-3">
+                  <FontAwesomeIcon icon={faCheck} className="me-2" />
+                  Đã chọn {selectedRegimens.length} phác đồ. Hãy thêm ghi chú và tạo báo cáo PDF.
+                </Alert>
+              )}
+              
+              {selectedRegimens.length === 0 && notes.customRegimen && notes.customRegimen.trim() !== '' && (
+                <Alert variant="info" className="mt-3">
+                  <FontAwesomeIcon icon={faPills} className="me-2" />
+                  Đã nhập phác đồ tùy chỉnh. Bạn có thể tạo báo cáo PDF ngay bây giờ.
+                </Alert>
+              )}
+              
+              {/* Custom Regimen Toggle Button */}
+              <div className="mt-3 text-center">
+                {!showCustomRegimen ? (
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={() => setShowCustomRegimen(true)}
+                    className="btn-custom-regimen"
+                  >
+                    <FontAwesomeIcon icon={faPills} className="me-2" />
+                    Phác Đồ Tùy Chỉnh
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline-danger" 
+                    size="sm"
+                    onClick={() => {
+                      setShowCustomRegimen(false);
+                      setNotes({...notes, customRegimen: ''}); // Clear custom regimen when hiding
+                    }}
+                    className="mb-3"
+                  >
+                    <FontAwesomeIcon icon={faTimes} className="me-2" />
+                    Ẩn Phác Đồ Tùy Chỉnh
+                  </Button>
                 )}
               </div>
               
-              <div className="d-flex justify-content-end mt-3">
-                <Button variant="secondary" onClick={handleClosePreview} className="me-2">
-                  Đóng
-                </Button>
-                <Button variant="primary" onClick={generatePDF} size="lg">
-                  <FontAwesomeIcon icon={faFilePdf} className="me-2" />
-                  Tạo Báo Cáo PDF Hoàn Chỉnh
-                </Button>
-              </div>
-            </div>
-          </div>
+              {/* Custom Regimen Option - Only show when toggled */}
+              {showCustomRegimen && (
+                <div className="mt-3 custom-regimen-section">
+                  <Form.Group>
+                    <Form.Label className="fw-bold text-center d-block">
+                      <FontAwesomeIcon icon={faPills} className="me-2" />
+                      Phác Đồ Tùy Chỉnh
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Ví dụ: TAF + FTC + BIC hoặc phác đồ khác..."
+                      value={notes.customRegimen || ''}
+                      onChange={(e) => setNotes({...notes, customRegimen: e.target.value})}
+                      className="custom-regimen-input"
+                    />
+                    <Form.Text className="text-muted text-center d-block mt-2">
+                      Nhập phác đồ tùy chỉnh nếu các gợi ý không phù hợp với bệnh nhân cụ thể
+                    </Form.Text>
+                  </Form.Group>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
         )}
+
+        {/* Notes and PDF Generation */}
+        {showRecommendations && (
+          <Card className="mb-4">
+            <Card.Body>
+              <Form onSubmit={handleSubmit}>
+              {/* Notes Section */}
+              <Form.Group className="mb-4">
+                <Form.Label className="fw-bold d-flex align-items-center">
+                  <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
+                    Ghi Chú Bác Sĩ
+                </Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                    placeholder="Nhập các ghi chú bổ sung về bệnh nhân, lý do lựa chọn phác đồ, hướng dẫn theo dõi..."
+                  value={notes.doctorNotes}
+                  onChange={(e) => setNotes({...notes, doctorNotes: e.target.value})}
+                />
+                <Form.Text className="text-muted">
+                  Ghi chú này sẽ được bao gồm trong báo cáo khuyến nghị điều trị
+                </Form.Text>
+                </Form.Group>
+
+                <div className="d-flex justify-content-center gap-3 mt-4">
+                  {/* NÚT CHÍNH: XEM TRỰC TIẾP TRÊN WEB */}
+                  <Button 
+                    type="button" 
+                    variant="success" 
+                    size="lg"
+                    disabled={selectedRegimens.length === 0 && (!notes.customRegimen || notes.customRegimen.trim() === '')}
+                    onClick={showWebReportViewer}
+                    className="main-action-btn"
+                  >
+                    <FontAwesomeIcon icon={faEye} className="me-2" />
+                    XEM BÁO CÁO TRỰC TIẾP
+                  </Button>
+                  
+                  {/* Các tùy chọn phụ cho PDF */}
+                  <Button 
+                    type="submit" 
+                    variant="outline-primary" 
+                    size="lg"
+                    disabled={selectedRegimens.length === 0 && (!notes.customRegimen || notes.customRegimen.trim() === '')}
+                  >
+                    <FontAwesomeIcon icon={faDownload} className="me-2" />
+                    Tải PDF (Tiếng Việt)
+                  </Button>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline-secondary" 
+                    size="lg"
+                    disabled={selectedRegimens.length === 0 && (!notes.customRegimen || notes.customRegimen.trim() === '')}
+                    onClick={generatePDF}
+                  >
+                  <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+                    PDF ASCII (Dự phòng)
+                </Button>
+
+              </div>
+            </Form>
+          </Card.Body>
+        </Card>
+        )}
+
+
       </Container>
+
+              {/* WEB VIEWER MODAL - XEM TRỰC TIẾP FONT TIẾNG VIỆT */}
+        <Modal 
+          show={showWebViewer} 
+          onHide={() => setShowWebViewer(false)}
+          size="xl"
+          centered
+          backdrop="static"
+          className="web-viewer-modal"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faEye} className="me-2 text-success" />
+              Báo Cáo ARV - Xem Trực Tiếp
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body style={{ padding: 0, height: '85vh', overflow: 'auto' }}>
+            {webViewerData && (
+              <ARVReportWebViewer 
+                data={webViewerData} 
+                onClose={null} // Không cần nút close riêng vì đã có trong modal header
+              />
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-primary" onClick={() => {
+              // Mở trong tab mới với HTML static để in
+              const htmlContent = generateStaticHTML(webViewerData);
+              const newWindow = window.open();
+              newWindow.document.write(htmlContent);
+              newWindow.document.close();
+              newWindow.focus();
+            }}>
+              <FontAwesomeIcon icon={faEye} className="me-2" />
+              Mở Tab Mới (Để In)
+            </Button>
+            <Button variant="outline-secondary" onClick={() => {
+              // Fallback: Generate PDF if user wants to download
+              generateVietnamesePDFMethod();
+            }}>
+              <FontAwesomeIcon icon={faDownload} className="me-2" />
+              Tạo PDF Để Tải
+            </Button>
+            <Button variant="secondary" onClick={() => setShowWebViewer(false)}>
+              Đóng
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* PDF Preview Modal */}
+      <Modal 
+        show={showPdfModal} 
+        onHide={closePdfModal}
+        size="xl"
+        centered
+        backdrop="static"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+            Xem Trước Báo Cáo ARV
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: 0, height: '80vh' }}>
+                {previewPdfUrl && (
+                  <iframe 
+                    src={previewPdfUrl} 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                border: 'none',
+                borderRadius: '0 0 8px 8px'
+              }}
+                    title="PDF Preview"
+            />
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-primary" onClick={openPdfInNewTab}>
+            <FontAwesomeIcon icon={faEye} className="me-2" />
+            Mở Tab Mới
+                </Button>
+          <Button variant="success" onClick={downloadLastPdf}>
+            <FontAwesomeIcon icon={faDownload} className="me-2" />
+            Tải Xuống
+                </Button>
+          <Button variant="secondary" onClick={closePdfModal}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
