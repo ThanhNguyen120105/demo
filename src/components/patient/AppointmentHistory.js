@@ -14,7 +14,11 @@ import {
   faFileMedical,
   faVial,
   faFilePdf,
-  faPrescriptionBottleAlt
+  faPrescriptionBottleAlt,
+  faUser,
+  faPhone,
+  faBirthdayCake,
+  faVenusMars
 } from '@fortawesome/free-solid-svg-icons';
 import { appointmentAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,6 +38,29 @@ const AppointmentHistory = () => {
   const [loadingMedicalResult, setLoadingMedicalResult] = useState(false);
   const [currentMedicalResultId, setCurrentMedicalResultId] = useState(null);
 
+  // Force modal width sau khi render
+  useEffect(() => {
+    if (showDetailModal) {
+      // Delay để đảm bảo modal đã render xong
+      setTimeout(() => {
+        const modalDialog = document.querySelector('.modal-70vw');
+        if (modalDialog) {
+          modalDialog.style.maxWidth = '70vw';
+          modalDialog.style.width = '70vw';
+          modalDialog.style.minWidth = '900px';
+          modalDialog.style.margin = '1.75rem auto';
+          console.log('✅ Modal width set to 70vw via JavaScript');
+        }
+        
+        const modalContent = document.querySelector('.modal-content-70vw');
+        if (modalContent) {
+          modalContent.style.width = '100%';
+          modalContent.style.maxWidth = '100%';
+          console.log('✅ Modal content width set to 100% via JavaScript');
+        }
+      }, 100);
+    }
+  }, [showDetailModal]);
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -247,106 +274,101 @@ const AppointmentHistory = () => {
               <h5 className="text-muted">Chưa có lịch hẹn nào</h5>
               <p className="text-muted">Bạn chưa đặt lịch hẹn nào. Hãy đặt lịch khám để được chăm sóc sức khỏe!</p>
             </div>
-          ) : (            <div className="table-responsive">
-              <Table striped bordered hover size="sm" style={{ fontSize: '0.9rem' }}>
-                <thead className="table-light" style={{ fontSize: '0.85rem' }}>
-                  <tr>
-                    <th style={{ width: '22%' }}>Ngày khám</th>
-                    <th style={{ width: '13%' }}>Giờ khám</th>
-                    <th style={{ width: '18%' }}>Bác sĩ</th>
-                    <th style={{ width: '13%' }}>Loại khám</th>
-                    <th style={{ width: '13%' }}>Trạng thái</th>
-                    <th style={{ width: '10%' }}>Chi tiết</th>
-                    <th style={{ width: '11%' }}>Kết quả XN</th>
-                  </tr>
-                </thead>                <tbody>
-                  {appointments.map((appointment, index) => {
-                    // Kiểm tra xem có phải ngày mới so với appointment trước đó không
-                    const prevAppointment = index > 0 ? appointments[index - 1] : null;
-                    const isNewDate = !prevAppointment || 
-                      new Date(appointment.appointmentDate).toDateString() !== 
-                      new Date(prevAppointment.appointmentDate).toDateString();
-                    
-                    return (
-                      <tr 
-                        key={appointment.id}
-                        className={isNewDate && index > 0 ? 'border-top-3' : ''}
-                        style={isNewDate && index > 0 ? { borderTop: '3px solid #e9ecef' } : {}}
-                      >                        <td>
-                          <div className="fw-bold text-primary" style={{ fontSize: '0.9rem' }}>
-                            {formatDate(appointment.appointmentDate)}
-                          </div>
-                        </td>                      <td>
-                        <div className="d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
-                          <FontAwesomeIcon icon={faClock} className="me-1 text-primary" size="sm" />
-                          <span className="text-nowrap">
-                            {formatTimeSlot(
-                              appointment.slotStartTime, 
-                              appointment.slotEndTime
-                            )}
-                          </span>
-                        </div>
-                      </td>                      <td>
-                        <div className="d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
-                          <FontAwesomeIcon icon={faUserMd} className="me-1 text-success" size="sm" />
-                          <span className="fw-medium text-nowrap">{appointment.doctorName}</span>
-                        </div>
-                      </td>                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <Badge bg="info" pill style={{ fontSize: '0.75rem' }}>
-                            {getAppointmentTypeLabel(appointment.appointmentType)}
-                          </Badge>
-                          {appointment.medicalResultId && (
-                            <Badge bg="success" pill style={{ fontSize: '0.65rem' }} title="Có kết quả xét nghiệm">
-                              <FontAwesomeIcon icon={faFlask} size="sm" />
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        {getStatusBadge(appointment.status)}
-                      </td>
-                      <td>
-                          <div className="d-flex gap-1 flex-wrap">
-                            <Button
-                              variant="outline-info"
-                              size="sm"
-                              onClick={() => handleViewDetail(appointment)}
-                              style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
-                            >
-                              <FontAwesomeIcon icon={faEye} className="me-1" size="sm" />
-                              Chi tiết
-                            </Button>
-                          {canCancelAppointment(appointment) && (
-                              <Button
-                              variant="outline-danger"
-                                size="sm"
-                              onClick={() => handleCancelClick(appointment)}
-                                style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
-                              >
-                              <FontAwesomeIcon icon={faTimes} className="me-1" size="sm" />
-                              Hủy
-                              </Button>
-                            )}
-                          </div>
-                      </td>
-                                            <td>
-                        <Button
-                          variant="outline-info"
-                          size="sm"
-                          onClick={() => handleViewMedicalResult(appointment.medicalResultId)}
-                          style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
-                          title="Xem chi tiết kết quả xét nghiệm"
-                        >
-                          <FontAwesomeIcon icon={faFlask} className="me-1" size="sm" />
-                          Chi tiết
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                  })}
-                </tbody>
-              </Table>
+          ) : (            <div className="d-flex justify-content-center" style={{ padding: '0 15px' }}>
+              <div style={{ width: '90%', maxWidth: '1200px' }}>
+                <div className="table-responsive">
+                  <Table striped bordered hover size="sm" style={{ fontSize: '1rem', margin: '0 auto', width: '100%' }}>
+                    <thead className="table-light" style={{ fontSize: '0.95rem' }}>
+                      <tr style={{ height: '50px' }}>
+                        <th style={{ width: '22%', padding: '12px 15px', verticalAlign: 'middle' }}>Ngày khám</th>
+                        <th style={{ width: '13%', padding: '12px 15px', verticalAlign: 'middle' }}>Giờ khám</th>
+                        <th style={{ width: '18%', padding: '12px 15px', verticalAlign: 'middle' }}>Bác sĩ</th>
+                        <th style={{ width: '13%', padding: '12px 15px', verticalAlign: 'middle' }}>Loại khám</th>
+                        <th style={{ width: '13%', padding: '12px 15px', verticalAlign: 'middle' }}>Trạng thái</th>
+                        <th style={{ width: '21%', padding: '12px 15px', verticalAlign: 'middle' }}>Chi tiết</th>
+                      </tr>
+                    </thead>                    <tbody>
+                      {appointments.map((appointment, index) => {
+                        // Kiểm tra xem có phải ngày mới so với appointment trước đó không
+                        const prevAppointment = index > 0 ? appointments[index - 1] : null;
+                        const isNewDate = !prevAppointment || 
+                          new Date(appointment.appointmentDate).toDateString() !== 
+                          new Date(prevAppointment.appointmentDate).toDateString();
+                        
+                        return (
+                          <tr 
+                            key={appointment.id}
+                            className={isNewDate && index > 0 ? 'border-top-3' : ''}
+                            style={{
+                              ...(isNewDate && index > 0 ? { borderTop: '3px solid #e9ecef' } : {}),
+                              height: '60px'
+                            }}
+                          >                            <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                              <div className="fw-bold text-primary" style={{ fontSize: '1rem' }}>
+                                {formatDate(appointment.appointmentDate)}
+                              </div>
+                            </td>                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                            <div className="d-flex align-items-center" style={{ fontSize: '0.95rem' }}>
+                              <FontAwesomeIcon icon={faClock} className="me-2 text-primary" size="sm" />
+                              <span className="text-nowrap">
+                                {formatTimeSlot(
+                                  appointment.slotStartTime, 
+                                  appointment.slotEndTime
+                                )}
+                              </span>
+                            </div>
+                          </td>                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                            <div className="d-flex align-items-center" style={{ fontSize: '0.95rem' }}>
+                              <FontAwesomeIcon icon={faUserMd} className="me-2 text-success" size="sm" />
+                              <span className="fw-medium text-nowrap">{appointment.doctorName}</span>
+                            </div>
+                          </td>                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                            <div className="d-flex align-items-center gap-2">
+                              <Badge bg="info" pill style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                                {getAppointmentTypeLabel(appointment.appointmentType)}
+                              </Badge>
+                              {appointment.medicalResultId && (
+                                <Badge bg="success" pill style={{ fontSize: '0.7rem', padding: '4px 8px' }} title="Có kết quả xét nghiệm">
+                                  <FontAwesomeIcon icon={faFlask} size="sm" />
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                            {getStatusBadge(appointment.status)}
+                          </td>
+                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                            <div className="d-flex gap-2 flex-wrap justify-content-center">
+                              {(appointment.status === 'ACCEPTED' || appointment.status === 'COMPLETED') ? (
+                                <Button
+                                  variant="outline-info"
+                                  size="sm"
+                                  onClick={() => handleViewDetail(appointment)}
+                                  style={{ fontSize: '0.8rem', padding: '8px 16px', minWidth: '120px' }}
+                                >
+                                  <FontAwesomeIcon icon={faEye} className="me-2" size="sm" />
+                                  Xem chi tiết
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  onClick={() => handleCancelClick(appointment)}
+                                  style={{ fontSize: '0.8rem', padding: '8px 16px', minWidth: '120px' }}
+                                >
+                                  <FontAwesomeIcon icon={faTimes} className="me-2" size="sm" />
+                                  Hủy đơn
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                      })}
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
             </div>
           )}
         </Card.Body>
@@ -400,207 +422,213 @@ const AppointmentHistory = () => {
         show={showDetailModal}
         onHide={() => setShowDetailModal(false)}
         centered 
-        size="lg"
-        style={{ 
+        size="xl"
+        className="appointment-detail-modal-new"
+        backdrop={false}
+        dialogClassName="modal-70vw"
+        style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 0,
-          transform: 'translateX(50px)'
+          width: '100vw',
+          height: '100vh'
         }}
-        dialogClassName=""
+        contentClassName="modal-content-70vw"
       >
-        <Modal.Header closeButton>
+        <Modal.Header closeButton className="border-bottom-0">
           <Modal.Title>
             <FontAwesomeIcon icon={faEye} className="text-info me-2" />
             Chi tiết lịch hẹn
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body 
+          className="p-0"
+          style={{
+            width: '100%',
+            minHeight: '70vh',
+            maxHeight: '80vh'
+          }}
+        >
           {loadingDetail ? (
-            <div className="text-center py-4">
+            <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
               <p className="mt-2 mb-0">Đang tải chi tiết lịch hẹn...</p>
             </div>
           ) : appointmentDetail ? (
-            <div>
-              {/* Thông tin cơ bản */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <h6 className="text-primary mb-2">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                    Thông tin lịch hẹn
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    <p className="mb-2">
-                      <strong>Mã lịch hẹn:</strong> 
-                      <span className="text-muted ms-2">{appointmentDetail.id}</span>
-                    </p>
-                    <p className="mb-2">
-                      <strong>Ngày khám:</strong> 
-                      <span className="ms-2">{formatDate(appointmentDetail.appointmentDate)}</span>
-                    </p>
-                    <p className="mb-2">
-                      <strong>Giờ khám:</strong> 
-                      <span className="ms-2">
+            <div 
+              className="appointment-detail-grid"
+              style={{
+                width: '100%',
+                height: '100%',
+                minHeight: '70vh'
+              }}
+            >
+              {/* Ô 1: Thông tin lịch hẹn (lớn bên trái) */}
+              <div className="appointment-info-card">
+                <div className="card-header">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                  Thông tin lịch hẹn
+                </div>
+                <div className="card-content">
+                  <div className="info-item">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="info-icon" />
+                    <div className="info-content">
+                      <span className="info-label">Ngày khám</span>
+                      <span className="info-value">{formatDate(appointmentDetail.appointmentDate)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <FontAwesomeIcon icon={faClock} className="info-icon" />
+                    <div className="info-content">
+                      <span className="info-label">Giờ khám</span>
+                      <span className="info-value">
                         {formatTimeSlot(appointmentDetail.slotStartTime, appointmentDetail.slotEndTime)}
                       </span>
-                    </p>
-                    <p className="mb-2">
-                      <strong>Loại khám:</strong> 
-                      <Badge bg="info" className="ms-2">
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <FontAwesomeIcon icon={faUserMd} className="info-icon" />
+                    <div className="info-content">
+                      <span className="info-label">Tên Bác sĩ</span>
+                      <span className="info-value">{appointmentDetail.doctorName}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <FontAwesomeIcon icon={faStethoscope} className="info-icon" />
+                    <div className="info-content">
+                      <span className="info-label">Loại khám</span>
+                      <Badge bg="info" className="ms-1">
                         {getAppointmentTypeLabel(appointmentDetail.appointmentType)}
                       </Badge>
-                    </p>
-                    <p className="mb-0">
-                      <strong>Trạng thái:</strong> 
-                      <span className="ms-2">{getStatusBadge(appointmentDetail.status)}</span>
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="col-md-6">
-                  <h6 className="text-success mb-2">
-                    <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                    Thông tin bác sĩ
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    <p className="mb-2">
-                      <strong>Tên bác sĩ:</strong> 
-                      <span className="ms-2">{appointmentDetail.doctorName}</span>
-                    </p>
-                    {appointmentDetail.doctorSpecialty && (
-                      <p className="mb-2">
-                        <strong>Chuyên khoa:</strong> 
-                        <span className="ms-2">{appointmentDetail.doctorSpecialty}</span>
-                      </p>
-                    )}
-                    {appointmentDetail.doctorPhone && (
-                      <p className="mb-0">
-                        <strong>Điện thoại:</strong> 
-                        <span className="ms-2">{appointmentDetail.doctorPhone}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Thông tin khám bệnh */}
-              {(appointmentDetail.alternativeName || appointmentDetail.alternativePhoneNumber || appointmentDetail.reason) && (
-                <div className="mb-3">
-                  <h6 className="text-warning mb-2">
-                    <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                    Thông tin khám bệnh
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    {appointmentDetail.alternativeName && (
-                      <p className="mb-2">
-                        <strong>Tên người khám:</strong> 
-                        <span className="ms-2">{appointmentDetail.alternativeName}</span>
-                      </p>
-                    )}
-                    {appointmentDetail.alternativePhoneNumber && (
-                      <p className="mb-2">
-                        <strong>Số điện thoại:</strong> 
-                        <span className="ms-2">{appointmentDetail.alternativePhoneNumber}</span>
-                      </p>
-                    )}
-                    {appointmentDetail.reason && (
-                      <p className="mb-0">
-                        <strong>Lý do khám:</strong> 
-                        <span className="ms-2">{appointmentDetail.reason}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Ghi chú */}
-              {appointmentDetail.notes && (
-                <div className="mb-3">
-                  <h6 className="text-secondary mb-2">
-                    <FontAwesomeIcon icon={faFileMedical} className="me-2" />
-                    Ghi chú
-                  </h6>
-                  <div className="bg-light p-3 rounded">
-                    <p className="mb-0">{appointmentDetail.notes}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Kết quả xét nghiệm */}
-              <div className="mb-3">
-                <h6 className="text-info mb-2">
-                  <FontAwesomeIcon icon={faFlask} className="me-2" />
-                  Kết quả xét nghiệm
-                </h6>
-                <div className="bg-light p-3 rounded">
-                  {appointmentDetail.medicalResultId ? (
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <p className="mb-1">
-                          <strong>Mã kết quả:</strong> 
-                          <span className="ms-2 text-primary">{appointmentDetail.medicalResultId}</span>
-                        </p>
-                        <p className="mb-0 text-success">
-                          <FontAwesomeIcon icon={faFlask} className="me-1" />
-                          Kết quả xét nghiệm đã có sẵn
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline-info"
-                        size="sm"
-                        onClick={() => {
-                          setShowDetailModal(false);
-                          handleViewMedicalResult(appointmentDetail.medicalResultId);
-                        }}
-                        className="ms-3"
-                      >
-                        <FontAwesomeIcon icon={faEye} className="me-1" />
-                        Xem chi tiết
-                      </Button>
                     </div>
-                  ) : (
-                    <div className="text-center py-2">
-                      <FontAwesomeIcon icon={faExclamationTriangle} className="text-muted me-2" />
-                      <span className="text-muted">Chưa có kết quả xét nghiệm</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="info-icon" />
+                    <div className="info-content">
+                      <span className="info-label">Trạng thái</span>
+                      <span className="info-value">{getStatusBadge(appointmentDetail.status)}</span>
+                    </div>
+                  </div>
+
+                  {appointmentDetail.reason && (
+                    <div className="info-item">
+                      <FontAwesomeIcon icon={faFileMedical} className="info-icon" />
+                      <div className="info-content">
+                        <span className="info-label">Lý do khám</span>
+                        <span className="info-value">{appointmentDetail.reason}</span>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Thông tin thời gian */}
-              <div className="row">
-                {appointmentDetail.createdAt && (
-                  <div className="col-md-6">
-                    <small className="text-muted">
-                      <strong>Thời gian đặt:</strong> {' '}
-                      {new Date(appointmentDetail.createdAt).toLocaleString('vi-VN')}
-                    </small>
-                  </div>
-                )}
-                {appointmentDetail.updatedAt && (
-                  <div className="col-md-6">
-                    <small className="text-muted">
-                      <strong>Cập nhật lần cuối:</strong> {' '}
-                      {new Date(appointmentDetail.updatedAt).toLocaleString('vi-VN')}
-                    </small>
-                  </div>
-                )}
+              {/* Ô 2: Thông tin khám bệnh (nhỏ trên bên phải) */}
+              <div className="patient-info-card">
+                <div className="card-header">
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Thông tin Khám bệnh
+                </div>
+                <div className="card-content">
+                  {appointmentDetail.alternativeName && (
+                    <div className="info-item-small">
+                      <FontAwesomeIcon icon={faUser} className="info-icon-small" />
+                      <div className="info-content-small">
+                        <span className="info-label-small">Tên người khám</span>
+                        <span className="info-value-small">{appointmentDetail.alternativeName}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {appointmentDetail.alternativePhoneNumber && (
+                    <div className="info-item-small">
+                      <FontAwesomeIcon icon={faPhone} className="info-icon-small" />
+                      <div className="info-content-small">
+                        <span className="info-label-small">Số điện thoại</span>
+                        <span className="info-value-small">{appointmentDetail.alternativePhoneNumber}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {appointmentDetail.birthdate && (
+                    <div className="info-item-small">
+                      <FontAwesomeIcon icon={faBirthdayCake} className="info-icon-small" />
+                      <div className="info-content-small">
+                        <span className="info-label-small">Ngày sinh</span>
+                        <span className="info-value-small">{formatDate(appointmentDetail.birthdate)}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {appointmentDetail.gender && (
+                    <div className="info-item-small">
+                      <FontAwesomeIcon icon={faVenusMars} className="info-icon-small" />
+                      <div className="info-content-small">
+                        <span className="info-label-small">Giới tính</span>
+                        <span className="info-value-small">
+                          {appointmentDetail.gender === 'MALE' ? 'Nam' : 'Nữ'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ô 3: Xem kết quả xét nghiệm (giữa bên phải) */}
+              <div className="medical-result-card">
+                <div className="card-header">
+                  <FontAwesomeIcon icon={faFlask} className="me-2" />
+                  Kết quả xét nghiệm
+                </div>
+                <div className="card-content">
+                  {appointmentDetail.medicalResultId ? (
+                    <div className="text-center">
+                  
+                      <Button
+                        variant="info"
+                        size="sm"
+                        onClick={() => {
+                          setShowDetailModal(false);
+                          handleViewMedicalResult(appointmentDetail.medicalResultId);
+                        }}
+                        className="w-100"
+                      >
+                        <FontAwesomeIcon icon={faFlask} className="me-2" />
+                        Xem Kết quả xét nghiệm
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted">
+                      <p className="mb-0 small">Chưa có kết quả xét nghiệm</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ô 4: Nút đóng (nhỏ dưới bên phải) */}
+              <div className="close-button-card">
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setShowDetailModal(false)}
+                  size="sm"
+                >
+                  <FontAwesomeIcon icon={faTimes} className="me-2" />
+                  Đóng
+                </Button>
               </div>
             </div>
           ) : (
-            <Alert variant="danger">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-              Không thể tải chi tiết lịch hẹn. Vui lòng thử lại.
-            </Alert>
+            <div className="p-4">
+              <Alert variant="danger">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                Không thể tải chi tiết lịch hẹn. Vui lòng thử lại.
+              </Alert>
+            </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-            Đóng
-          </Button>
-        </Modal.Footer>
       </Modal>
 
       {/* Modal Kết quả xét nghiệm */}
@@ -659,10 +687,7 @@ const AppointmentHistory = () => {
                  fontWeight: '400',
                  letterSpacing: '0.5px'
                }}>
-                 {currentMedicalResultId 
-                   ? `Mã kết quả: ${currentMedicalResultId}` 
-                   : 'Báo cáo chi tiết sức khỏe'
-                 }
+                 Báo cáo chi tiết sức khỏe & Kết quả xét nghiệm
                </div>
              </div>
           </Modal.Title>
@@ -895,17 +920,99 @@ const AppointmentHistory = () => {
                   Kết quả ARV
                 </Card.Header>
                 <Card.Body>
-                   <div className="bg-light p-3 rounded">
-                     <p className="mb-0">
-                       <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
-                       <strong>Báo cáo ARV:</strong> {medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL || 'Chưa có báo cáo'}
-                     </p>
-                     {(medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations) && (
-                       <p className="mb-0 mt-2">
-                         <strong>Khuyến nghị:</strong> {medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations}
-                       </p>
-                     )}
-                   </div>
+                  {(medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL) ? (
+                    <div 
+                      className="card border-0"
+                      style={{
+                        background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+                        borderRadius: '12px'
+                      }}
+                    >
+                      <div className="card-body p-4">
+                        <div className="d-flex align-items-center justify-content-between">
+                          <div className="d-flex align-items-center">
+                            <div 
+                              className="me-3"
+                              style={{
+                                backgroundColor: '#f44336',
+                                borderRadius: '50%',
+                                width: '50px',
+                                height: '50px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <FontAwesomeIcon icon={faFilePdf} className="text-white" size="lg" />
+                            </div>
+                            <div>
+                              <h6 className="mb-1 text-danger fw-bold">
+                                <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+                                Báo cáo ARV có sẵn
+                              </h6>
+                              <p className="mb-0 text-muted small">
+                                Nhấn "Xem kết quả" để mở báo cáo PDF
+                              </p>
+                              {(medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations) && (
+                                <p className="mb-0 mt-2 small text-dark">
+                                  <strong>Khuyến nghị:</strong> {medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => {
+                              const pdfUrl = medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL;
+                              if (pdfUrl) {
+                                window.open(pdfUrl, '_blank');
+                              }
+                            }}
+                            style={{
+                              borderRadius: '25px',
+                              padding: '8px 20px',
+                              fontWeight: '500',
+                              boxShadow: '0 2px 4px rgba(244, 67, 54, 0.3)'
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+                            Xem kết quả
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      className="card border-0"
+                      style={{
+                        background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
+                        borderRadius: '12px'
+                      }}
+                    >
+                      <div className="card-body p-4 text-center">
+                        <div 
+                          className="mb-3"
+                          style={{
+                            backgroundColor: '#e0e0e0',
+                            borderRadius: '50%',
+                            width: '60px',
+                            height: '60px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto'
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faFilePdf} className="text-muted" size="lg" />
+                        </div>
+                        <h6 className="text-muted mb-2">Chưa có báo cáo ARV</h6>
+                        <p className="text-muted small mb-0">
+                          Báo cáo ARV sẽ được cập nhật sau khi hoàn tất phân tích
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </Card.Body>
               </Card>
 
