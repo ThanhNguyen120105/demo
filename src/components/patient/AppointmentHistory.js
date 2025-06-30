@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Modal, Badge, Spinner, Alert, Row, Col } from 'react-bootstrap';
+import { Card, Table, Button, Modal, Badge, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCalendarAlt, 
@@ -18,7 +18,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { appointmentAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import AppointmentDetailModal from '../common/AppointmentDetailModal';
 import './AppointmentHistory.css';
 
 const AppointmentHistory = () => {
@@ -33,6 +32,8 @@ const AppointmentHistory = () => {
   const [showMedicalResultModal, setShowMedicalResultModal] = useState(false);
   const [medicalResult, setMedicalResult] = useState(null);
   const [loadingMedicalResult, setLoadingMedicalResult] = useState(false);
+  const [currentMedicalResultId, setCurrentMedicalResultId] = useState(null);
+
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -111,21 +112,34 @@ const AppointmentHistory = () => {
     }
   };
 
-  // Hàm xem chi tiết kết quả xét nghiệm
+    // Hàm xem kết quả xét nghiệm - chỉ từ cột "Kết quả XN"
   const handleViewMedicalResult = async (medicalResultId) => {
+    console.log('🔍 Opening medical result modal for ID:', medicalResultId);
     setLoadingMedicalResult(true);
     setShowMedicalResultModal(true);
     setMedicalResult(null);
+    setCurrentMedicalResultId(medicalResultId);
+    
+    // Nếu không có medicalResultId, hiển thị thông báo
+    if (!medicalResultId) {
+      console.log('⚠️ No medicalResultId provided');
+      setLoadingMedicalResult(false);
+      return;
+    }
     
     try {
       console.log('Loading medical result for ID:', medicalResultId);
       const result = await medicalResultAPI.getMedicalResult(medicalResultId);
       
       if (result.success) {
-        console.log('Medical result loaded:', result.data);
+        console.log('✅ Medical result loaded successfully:', result.data);
+        console.log('🔍 Data structure:', result.data ? Object.keys(result.data) : 'No data');
+        console.log('🔍 Data content:', JSON.stringify(result.data, null, 2));
         setMedicalResult(result.data);
       } else {
-        console.error('Failed to load medical result:', result.message);
+        console.error('❌ Failed to load medical result:', result.message);
+        console.error('❌ Error details:', result.error);
+        console.error('❌ Status:', result.status);
         setMedicalResult(null);
       }
     } catch (error) {
@@ -235,12 +249,15 @@ const AppointmentHistory = () => {
             </div>
           ) : (            <div className="table-responsive">
               <Table striped bordered hover size="sm" style={{ fontSize: '0.9rem' }}>
-                <thead className="table-light" style={{ fontSize: '0.85rem' }}><tr>                    <th style={{ width: '25%' }}>Ngày khám</th>
-                    <th style={{ width: '15%' }}>Giờ khám</th>
-                    <th style={{ width: '20%' }}>Bác sĩ</th>
-                    <th style={{ width: '15%' }}>Loại khám</th>
-                    <th style={{ width: '15%' }}>Trạng thái</th>
-                    <th style={{ width: '10%' }}>Thao tác</th>
+                <thead className="table-light" style={{ fontSize: '0.85rem' }}>
+                  <tr>
+                    <th style={{ width: '22%' }}>Ngày khám</th>
+                    <th style={{ width: '13%' }}>Giờ khám</th>
+                    <th style={{ width: '18%' }}>Bác sĩ</th>
+                    <th style={{ width: '13%' }}>Loại khám</th>
+                    <th style={{ width: '13%' }}>Trạng thái</th>
+                    <th style={{ width: '10%' }}>Chi tiết</th>
+                    <th style={{ width: '11%' }}>Kết quả XN</th>
                   </tr>
                 </thead>                <tbody>
                   {appointments.map((appointment, index) => {
@@ -290,17 +307,6 @@ const AppointmentHistory = () => {
                         {getStatusBadge(appointment.status)}
                       </td>
                       <td>
-                        {canCancelAppointment(appointment) ? (
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => handleCancelClick(appointment)}
-                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
-                          >
-                            <FontAwesomeIcon icon={faTimes} className="me-1" size="sm" />
-                            Hủy
-                          </Button>
-                        ) : (
                           <div className="d-flex gap-1 flex-wrap">
                             <Button
                               variant="outline-info"
@@ -311,20 +317,30 @@ const AppointmentHistory = () => {
                               <FontAwesomeIcon icon={faEye} className="me-1" size="sm" />
                               Chi tiết
                             </Button>
-                            {appointment.medicalResultId && (
+                          {canCancelAppointment(appointment) && (
                               <Button
-                                variant="outline-success"
+                              variant="outline-danger"
                                 size="sm"
-                                onClick={() => handleViewMedicalResult(appointment.medicalResultId)}
+                              onClick={() => handleCancelClick(appointment)}
                                 style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
-                                title="Xem kết quả xét nghiệm"
                               >
-                                <FontAwesomeIcon icon={faFlask} className="me-1" size="sm" />
-                                KQ XN
+                              <FontAwesomeIcon icon={faTimes} className="me-1" size="sm" />
+                              Hủy
                               </Button>
                             )}
                           </div>
-                        )}
+                      </td>
+                                            <td>
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          onClick={() => handleViewMedicalResult(appointment.medicalResultId)}
+                          style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
+                          title="Xem chi tiết kết quả xét nghiệm"
+                        >
+                          <FontAwesomeIcon icon={faFlask} className="me-1" size="sm" />
+                          Chi tiết
+                        </Button>
                       </td>
                     </tr>
                   );
@@ -379,67 +395,313 @@ const AppointmentHistory = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal chi tiết lịch hẹn - sử dụng component chung */}
-      <AppointmentDetailModal
+      {/* Modal chi tiết lịch hẹn */}
+      <Modal 
         show={showDetailModal}
         onHide={() => setShowDetailModal(false)}
-        appointmentDetail={appointmentDetail}
-        loading={loadingDetail}
-        onViewMedicalResult={handleViewMedicalResult}
-        formatDate={formatDate}
-        formatTimeSlot={formatTimeSlot}
-        getAppointmentTypeLabel={getAppointmentTypeLabel}
-        getStatusBadge={getStatusBadge}
-      />
+        centered 
+        size="lg"
+        style={{ 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          transform: 'translateX(50px)'
+        }}
+        dialogClassName=""
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FontAwesomeIcon icon={faEye} className="text-info me-2" />
+            Chi tiết lịch hẹn
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingDetail ? (
+            <div className="text-center py-4">
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-2 mb-0">Đang tải chi tiết lịch hẹn...</p>
+            </div>
+          ) : appointmentDetail ? (
+            <div>
+              {/* Thông tin cơ bản */}
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <h6 className="text-primary mb-2">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                    Thông tin lịch hẹn
+                  </h6>
+                  <div className="bg-light p-3 rounded">
+                    <p className="mb-2">
+                      <strong>Mã lịch hẹn:</strong> 
+                      <span className="text-muted ms-2">{appointmentDetail.id}</span>
+                    </p>
+                    <p className="mb-2">
+                      <strong>Ngày khám:</strong> 
+                      <span className="ms-2">{formatDate(appointmentDetail.appointmentDate)}</span>
+                    </p>
+                    <p className="mb-2">
+                      <strong>Giờ khám:</strong> 
+                      <span className="ms-2">
+                        {formatTimeSlot(appointmentDetail.slotStartTime, appointmentDetail.slotEndTime)}
+                      </span>
+                    </p>
+                    <p className="mb-2">
+                      <strong>Loại khám:</strong> 
+                      <Badge bg="info" className="ms-2">
+                        {getAppointmentTypeLabel(appointmentDetail.appointmentType)}
+                      </Badge>
+                    </p>
+                    <p className="mb-0">
+                      <strong>Trạng thái:</strong> 
+                      <span className="ms-2">{getStatusBadge(appointmentDetail.status)}</span>
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="col-md-6">
+                  <h6 className="text-success mb-2">
+                    <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                    Thông tin bác sĩ
+                  </h6>
+                  <div className="bg-light p-3 rounded">
+                    <p className="mb-2">
+                      <strong>Tên bác sĩ:</strong> 
+                      <span className="ms-2">{appointmentDetail.doctorName}</span>
+                    </p>
+                    {appointmentDetail.doctorSpecialty && (
+                      <p className="mb-2">
+                        <strong>Chuyên khoa:</strong> 
+                        <span className="ms-2">{appointmentDetail.doctorSpecialty}</span>
+                      </p>
+                    )}
+                    {appointmentDetail.doctorPhone && (
+                      <p className="mb-0">
+                        <strong>Điện thoại:</strong> 
+                        <span className="ms-2">{appointmentDetail.doctorPhone}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-      {/* Modal chi tiết lịch hẹn - sử dụng component chung */}
-      <AppointmentDetailModal
-        show={showDetailModal}
-        onHide={() => setShowDetailModal(false)}
-        appointmentDetail={appointmentDetail}
-        loading={loadingDetail}
-        onViewMedicalResult={handleViewMedicalResult}
-        formatDate={formatDate}
-        formatTimeSlot={formatTimeSlot}
-        getAppointmentTypeLabel={getAppointmentTypeLabel}
-        getStatusBadge={getStatusBadge}
-      />
+              {/* Thông tin khám bệnh */}
+              {(appointmentDetail.alternativeName || appointmentDetail.alternativePhoneNumber || appointmentDetail.reason) && (
+                <div className="mb-3">
+                  <h6 className="text-warning mb-2">
+                    <FontAwesomeIcon icon={faStethoscope} className="me-2" />
+                    Thông tin khám bệnh
+                  </h6>
+                  <div className="bg-light p-3 rounded">
+                    {appointmentDetail.alternativeName && (
+                      <p className="mb-2">
+                        <strong>Tên người khám:</strong> 
+                        <span className="ms-2">{appointmentDetail.alternativeName}</span>
+                      </p>
+                    )}
+                    {appointmentDetail.alternativePhoneNumber && (
+                      <p className="mb-2">
+                        <strong>Số điện thoại:</strong> 
+                        <span className="ms-2">{appointmentDetail.alternativePhoneNumber}</span>
+                      </p>
+                    )}
+                    {appointmentDetail.reason && (
+                      <p className="mb-0">
+                        <strong>Lý do khám:</strong> 
+                        <span className="ms-2">{appointmentDetail.reason}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Ghi chú */}
+              {appointmentDetail.notes && (
+                <div className="mb-3">
+                  <h6 className="text-secondary mb-2">
+                    <FontAwesomeIcon icon={faFileMedical} className="me-2" />
+                    Ghi chú
+                  </h6>
+                  <div className="bg-light p-3 rounded">
+                    <p className="mb-0">{appointmentDetail.notes}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Kết quả xét nghiệm */}
+              <div className="mb-3">
+                <h6 className="text-info mb-2">
+                  <FontAwesomeIcon icon={faFlask} className="me-2" />
+                  Kết quả xét nghiệm
+                </h6>
+                <div className="bg-light p-3 rounded">
+                  {appointmentDetail.medicalResultId ? (
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <p className="mb-1">
+                          <strong>Mã kết quả:</strong> 
+                          <span className="ms-2 text-primary">{appointmentDetail.medicalResultId}</span>
+                        </p>
+                        <p className="mb-0 text-success">
+                          <FontAwesomeIcon icon={faFlask} className="me-1" />
+                          Kết quả xét nghiệm đã có sẵn
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        onClick={() => {
+                          setShowDetailModal(false);
+                          handleViewMedicalResult(appointmentDetail.medicalResultId);
+                        }}
+                        className="ms-3"
+                      >
+                        <FontAwesomeIcon icon={faEye} className="me-1" />
+                        Xem chi tiết
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-2">
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="text-muted me-2" />
+                      <span className="text-muted">Chưa có kết quả xét nghiệm</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Thông tin thời gian */}
+              <div className="row">
+                {appointmentDetail.createdAt && (
+                  <div className="col-md-6">
+                    <small className="text-muted">
+                      <strong>Thời gian đặt:</strong> {' '}
+                      {new Date(appointmentDetail.createdAt).toLocaleString('vi-VN')}
+                    </small>
+                  </div>
+                )}
+                {appointmentDetail.updatedAt && (
+                  <div className="col-md-6">
+                    <small className="text-muted">
+                      <strong>Cập nhật lần cuối:</strong> {' '}
+                      {new Date(appointmentDetail.updatedAt).toLocaleString('vi-VN')}
+                    </small>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <Alert variant="danger">
+              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+              Không thể tải chi tiết lịch hẹn. Vui lòng thử lại.
+            </Alert>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Modal Kết quả xét nghiệm */}
       <Modal 
         show={showMedicalResultModal} 
-        onHide={() => setShowMedicalResultModal(false)} 
-        size="xl"
+        onHide={() => {
+          setShowMedicalResultModal(false);
+          setMedicalResult(null);
+          setCurrentMedicalResultId(null);
+        }} 
         centered
         scrollable
-        dialogClassName="medical-result-modal"
+        backdrop="static"
+        keyboard={false}
+        dialogClassName="medical-result-modal-80"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faFlask} className="me-2" />
-            Xem kết quả xét nghiệm
-            {medicalResult && (
-              <div className="text-muted fs-6">
-                Mã kết quả: {medicalResult.id}
+        <Modal.Header 
+          closeButton 
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            padding: '1.5rem 2rem',
+            borderRadius: '0.5rem 0.5rem 0 0'
+          }}
+        >
+          <Modal.Title 
+            style={{
+              color: 'white',
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              margin: 0
+            }}
+          >
+            <div 
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                padding: '12px',
+                marginRight: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <FontAwesomeIcon icon={faFlask} style={{ fontSize: '1.2rem' }} />
               </div>
-            )}
+                         <div>
+               <div style={{ fontSize: '1.5rem', marginBottom: '2px' }}>
+                 Kết quả Xét nghiệm
+               </div>
+               <div style={{ 
+                 fontSize: '0.9rem', 
+                 opacity: 0.9, 
+                 fontWeight: '400',
+                 letterSpacing: '0.5px'
+               }}>
+                 {currentMedicalResultId 
+                   ? `Mã kết quả: ${currentMedicalResultId}` 
+                   : 'Báo cáo chi tiết sức khỏe'
+                 }
+               </div>
+             </div>
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="px-4 py-3" style={{ paddingLeft: '5%' }}>
+                          <Modal.Body className="px-4 py-3" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {loadingMedicalResult ? (
             <div className="text-center py-4">
               <Spinner animation="border" variant="info" />
               <p className="mt-2 mb-0">Đang tải kết quả xét nghiệm...</p>
             </div>
-          ) : medicalResult ? (
-            <div className="medical-report-view">
+           ) : !medicalResult ? (
+             <div className="text-center py-5">
+               <FontAwesomeIcon icon={faFlask} size="3x" className="text-muted mb-3" />
+               <h5 className="text-muted mb-2">Chưa có kết quả xét nghiệm</h5>
+                                <p className="text-muted">
+                   {currentMedicalResultId 
+                     ? 'Không thể tải kết quả xét nghiệm. Vui lòng thử lại sau hoặc liên hệ bác sĩ.'
+                     : 'Kết quả xét nghiệm chưa được cập nhật cho lịch hẹn này. Vui lòng liên hệ với bác sĩ để biết thêm chi tiết.'
+                   }
+                 </p>
+                 {currentMedicalResultId && (
+                   <Button 
+                     variant="outline-info" 
+                     size="sm" 
+                     onClick={() => handleViewMedicalResult(currentMedicalResultId)}
+                     className="mt-2"
+                   >
+                     <FontAwesomeIcon icon={faRefresh} className="me-1" />
+                     Thử lại
+                   </Button>
+                 )}
+             </div>
+                      ) : (
+             <div className="medical-report-form">
               {/* Thông tin cơ bản bệnh nhân */}
-              <Row className="mb-4">
-                <Col md={12}>
-                  <Card className="h-100">
+               <Card className="mb-3">
                     <Card.Header className="bg-primary text-white py-2">
                       <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                      Thông tin bệnh nhân
+                   Thông tin cơ bản
                     </Card.Header>
                     <Card.Body>
                       <Row>
@@ -477,7 +739,7 @@ const AppointmentHistory = () => {
                         </Col>
                       </Row>
                       <Row>
-                        <Col md={4}>
+                     <Col md={6}>
                           <div className="mb-3">
                             <label className="form-label">Nhịp tim (bpm)</label>
                             <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
@@ -485,7 +747,7 @@ const AppointmentHistory = () => {
                             </div>
                           </div>
                         </Col>
-                        <Col md={8}>
+                     <Col md={6}>
                           <div className="mb-3">
                             <label className="form-label">Huyết áp (mmHg)</label>
                             <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
@@ -496,154 +758,129 @@ const AppointmentHistory = () => {
                       </Row>
                     </Card.Body>
                   </Card>
-                </Col>
-              </Row>
 
-              {/* Xét nghiệm HIV */}
+               {/* Phần kết quả xét nghiệm */}
               <Card className="mb-3">
-                <Card.Header className="bg-info text-white py-2">
+                 <Card.Header className="bg-warning text-dark py-2">
                   <FontAwesomeIcon icon={faVial} className="me-2" />
-                  Xét nghiệm HIV
+                   Kết quả xét nghiệm
                 </Card.Header>
                 <Card.Body>
+                   <h6 className="mb-3">Xét nghiệm HIV</h6>
                   <Row>
                     <Col md={6}>
                       <div className="mb-3">
-                        <label className="form-label">Chỉ số CD4 (tế bào/mm³)</label>
+                         <label className="form-label">Chỉ số CD4</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.cd4Count || 'Chưa nhập'}
+                           {medicalResult.cd4Count ? `${medicalResult.cd4Count} tế bào/mm³` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={6}>
                       <div className="mb-3">
-                        <label className="form-label">Tải lượng virus (bản sao/mL)</label>
+                         <label className="form-label">Tải lượng virus</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.viralLoad || 'Chưa nhập'}
+                           {medicalResult.viralLoad ? `${medicalResult.viralLoad} bản sao/mL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                   </Row>
-                </Card.Body>
-              </Card>
 
-              {/* Huyết học */}
-              <Card className="mb-3">
-                <Card.Header className="bg-success text-white py-2">
-                  <FontAwesomeIcon icon={faVial} className="me-2" />
-                  Huyết học
-                </Card.Header>
-                <Card.Body>
+                   <h6 className="mb-3 mt-4">Huyết học</h6>
                   <Row>
                     <Col md={4}>
                       <div className="mb-3">
-                        <label className="form-label">Hemoglobin (g/dL)</label>
+                         <label className="form-label">Hemoglobin</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.hemoglobin || 'Chưa nhập'}
+                           {medicalResult.hemoglobin ? `${medicalResult.hemoglobin} g/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={4}>
                       <div className="mb-3">
-                        <label className="form-label">Bạch cầu (× 10³/μL)</label>
+                         <label className="form-label">Bạch cầu</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.whiteBloodCell || 'Chưa nhập'}
+                           {medicalResult.whiteBloodCell ? `${medicalResult.whiteBloodCell} × 10³/μL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={4}>
                       <div className="mb-3">
-                        <label className="form-label">Tiểu cầu (× 10³/μL)</label>
+                         <label className="form-label">Tiểu cầu</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.platelets || 'Chưa nhập'}
+                           {medicalResult.platelets ? `${medicalResult.platelets} × 10³/μL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                   </Row>
-                </Card.Body>
-              </Card>
 
-              {/* Sinh hóa */}
-              <Card className="mb-3">
-                <Card.Header className="bg-warning text-dark py-2">
-                  <FontAwesomeIcon icon={faVial} className="me-2" />
-                  Sinh hóa
-                </Card.Header>
-                <Card.Body>
+                   <h6 className="mb-3 mt-4">Sinh hóa</h6>
                   <Row>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">Đường huyết (mg/dL)</label>
+                         <label className="form-label">Đường huyết</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.glucose || 'Chưa nhập'}
+                           {medicalResult.glucose ? `${medicalResult.glucose} mg/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">Creatinine (mg/dL)</label>
+                         <label className="form-label">Creatinine</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.creatinine || 'Chưa nhập'}
+                           {medicalResult.creatinine ? `${medicalResult.creatinine} mg/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">ALT (U/L)</label>
+                         <label className="form-label">ALT</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.alt || 'Chưa nhập'}
+                           {medicalResult.alt ? `${medicalResult.alt} U/L` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">AST (U/L)</label>
+                         <label className="form-label">AST</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.ast || 'Chưa nhập'}
+                           {medicalResult.ast ? `${medicalResult.ast} U/L` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                   </Row>
-                </Card.Body>
-              </Card>
 
-              {/* Chỉ số mỡ máu */}
-              <Card className="mb-3">
-                <Card.Header className="bg-secondary text-white py-2">
-                  <FontAwesomeIcon icon={faVial} className="me-2" />
-                  Chỉ số mỡ máu
-                </Card.Header>
-                <Card.Body>
+                   <h6 className="mb-3 mt-4">Chỉ số mỡ máu</h6>
                   <Row>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">Cholesterol toàn phần (mg/dL)</label>
+                         <label className="form-label">Cholesterol toàn phần</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.totalCholesterol || 'Chưa nhập'}
+                           {medicalResult.totalCholesterol ? `${medicalResult.totalCholesterol} mg/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">LDL (mg/dL)</label>
+                         <label className="form-label">LDL</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.ldl || 'Chưa nhập'}
+                           {medicalResult.ldl ? `${medicalResult.ldl} mg/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">HDL (mg/dL)</label>
+                         <label className="form-label">HDL</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.hdl || 'Chưa nhập'}
+                           {medicalResult.hdl ? `${medicalResult.hdl} mg/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
                     <Col md={3}>
                       <div className="mb-3">
-                        <label className="form-label">Triglycerides (mg/dL)</label>
+                         <label className="form-label">Triglycerides</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                          {medicalResult.triglycerides || 'Chưa nhập'}
+                           {medicalResult.triglycerides ? `${medicalResult.triglycerides} mg/dL` : 'Chưa nhập'}
                         </div>
                       </div>
                     </Col>
@@ -651,13 +888,14 @@ const AppointmentHistory = () => {
                 </Card.Body>
               </Card>
 
-              {/* Phần ARV */}
+               {/* Phần ARV (chỉ xem) */}
               <Card className="mb-3">
                 <Card.Header className="bg-danger text-white py-2">
                   <FontAwesomeIcon icon={faFilePdf} className="me-2" />
                   Kết quả ARV
                 </Card.Header>
                 <Card.Body>
+<<<<<<< HEAD
                   <div className="mb-3">
                     <label className="form-label">Báo cáo ARV</label>
                     {(medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL) ? (
@@ -694,10 +932,23 @@ const AppointmentHistory = () => {
                       </div>
                     </div>
                   )}
+=======
+                   <div className="bg-light p-3 rounded">
+                     <p className="mb-0">
+                       <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
+                       <strong>Báo cáo ARV:</strong> {medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL || 'Chưa có báo cáo'}
+                     </p>
+                     {(medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations) && (
+                       <p className="mb-0 mt-2">
+                         <strong>Khuyến nghị:</strong> {medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations}
+                       </p>
+                     )}
+                   </div>
+>>>>>>> a4d4a3af3b94c0b4c19c2fe5f7cbec73a06c89eb
                 </Card.Body>
               </Card>
 
-              {/* Phần thuốc điều trị */}
+               {/* Phần thuốc (chỉ xem) */}
               <Card className="mb-3">
                 <Card.Header className="bg-success text-white py-2">
                   <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
@@ -706,8 +957,8 @@ const AppointmentHistory = () => {
                 <Card.Body>
                   {medicalResult.medicalResultMedicines && medicalResult.medicalResultMedicines.length > 0 ? (
                     <div className="table-responsive">
-                      <table className="table table-sm mb-0">
-                        <thead className="table-light">
+                       <table className="table table-striped mb-0">
+                         <thead>
                           <tr>
                             <th>Tên thuốc</th>
                             <th>Liều lượng</th>
@@ -744,37 +995,40 @@ const AppointmentHistory = () => {
                 </Card.Body>
               </Card>
 
-              {/* Đánh giá tiến triển bệnh nhân */}
+               {/* Đánh giá của bác sĩ */}
               <Card className="mb-3">
                 <Card.Header className="bg-info text-white py-2">
                   <FontAwesomeIcon icon={faUserMd} className="me-2" /> 
                   Đánh giá của bác sĩ
                 </Card.Header>
                 <Card.Body>
-                  <div className="mb-3">
-                    <label className="form-label">Đánh giá tiến triển bệnh nhân</label>
                     <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '100px', whiteSpace: 'pre-wrap' }}>
-                      {medicalResult.patientProgressEvaluation || 'Chưa nhập'}
+                     {medicalResult.patientProgressEvaluation || 'Chưa có đánh giá'}
                     </div>
-                  </div>
-                  <Row>
+                   {(medicalResult.plan || medicalResult.recommendation) && (
+                     <Row className="mt-3">
+                       {medicalResult.plan && (
                     <Col md={6}>
                       <div className="mb-3">
                         <label className="form-label">Kế hoạch điều trị</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '80px', whiteSpace: 'pre-wrap' }}>
-                          {medicalResult.plan || 'Chưa nhập'}
+                               {medicalResult.plan}
                         </div>
                       </div>
                     </Col>
+                       )}
+                       {medicalResult.recommendation && (
                     <Col md={6}>
                       <div className="mb-3">
                         <label className="form-label">Khuyến nghị</label>
                         <div className="form-control" style={{ backgroundColor: '#f8f9fa', minHeight: '80px', whiteSpace: 'pre-wrap' }}>
-                          {medicalResult.recommendation || 'Chưa nhập'}
+                               {medicalResult.recommendation}
                         </div>
                       </div>
                     </Col>
+                       )}
                   </Row>
+                   )}
                 </Card.Body>
               </Card>
 
@@ -810,11 +1064,6 @@ const AppointmentHistory = () => {
                 </Card.Body>
               </Card>
             </div>
-          ) : (
-            <Alert variant="danger">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-              Không thể tải kết quả xét nghiệm. Vui lòng thử lại.
-            </Alert>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -823,6 +1072,7 @@ const AppointmentHistory = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 };

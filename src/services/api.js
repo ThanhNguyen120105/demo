@@ -1416,24 +1416,63 @@ export const medicalResultAPI = {  // Tạo medical result cho appointment
     }
   },
 
-  // Lấy medical result theo ID
+  // Lấy medical result theo ID - sử dụng endpoint chính thức
   getMedicalResult: async (medicalResultId) => {
     try {
-      console.log('Getting medical result:', medicalResultId);
+      console.log('🔍 Getting medical result with ID:', medicalResultId);
+      console.log('🔍 medicalResultId type:', typeof medicalResultId);
+      console.log('🔍 API endpoint:', `/medical-result/getMedicalResult/${medicalResultId}`);
+      
+      // Sử dụng POST method theo API documentation
       const response = await api.post(`/medical-result/getMedicalResult/${medicalResultId}`);
-      console.log('Get medical result response:', response.data);
+      
+      console.log('✅ Medical result API response:', response.data);
+      console.log('✅ Response status:', response.status);
+      console.log('✅ Response structure:', Object.keys(response.data || {}));
+      
+      // Xử lý data từ response
+      let resultData = null;
+      if (response.data) {
+        // Thử các cấu trúc response khác nhau
+        resultData = response.data.data || response.data.result || response.data;
+        console.log('📋 Extracted result data:', resultData);
+        
+        // Log cấu trúc của data để debug
+        if (resultData && typeof resultData === 'object') {
+          console.log('📋 Result data keys:', Object.keys(resultData));
+        }
+      }
       
       return {
         success: true,
-        data: response.data.data,
+        data: resultData,
         message: response.data.message || 'Lấy thông tin báo cáo y tế thành công'
       };
     } catch (error) {
-      console.error('Error getting medical result:', error);
+      console.error('❌ Error getting medical result:', error);
+      console.error('❌ Status:', error.response?.status);
+      console.error('❌ Status Text:', error.response?.statusText);
+      console.error('❌ Error data:', error.response?.data);
+      console.error('❌ Error config URL:', error.config?.url);
+      
+      let errorMessage = 'Không thể lấy thông tin báo cáo y tế';
+      
+      // Xử lý các loại lỗi cụ thể
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy kết quả xét nghiệm';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Không có quyền truy cập kết quả xét nghiệm';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Lỗi server khi tải kết quả xét nghiệm';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể lấy thông tin báo cáo y tế',
-        error: error.response?.data
+        message: errorMessage,
+        error: error.response?.data,
+        status: error.response?.status
       };
     }
   },  // Cập nhật medical result
