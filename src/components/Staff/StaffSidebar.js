@@ -8,6 +8,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendingQuestions = 0 }) => {
+  // Get user data from localStorage
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const staffName = user.fullName || 'Nhân viên';
   
   return (
     <Col md={3} lg={2} className="sidebar">
@@ -15,12 +18,12 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
         <div className="staff-avatar">
           <FontAwesomeIcon icon={faUserTie} className="avatar-icon" />
         </div>
-        <h4 className="staff-name">Nhân viên Quản lý</h4>
-        <p className="staff-role">Staff - Hệ thống HIV/AIDS</p>
+        <h4 className="staff-name">Nhân viên {staffName}</h4>
       </div>
       
       <ListGroup className="sidebar-menu">
-        <ListGroup.Item 
+        {/* Hidden menu items: Tổng quan, Báo cáo, Cài đặt */}
+        {/* <ListGroup.Item 
           action 
           active={activeTab === 'overview'} 
           onClick={() => setActiveTab('overview')}
@@ -28,7 +31,7 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
         >
           <FontAwesomeIcon icon={faChartLine} className="menu-icon" />
           Tổng quan
-        </ListGroup.Item>
+        </ListGroup.Item> */}
         
         <ListGroup.Item 
           action 
@@ -65,7 +68,7 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
           Tạo tài khoản Bác sĩ
         </ListGroup.Item>
         
-        <ListGroup.Item 
+        {/* <ListGroup.Item 
           action 
           active={activeTab === 'reports'} 
           onClick={() => setActiveTab('reports')}
@@ -83,7 +86,7 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
         >
           <FontAwesomeIcon icon={faCog} className="menu-icon" />
           Cài đặt
-        </ListGroup.Item>
+        </ListGroup.Item> */}
       </ListGroup>
       
       <div className="sidebar-footer">

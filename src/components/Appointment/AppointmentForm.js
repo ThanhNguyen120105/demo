@@ -39,6 +39,7 @@ const AppointmentForm = () => {
     date: '',
     time: '',
     healthIssues: '',
+    notes: '', // Trường ghi chú riêng biệt
     customerId: '',
     phone: '',
     dob: '',
@@ -304,10 +305,10 @@ const AppointmentForm = () => {
       }      // Chuẩn bị dữ liệu appointment theo schema backend yêu cầu
       const appointmentData = {
         appointmentDate: formData.date,
-        reason: formData.healthIssues || '', // Để trống nếu user không nhập
+        reason: formData.healthIssues || '', // Lý do khám bệnh
         alternativeName: formData.name,
         alternativePhoneNumber: formData.phone,
-        notes: formData.healthIssues || '',
+        notes: formData.notes || '', // Ghi chú riêng biệt
         doctorId: formData.doctor || null, // Giữ nguyên string UUID, không parseInt
         serviceId: parseInt(formData.serviceId), // Service ID thực từ user chọn (1 hoặc 2)
         anonymous: formData.consultationType === 'anonymous', // true nếu khám ẩn danh
@@ -865,6 +866,22 @@ const AppointmentForm = () => {
                 />
               </div>
 
+              <div className="form-group">
+                <label className="form-label">
+                  <FontAwesomeIcon icon={faInfoCircle} className="label-icon" />
+                  Ghi chú (tùy chọn)
+                </label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  placeholder="Ghi chú thêm về cuộc hẹn (ví dụ: yêu cầu đặc biệt, thông tin hỗ trợ...)"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  className="form-control"
+                />
+              </div>
+
               <div className="form-submit">
                 <div className="d-flex gap-3">
                   <Button 
@@ -986,6 +1003,25 @@ const AppointmentForm = () => {
                           as="textarea"
                           rows={2}
                           value={formData.healthIssues}
+                          readOnly
+                          className="mb-2"
+                          style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                        />
+                      </Col>
+                    </Row>
+                  )}
+
+                  {formData.notes && (
+                    <Row>
+                      <Col md={12}>
+                        <Form.Label className="text-success fw-bold">
+                          <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                          Ghi chú đã nhập:
+                        </Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={2}
+                          value={formData.notes}
                           readOnly
                           className="mb-2"
                           style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
@@ -1161,6 +1197,7 @@ const AppointmentForm = () => {
             date: '',
             time: '',
             healthIssues: '',
+            notes: '',
             customerId: '',
             phone: '',
             dob: '',
@@ -1242,6 +1279,7 @@ const AppointmentForm = () => {
                     date: '',
                     time: '',
                     healthIssues: '',
+                    notes: '',
                     customerId: '',
                     phone: '',
                     dob: '',
@@ -1268,6 +1306,7 @@ const AppointmentForm = () => {
                     date: '',
                     time: '',
                     healthIssues: '',
+                    notes: '',
                     customerId: '',
                     phone: '',
                     dob: '',

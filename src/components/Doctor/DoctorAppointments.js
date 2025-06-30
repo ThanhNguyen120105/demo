@@ -1622,7 +1622,6 @@ const DoctorAppointments = () => {
           
           <Col md={9} lg={10} className="main-content">            <div className="content-header">
               <h2>Lịch hẹn</h2>
-              <p>Quản lý lịch hẹn bệnh nhân</p>
             </div>
             
             <Row>

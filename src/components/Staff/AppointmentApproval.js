@@ -86,13 +86,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
           console.log('Status:', pendingAppointments[0].status);
         }
         
-        // Set appointments với flag detailsLoaded = true vì dữ liệu đã đầy đủ từ getAllAppointments
-        const appointmentsWithDetails = pendingAppointments.map(appointment => ({
-          ...appointment,
-          detailsLoaded: true
-        }));
-        
-        setAppointments(appointmentsWithDetails);
+        setAppointments(pendingAppointments);
       } else {
         console.error('Failed to load appointments:', result.message);
         setError(result.message || 'Không thể tải danh sách lịch hẹn');
@@ -130,13 +124,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
           console.log('Customer ID:', result.data[0].customerId);
           console.log('User ID:', result.data[0].userId);        }
         
-        // Set appointments với flag detailsLoaded = true vì dữ liệu đã đầy đủ từ getAllAppointments
-        const appointmentsWithDetails = (result.data || []).map(appointment => ({
-          ...appointment,
-          detailsLoaded: true
-        }));
-        
-        setAppointments(appointmentsWithDetails);
+        setAppointments(result.data || []);
       } else {
         setError(result.message || 'Không thể tải danh sách lịch hẹn');
       }
@@ -150,15 +138,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
     setSelectedAppointment(appointment);
     setShowDetailModal(true);
     
-    // Nếu appointment đã có đầy đủ thông tin, không cần gọi API
-    if (appointment.detailsLoaded) {
-      console.log('Using cached appointment details:', appointment);
-      setAppointmentDetails(appointment);
-      setDetailLoading(false);
-      return;
-    }
-    
-    // Nếu chưa có đầy đủ thông tin, gọi API để lấy chi tiết
+    // Always call the detail API to get complete information
     setDetailLoading(true);
     setAppointmentDetails(null);
     
@@ -410,13 +390,14 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                           </div>
                         </Card.Header>                        <Card.Body>
                           <div className="mb-3">
-                            <small className="text-muted d-block">
+                            {/* Hidden phone number display */}
+                            {/* <small className="text-muted d-block">
                               <FontAwesomeIcon icon={faPhone} className="me-1" />
                               {appointment.detailsLoaded ? 
                                 (appointment.alternativePhoneNumber || 'N/A') :
                                 'Đang tải...'
                               }
-                            </small>
+                            </small> */}
                             <small className="text-muted d-block">
                               <FontAwesomeIcon icon={faCalendarCheck} className="me-1" />
                               {formatDate(appointment.appointmentDate)} - {appointment.slotStartTime}:00-{appointment.slotEndTime}:00
@@ -491,7 +472,8 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                 <h6 className="text-primary">Thông tin bệnh nhân</h6>
                 <p><strong>Họ tên:</strong> {appointmentDetails.userName || appointmentDetails.alternativeName || 'N/A'}</p>
                 <p><strong>Số điện thoại:</strong> {appointmentDetails.alternativePhoneNumber || 'N/A'}</p>
-                <p><strong>Email:</strong> {appointmentDetails.email || 'N/A'}</p>
+                {/* TODO: Uncomment when backend provides email data */}
+                {/* <p><strong>Email:</strong> {appointmentDetails.email || 'N/A'}</p> */}
                 {appointmentDetails.id && (
                   <p><strong>Mã lịch hẹn:</strong> {appointmentDetails.id}</p>
                 )}
@@ -500,8 +482,15 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                 <h6 className="text-primary">Thông tin lịch hẹn</h6>
                 <p><strong>Ngày khám:</strong> {formatDate(appointmentDetails.appointmentDate)}</p>
                 <p><strong>Giờ khám:</strong> {appointmentDetails.slotStartTime} - {appointmentDetails.slotEndTime}</p>
+                {appointmentDetails.slotIndex && (
+                  <p><strong>Khung giờ:</strong> Slot {appointmentDetails.slotIndex}</p>
+                )}
                 <p><strong>Dịch vụ:</strong> {appointmentDetails.appointmentService || 'N/A'}</p>
-                <p><strong>Loại khám:</strong> {appointmentDetails.appointmentType === 'INITIAL' ? 'Khám ban đầu' : 'Tái khám'}</p>
+                <p><strong>Loại khám:</strong> {
+                  appointmentDetails.appointmentType === 'INITIAL' ? 'Khám ban đầu' : 
+                  appointmentDetails.appointmentType === 'FOLLOW_UP' ? 'Tái khám' : 
+                  appointmentDetails.appointmentType || 'N/A'
+                }</p>
                 <p><strong>Trạng thái:</strong> {getStatusBadge(appointmentDetails)}</p>
                 {appointmentDetails.doctorName && (
                   <p><strong>Bác sĩ:</strong> {appointmentDetails.doctorName}</p>
@@ -510,19 +499,25 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
               {appointmentDetails.reason && (
                 <Col xs={12}>
                   <h6 className="text-primary">Lý do khám bệnh</h6>
-                  <p>{appointmentDetails.reason}</p>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{appointmentDetails.reason}</p>
                 </Col>
               )}
               {appointmentDetails.notes && (
                 <Col xs={12}>
                   <h6 className="text-primary">Ghi chú</h6>
-                  <p>{appointmentDetails.notes}</p>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{appointmentDetails.notes}</p>
                 </Col>
               )}
               {appointmentDetails.followUpAppointmentId && (
                 <Col xs={12}>
                   <h6 className="text-primary">Lịch hẹn liên quan</h6>
                   <p>ID: {appointmentDetails.followUpAppointmentId}</p>
+                </Col>
+              )}
+              {appointmentDetails.medicalResultId && (
+                <Col xs={12}>
+                  <h6 className="text-primary">Kết quả y tế</h6>
+                  <p>Mã kết quả: {appointmentDetails.medicalResultId}</p>
                 </Col>
               )}
             </Row>

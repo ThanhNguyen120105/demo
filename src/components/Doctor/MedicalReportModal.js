@@ -597,14 +597,42 @@ const MedicalReportModal = ({
         <Modal 
           show={showARVTool} 
           onHide={() => setShowARVTool(false)} 
-          size="xl" 
           centered
           className="arv-tool-modal"
+          dialogClassName="arv-custom-modal-dialog"
+          style={{
+            '--bs-modal-width': '80vw'
+          }}
         >
-          <Modal.Header closeButton>
-            <Modal.Title>Công Cụ Lựa Chọn Phác Đồ ARV</Modal.Title>
+          <Modal.Header 
+            closeButton
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              borderBottom: 'none',
+              padding: '1.5rem 2.5rem',
+              borderRadius: '20px 20px 0 0',
+              minHeight: '80px'
+            }}
+          >
+            <Modal.Title style={{
+              fontSize: '1.8rem',
+              fontWeight: '700',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+              letterSpacing: '0.5px',
+              margin: '0',
+              lineHeight: '1.2'
+            }}>
+              Công Cụ Lựa Chọn Phác Đồ ARV
+            </Modal.Title>
           </Modal.Header>
-          <Modal.Body>
+          <Modal.Body style={{
+            padding: '0',
+            height: 'calc(90vh - 80px)',
+            maxHeight: 'calc(90vh - 80px)',
+            overflowY: 'auto',
+            borderRadius: '0 0 20px 20px'
+          }}>
             <ARVSelectionTool 
               appointment={appointment} 
               onSelect={handleARVSelect}

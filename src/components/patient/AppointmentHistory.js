@@ -660,9 +660,31 @@ const AppointmentHistory = () => {
                 <Card.Body>
                   <div className="mb-3">
                     <label className="form-label">Báo cáo ARV</label>
-                    <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                      {medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL || 'Chưa nhập'}
-                    </div>
+                    {(medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL) ? (
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="form-control" style={{ backgroundColor: '#f8f9fa', flex: 1 }}>
+                          {medicalResult.arvResults?.fileName || 'Báo cáo ARV'}
+                        </div>
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={() => {
+                            const pdfUrl = medicalResult.arvResults?.fileUrl || medicalResult.arvRegimenResultURL;
+                            if (pdfUrl) {
+                              window.open(pdfUrl, '_blank');
+                            }
+                          }}
+                          title="Xem báo cáo ARV"
+                        >
+                          <FontAwesomeIcon icon={faEye} className="me-1" />
+                          Xem
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
+                        Chưa nhập
+                      </div>
+                    )}
                   </div>
                   {medicalResult.arvResults?.recommendations && (
                     <div className="mb-3">

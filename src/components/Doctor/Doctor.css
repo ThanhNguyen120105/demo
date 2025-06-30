@@ -1,3 +1,56 @@
+/* Nút chính cho Web Viewer */
+.main-action-btn {
+  background: linear-gradient(135deg, #4caf50, #45a049) !important;
+  border: none !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.main-action-btn:hover {
+  background: linear-gradient(135deg, #45a049, #4caf50) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4) !important;
+}
+
+.main-action-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* Web Viewer Modal styling */
+.web-viewer-modal .modal-dialog {
+  max-width: 95vw !important;
+  margin: 1rem auto !important;
+}
+
+.web-viewer-modal .modal-content {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.web-viewer-modal .modal-header {
+  background: linear-gradient(135deg, #4caf50, #45a049) !important;
+  color: white !important;
+  border-bottom: none !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.web-viewer-modal .modal-header .btn-close {
+  filter: brightness(0) invert(1) !important;
+}
+
+.web-viewer-modal .modal-body {
+  background: #f8f9fa !important;
+}
+
+.web-viewer-modal .modal-footer {
+  border-top: 1px solid #dee2e6 !important;
+  background: #ffffff !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
 /* Doctor Dashboard Styles */
 .doctor-dashboard {
   min-height: 100vh;
@@ -228,8 +281,6 @@
   margin-bottom: 0;
   font-size: 0.9rem;
 }
-
-
 
 /* Appointments Table */
 .appointments-card {
@@ -1444,76 +1495,901 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
 }
 
 /* Specific styling for ARV Tool Modal */
-.arv-tool-modal .modal-content {
-  border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+/* ARV Tool Modal Styles - Super Specific Override */
+.modal.arv-tool-modal,
+.modal.show.arv-tool-modal,
+.modal.fade.arv-tool-modal,
+div.modal.arv-tool-modal {
+  --bs-modal-width: 80vw !important;
+  z-index: 1055 !important;
 }
 
-/* Confirmation Modal Styles */
-.confirmation-modal .modal-content {
-  border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+.modal.arv-tool-modal .modal-dialog,
+.modal.show.arv-tool-modal .modal-dialog,
+.modal.fade.arv-tool-modal .modal-dialog,
+div.modal.arv-tool-modal .modal-dialog {
+  max-width: 80vw !important;
+  width: 80vw !important;
+  min-width: 80vw !important;
+  margin: 2vh auto !important;
+  height: 90vh !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  align-items: center !important;
+  transform: none !important;
+}
+
+.modal.arv-tool-modal .modal-dialog .modal-content,
+.modal.show.arv-tool-modal .modal-dialog .modal-content,
+.modal.fade.arv-tool-modal .modal-dialog .modal-content,
+div.modal.arv-tool-modal .modal-dialog .modal-content {
+  height: 90vh !important;
+  max-height: 90vh !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  background: #ffffff !important;
+}
+
+.modal.arv-tool-modal .modal-body,
+.modal.show.arv-tool-modal .modal-body,
+.modal.fade.arv-tool-modal .modal-body,
+div.modal.arv-tool-modal .modal-body {
+  padding: 0 !important;
+  height: calc(90vh - 80px) !important;
+  max-height: calc(90vh - 80px) !important;
+  overflow-y: auto !important;
+  border-radius: 0 0 20px 20px !important;
+}
+
+.modal.arv-tool-modal .modal-header,
+.modal.show.arv-tool-modal .modal-header,
+.modal.fade.arv-tool-modal .modal-header,
+div.modal.arv-tool-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border-bottom: none !important;
+  padding: 1.5rem 2.5rem !important;
+  border-radius: 20px 20px 0 0 !important;
+  min-height: 80px !important;
+  max-height: 80px !important;
+  flex-shrink: 0 !important;
+}
+
+.modal.arv-tool-modal .modal-title,
+.modal.show.arv-tool-modal .modal-title,
+.modal.fade.arv-tool-modal .modal-title,
+div.modal.arv-tool-modal .modal-title {
+  font-size: 1.8rem !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  letter-spacing: 0.5px !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.modal.arv-tool-modal .btn-close,
+.modal.show.arv-tool-modal .btn-close,
+.modal.fade.arv-tool-modal .btn-close,
+div.modal.arv-tool-modal .btn-close {
+  filter: brightness(0) invert(1) !important;
+  padding: 1rem !important;
+  margin: -1rem -1.5rem -1rem auto !important;
+  font-size: 1.2rem !important;
+  opacity: 0.8 !important;
+  background: none !important;
+  border: none !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.modal.arv-tool-modal .btn-close:hover,
+.modal.show.arv-tool-modal .btn-close:hover,
+.modal.fade.arv-tool-modal .btn-close:hover,
+div.modal.arv-tool-modal .btn-close:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  transform: scale(1.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Enhanced ARV Tool Container with Professional Background */
+.arv-tool-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+  min-height: 100% !important;
+  padding: 2rem !important;
+  position: relative !important;
+}
+
+.arv-tool-container::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%), 
+              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 50%) !important;
+  pointer-events: none !important;
+}
+
+.arv-tool-container .content-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%) !important;
+  color: white !important;
+  padding: 3rem 2rem !important;
+  border-radius: 20px !important;
+  margin-bottom: 2rem !important;
+  text-align: center !important;
+  box-shadow: 0 15px 40px rgba(79, 70, 229, 0.4) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.arv-tool-container .content-header::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%) !important;
+  pointer-events: none !important;
+}
+
+.arv-tool-container .content-header h2 {
+  font-size: 2.8rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 1rem !important;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+  letter-spacing: 1px !important;
+  position: relative !important;
+  z-index: 1 !important;
+  color: white !important;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+.arv-tool-container .content-header p {
+  font-size: 1.4rem !important;
+  margin-bottom: 0 !important;
+  opacity: 1 !important;
+  font-weight: 400 !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  position: relative !important;
+  z-index: 1 !important;
+  color: white !important;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* Enhanced Cards */
+.arv-tool-container .card {
+  border: none !important;
+  border-radius: 15px !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important;
+}
+
+.arv-tool-container .card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12) !important;
+}
+
+.arv-tool-container .card-header {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  color: white !important;
+  border-bottom: none !important;
+  padding: 1.5rem 2rem !important;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2) !important;
+}
+
+.arv-tool-container .card-header h4 {
+  font-size: 1.4rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.arv-tool-container .card-body {
+  padding: 2rem !important;
+  background: white !important;
+}
+
+/* Enhanced Form Elements */
+.arv-tool-container .form-label {
+  font-weight: 600 !important;
+  color: #495057 !important;
+  margin-bottom: 0.75rem !important;
+  font-size: 1rem !important;
+}
+
+.arv-tool-container .form-control,
+.arv-tool-container .form-select {
+  border: 2px solid #e9ecef !important;
+  border-radius: 10px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 1rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.arv-tool-container .form-control:focus,
+.arv-tool-container .form-select:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Enhanced Buttons */
+.arv-tool-container .btn {
+  border-radius: 10px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.arv-tool-container .btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.arv-tool-container .btn-success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
   border: none !important;
 }
 
-.confirmation-modal .modal-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-  border-top-left-radius: 12px !important;
-  border-top-right-radius: 12px !important;
-  padding: 1.25rem 1.5rem;
+.arv-tool-container .btn-success:hover {
+  background: linear-gradient(135deg, #0f8178 0%, #2dd46f 100%) !important;
 }
 
-.confirmation-modal .modal-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
+.arv-tool-container .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
 }
 
-.confirmation-modal .modal-body {
-  padding: 1.5rem;
-  font-size: 0.95rem;
+.arv-tool-container .btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
 }
 
-.confirmation-modal .modal-footer {
-  background-color: #f8f9fa;
-  border-top: 1px solid #dee2e6;
-  border-bottom-left-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-  padding: 1rem 1.5rem;
+/* Enhanced Table with Professional Color Scheme */
+.arv-tool-container .table {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
+  background: white !important;
 }
 
-.confirmation-modal .appointment-info {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 1rem;
+.arv-tool-container .table th {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: none !important;
+  padding: 1.2rem 1rem !important;
+  font-size: 0.95rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
-.confirmation-modal .appointment-info div {
-  margin-bottom: 0.5rem;
-  color: #495057;
+.arv-tool-container .table td {
+  padding: 1.2rem 1rem !important;
+  vertical-align: middle !important;
+  border-color: #e8f4f8 !important;
+  border-width: 1px !important;
+  background: white !important;
+  transition: all 0.3s ease !important;
 }
 
-.confirmation-modal .appointment-info div:last-child {
-  margin-bottom: 0;
+.arv-tool-container .table tbody tr:hover {
+  background: linear-gradient(135deg, #f8fcff 0%, #e3f2fd 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.1) !important;
+  transition: all 0.3s ease !important;
 }
 
-/* ARV info styling */
-.confirmation-modal .arv-info {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 1rem;
+.arv-tool-container .table tbody tr:nth-child(even) {
+  background-color: #fbfcfd !important;
 }
 
-.confirmation-modal .arv-info div {
-  margin-bottom: 0.5rem;
-  color: #495057;
+.arv-tool-container .table tbody tr:nth-child(even):hover {
+  background: linear-gradient(135deg, #f8fcff 0%, #e3f2fd 100%) !important;
 }
 
-.confirmation-modal .arv-info div:last-child {
-  margin-bottom: 0;
+/* Enhanced Badges with Professional Colors */
+.arv-tool-container .badge {
+  font-size: 0.9rem !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.arv-tool-container .badge.bg-primary {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3) !important;
+}
+
+.arv-tool-container .badge.bg-success {
+  background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%) !important;
+  box-shadow: 0 2px 8px rgba(56, 142, 60, 0.3) !important;
+}
+
+.arv-tool-container .badge.bg-warning {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%) !important;
+  box-shadow: 0 2px 8px rgba(245, 124, 0, 0.3) !important;
+}
+
+.arv-tool-container .badge.bg-danger {
+  background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%) !important;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3) !important;
+}
+
+/* Enhanced Alerts */
+.arv-tool-container .alert {
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 1.25rem 1.5rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+.arv-tool-container .alert-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+  color: #1565c0 !important;
+  border: 1px solid #90caf9 !important;
+  border-left: 4px solid #1976d2 !important;
+}
+
+.arv-tool-container .alert-success {
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
+  color: #2e7d32 !important;
+  border: 1px solid #81c784 !important;
+  border-left: 4px solid #388e3c !important;
+}
+
+/* ARV Current Regimen Selection Styles */
+.arv-tool-container .current-regimen-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 2px solid #dee2e6 !important;
+  border-radius: 15px !important;
+  padding: 1.5rem !important;
+  margin-top: 1rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+.arv-tool-container .drug-class-section {
+  background: white !important;
+  border-radius: 10px !important;
+  padding: 1rem !important;
+  margin-bottom: 1rem !important;
+  border: 1px solid #e9ecef !important;
+  transition: all 0.3s ease !important;
+}
+
+.arv-tool-container .drug-class-section:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+.arv-tool-container .drug-class-title {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.arv-tool-container .drug-class-title.text-primary {
+  color: #1976d2 !important;
+}
+
+.arv-tool-container .drug-class-title.text-success {
+  color: #388e3c !important;
+}
+
+.arv-tool-container .drug-class-title.text-warning {
+  color: #f57c00 !important;
+}
+
+.arv-tool-container .drug-class-title.text-danger {
+  color: #d32f2f !important;
+}
+
+.arv-tool-container .drug-checkbox {
+  margin-bottom: 0.5rem !important;
+}
+
+.arv-tool-container .drug-checkbox .form-check-input {
+  border: 2px solid #dee2e6 !important;
+  border-radius: 6px !important;
+  width: 1.2rem !important;
+  height: 1.2rem !important;
+  margin-right: 0.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.arv-tool-container .drug-checkbox .form-check-input:checked {
+  background-color: #1976d2 !important;
+  border-color: #1976d2 !important;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3) !important;
+}
+
+.arv-tool-container .drug-checkbox .form-check-label {
+  font-weight: 500 !important;
+  color: #495057 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+}
+
+.arv-tool-container .current-regimen-display {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  color: white !important;
+  padding: 1rem 1.5rem !important;
+  border-radius: 10px !important;
+  margin-top: 1rem !important;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2) !important;
+  border: none !important;
+}
+
+.arv-tool-container .current-regimen-display strong {
+  font-size: 1.1rem !important;
+  margin-right: 0.5rem !important;
+}
+
+.arv-tool-container .treatment-status-section {
+  background: white !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 10px !important;
+  padding: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.arv-tool-container .treatment-status-section .form-check {
+  margin-bottom: 0.5rem !important;
+}
+
+.arv-tool-container .treatment-status-section .form-check-input {
+  border: 2px solid #dee2e6 !important;
+  width: 1.1rem !important;
+  height: 1.1rem !important;
+  margin-right: 0.5rem !important;
+}
+
+.arv-tool-container .treatment-status-section .form-check-input:checked {
+  background-color: #388e3c !important;
+  border-color: #388e3c !important;
+}
+
+.arv-tool-container .treatment-status-section .form-check-label {
+  font-weight: 500 !important;
+  color: #495057 !important;
+  cursor: pointer !important;
+}
+
+/* Responsive adjustments for current regimen section */
+@media (max-width: 768px) {
+  .arv-tool-container .current-regimen-section {
+    padding: 1rem !important;
+  }
+  
+  .arv-tool-container .drug-class-section {
+    padding: 0.75rem !important;
+  }
+  
+  .arv-tool-container .drug-class-title {
+    font-size: 0.9rem !important;
+  }
+  
+  .arv-tool-container .drug-checkbox .form-check-label {
+    font-size: 0.85rem !important;
+  }
+  
+  .arv-tool-container .current-regimen-display {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .arv-tool-container .current-regimen-display strong {
+    font-size: 1rem !important;
+  }
+}
+
+/* Custom Regimen Section Styles */
+.arv-tool-container .btn-custom-regimen {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 25px !important;
+  padding: 0.75rem 2rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3) !important;
+}
+
+.arv-tool-container .btn-custom-regimen:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #343a40 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4) !important;
+}
+
+.arv-tool-container .custom-regimen-section {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 50%, #fdcb6e 100%) !important;
+  border: 2px solid #f39c12 !important;
+  border-radius: 15px !important;
+  padding: 2rem !important;
+  margin-top: 1.5rem !important;
+  box-shadow: 0 8px 25px rgba(243, 156, 18, 0.2) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.arv-tool-container .custom-regimen-section::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%) !important;
+  pointer-events: none !important;
+}
+
+.arv-tool-container .custom-regimen-section .form-label {
+  color: #d68910 !important;
+  font-size: 1.2rem !important;
+  margin-bottom: 1rem !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.arv-tool-container .custom-regimen-input {
+  border: 2px solid #f39c12 !important;
+  border-radius: 10px !important;
+  padding: 1rem 1.5rem !important;
+  font-size: 1.1rem !important;
+  background: white !important;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.1) !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.arv-tool-container .custom-regimen-input:focus {
+  border-color: #e67e22 !important;
+  box-shadow: 0 0 0 0.25rem rgba(243, 156, 18, 0.25), 0 6px 20px rgba(243, 156, 18, 0.2) !important;
+  transform: translateY(-2px) !important;
+}
+
+.arv-tool-container .custom-regimen-input::placeholder {
+  color: #b7950b !important;
+  font-style: italic !important;
+}
+
+.arv-tool-container .custom-regimen-section .form-text {
+  color: #b7950b !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Close button for custom regimen */
+.arv-tool-container .btn-outline-danger {
+  border: 2px solid #dc3545 !important;
+  color: #dc3545 !important;
+  background: white !important;
+  border-radius: 20px !important;
+  padding: 0.4rem 1rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.arv-tool-container .btn-outline-danger:hover {
+  background: #dc3545 !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Animation for custom regimen section */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.arv-tool-container .custom-regimen-section {
+  animation: slideInDown 0.4s ease-out !important;
+}
+
+/* Responsive adjustments for custom regimen */
+@media (max-width: 768px) {
+  .arv-tool-container .btn-custom-regimen {
+    padding: 0.6rem 1.5rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .arv-tool-container .custom-regimen-section {
+    padding: 1.5rem !important;
+    margin-top: 1rem !important;
+  }
+  
+  .arv-tool-container .custom-regimen-section .form-label {
+    font-size: 1.1rem !important;
+  }
+  
+  .arv-tool-container .custom-regimen-input {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+}
+
+/* Responsive Design for ARV Modal - Super Specific Override */
+@media (max-width: 1400px) {
+  .modal.arv-tool-modal .modal-dialog,
+  .modal.show.arv-tool-modal .modal-dialog,
+  .modal.fade.arv-tool-modal .modal-dialog,
+  div.modal.arv-tool-modal .modal-dialog {
+    max-width: 85vw !important;
+    width: 85vw !important;
+    min-width: 85vw !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .modal.arv-tool-modal .modal-dialog,
+  .modal.show.arv-tool-modal .modal-dialog,
+  .modal.fade.arv-tool-modal .modal-dialog,
+  div.modal.arv-tool-modal .modal-dialog {
+    max-width: 90vw !important;
+    width: 90vw !important;
+    min-width: 90vw !important;
+  }
+  
+  .arv-tool-container .content-header h2 {
+    font-size: 2.4rem !important;
+  }
+  
+  .arv-tool-container .content-header p {
+    font-size: 1.2rem !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .modal.arv-tool-modal .modal-dialog,
+  .modal.show.arv-tool-modal .modal-dialog,
+  .modal.fade.arv-tool-modal .modal-dialog,
+  div.modal.arv-tool-modal .modal-dialog {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    min-width: 95vw !important;
+    margin: 1vh auto !important;
+    height: 95vh !important;
+    max-height: 95vh !important;
+  }
+  
+  .modal.arv-tool-modal .modal-dialog .modal-content,
+  .modal.show.arv-tool-modal .modal-dialog .modal-content,
+  .modal.fade.arv-tool-modal .modal-dialog .modal-content,
+  div.modal.arv-tool-modal .modal-dialog .modal-content {
+    height: 95vh !important;
+    max-height: 95vh !important;
+  }
+  
+  .modal.arv-tool-modal .modal-body,
+  .modal.show.arv-tool-modal .modal-body,
+  .modal.fade.arv-tool-modal .modal-body,
+  div.modal.arv-tool-modal .modal-body {
+    height: calc(95vh - 80px) !important;
+    max-height: calc(95vh - 80px) !important;
+  }
+  
+  .arv-tool-container .content-header {
+    padding: 2.5rem 1.5rem !important;
+  }
+  
+  .arv-tool-container .content-header h2 {
+    font-size: 2.2rem !important;
+  }
+  
+  .arv-tool-container .content-header p {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal.arv-tool-modal .modal-dialog,
+  .modal.show.arv-tool-modal .modal-dialog,
+  .modal.fade.arv-tool-modal .modal-dialog,
+  div.modal.arv-tool-modal .modal-dialog {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    min-width: 100vw !important;
+    margin: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
+  
+  .modal.arv-tool-modal .modal-dialog .modal-content,
+  .modal.show.arv-tool-modal .modal-dialog .modal-content,
+  .modal.fade.arv-tool-modal .modal-dialog .modal-content,
+  div.modal.arv-tool-modal .modal-dialog .modal-content {
+    border-radius: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
+  
+  .modal.arv-tool-modal .modal-header,
+  .modal.show.arv-tool-modal .modal-header,
+  .modal.fade.arv-tool-modal .modal-header,
+  div.modal.arv-tool-modal .modal-header {
+    border-radius: 0 !important;
+    padding: 1rem 1.5rem !important;
+  }
+  
+  .modal.arv-tool-modal .modal-title,
+  .modal.show.arv-tool-modal .modal-title,
+  .modal.fade.arv-tool-modal .modal-title,
+  div.modal.arv-tool-modal .modal-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .modal.arv-tool-modal .modal-body,
+  .modal.show.arv-tool-modal .modal-body,
+  .modal.fade.arv-tool-modal .modal-body,
+  div.modal.arv-tool-modal .modal-body {
+    height: calc(100vh - 80px) !important;
+    max-height: calc(100vh - 80px) !important;
+  }
+  
+  .arv-tool-container {
+    padding: 1rem !important;
+  }
+  
+  .arv-tool-container .content-header {
+    padding: 2rem 1rem !important;
+    border-radius: 15px !important;
+  }
+  
+  .arv-tool-container .content-header h2 {
+    font-size: 1.8rem !important;
+    margin-bottom: 0.8rem !important;
+  }
+  
+  .arv-tool-container .content-header p {
+    font-size: 1rem !important;
+  }
+  
+  .arv-tool-container .card-body {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .arv-tool-container .content-header h2 {
+    font-size: 1.6rem !important;
+  }
+  
+  .arv-tool-container .content-header p {
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Ultimate override for ARV Modal - Highest specificity possible */
+body .modal.arv-tool-modal,
+html body .modal.arv-tool-modal,
+html body div.modal.arv-tool-modal.show {
+  --bs-modal-width: 80vw !important;
+}
+
+body .modal.arv-tool-modal .modal-dialog,
+html body .modal.arv-tool-modal .modal-dialog,
+html body div.modal.arv-tool-modal.show .modal-dialog {
+  max-width: 80vw !important;
+  width: 80vw !important;
+  min-width: 80vw !important;
+  margin: 2vh auto !important;
+  height: 90vh !important;
+  max-height: 90vh !important;
+  transform: none !important;
+}
+
+body .modal.arv-tool-modal .modal-content,
+html body .modal.arv-tool-modal .modal-content,
+html body div.modal.arv-tool-modal.show .modal-content {
+  height: 90vh !important;
+  max-height: 90vh !important;
+  width: 100% !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Custom Dialog Class for ARV Modal */
+.arv-custom-modal-dialog {
+  max-width: 80vw !important;
+  width: 80vw !important;
+  min-width: 80vw !important;
+  margin: 2vh auto !important;
+  height: 90vh !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  align-items: center !important;
+  transform: none !important;
+}
+
+.arv-custom-modal-dialog .modal-content {
+  height: 90vh !important;
+  max-height: 90vh !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  background: #ffffff !important;
+}
+
+/* Responsive for custom dialog */
+@media (max-width: 1400px) {
+  .arv-custom-modal-dialog {
+    max-width: 85vw !important;
+    width: 85vw !important;
+    min-width: 85vw !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .arv-custom-modal-dialog {
+    max-width: 90vw !important;
+    width: 90vw !important;
+    min-width: 90vw !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .arv-custom-modal-dialog {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    min-width: 95vw !important;
+    margin: 1vh auto !important;
+    height: 95vh !important;
+    max-height: 95vh !important;
+  }
+  
+  .arv-custom-modal-dialog .modal-content {
+    height: 95vh !important;
+    max-height: 95vh !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .arv-custom-modal-dialog {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    min-width: 100vw !important;
+    margin: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
+  
+  .arv-custom-modal-dialog .modal-content {
+    border-radius: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
 }
