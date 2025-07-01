@@ -3,7 +3,7 @@ import { ListGroup, Button, Badge, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserTie,
-  faQuestionCircle, faCog, faSignOutAlt, faFileAlt,
+  faQuestionCircle, faCog, faFileAlt,
   faTasks, faUserMd
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -89,12 +89,7 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
         </ListGroup.Item> */}
       </ListGroup>
       
-      <div className="sidebar-footer">
-        <Button variant="outline-danger" className="logout-btn">
-          <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
-          Đăng xuất
-        </Button>
-      </div>
+
     </Col>
   );
 };

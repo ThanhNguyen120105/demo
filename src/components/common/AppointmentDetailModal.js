@@ -78,8 +78,9 @@ const AppointmentDetailModal = ({
       show={show} 
       onHide={onHide} 
       centered 
-      size="lg"
-      className="modal-90w"
+      className="appointment-detail-modal"
+      dialogClassName="modal-90w"
+      contentClassName="appointment-detail-modal-content"
     >
       <Modal.Header closeButton>
         <Modal.Title>

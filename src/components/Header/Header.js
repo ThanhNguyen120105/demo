@@ -116,12 +116,14 @@ const Header = () => {
                       <span>Xin chào, {getDisplayName(user)}</span>
                     </div>                    {dropdownOpen && (
                       <div className="dropdown-menu show">
-                        <Link to={getDashboardRoute(user)} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                          <FontAwesomeIcon icon={faUser} className="me-2" />
-                          {isDoctor(user) ? 'Trang làm việc của bác sĩ' : 'Thông tin cá nhân'}
-                        </Link>
+                        {user?.role !== 'CUSTOMER' && (
+                          <Link to={getDashboardRoute(user)} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                            <FontAwesomeIcon icon={faUser} className="me-2" />
+                            {isDoctor(user) ? 'Trang làm việc của bác sĩ' : user?.role === 'STAFF' ? 'Trang làm việc' : 'Thông tin cá nhân'}
+                          </Link>
+                        )}
                         
-                        <div className="dropdown-divider"></div>
+                        {user?.role !== 'CUSTOMER' && <div className="dropdown-divider"></div>}
                         <div className="dropdown-item" onClick={handleLogout} style={{ cursor: 'pointer' }}>
                           <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
                           Đăng xuất
