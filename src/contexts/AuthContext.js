@@ -56,6 +56,17 @@ export const AuthProvider = ({ children }) => {
       console.log('AuthContext: Register result:', result);
       
       if (result.success) {
+        // Lưu thông tin đăng ký vào localStorage để auto-fill sau này
+        const registrationInfo = {
+          email: userData.email,
+          fullName: userData.name || userData.fullName,
+          phoneNumber: userData.phone || userData.phoneNumber,
+          birthdate: userData.birthdate,
+          gender: userData.gender
+        };
+        localStorage.setItem('registrationInfo', JSON.stringify(registrationInfo));
+        console.log('AuthContext: Saved registration info for auto-fill:', registrationInfo);
+        
         // Backend Java không auto-login sau register
         // Chỉ trả về success để redirect tới login page
         return result;
@@ -108,13 +119,27 @@ export const AuthProvider = ({ children }) => {
         if (userData) {
           // Debug: log tất cả properties
           console.log('AuthContext - All userData properties:', Object.keys(userData));
-            // Đảm bảo userData có đầy đủ thông tin và ưu tiên role_id
+            // Lấy thông tin đăng ký đã lưu (nếu có) để bổ sung
+          const savedRegistrationInfo = localStorage.getItem('registrationInfo');
+          let registrationData = {};
+          if (savedRegistrationInfo) {
+            try {
+              registrationData = JSON.parse(savedRegistrationInfo);
+              console.log('AuthContext - Found saved registration info:', registrationData);
+            } catch (e) {
+              console.warn('AuthContext - Failed to parse registration info:', e);
+            }
+          }
+          
+          // Đảm bảo userData có đầy đủ thông tin và ưu tiên role_id
           const processedUser = {
             id: userData?.id,
             email: userData?.email,
-            fullName: userData?.fullName || userData?.doctorName || userData?.name || userData?.username || userData?.displayName,
-            name: userData?.name || userData?.doctorName || userData?.fullName,
-            phoneNumber: userData?.phoneNumber || userData?.phone,
+            fullName: userData?.fullName || userData?.doctorName || userData?.name || userData?.username || userData?.displayName || registrationData?.fullName,
+            name: userData?.name || userData?.doctorName || userData?.fullName || registrationData?.fullName,
+            phoneNumber: userData?.phoneNumber || userData?.phone || registrationData?.phoneNumber,
+            birthdate: userData?.birthdate || userData?.dob || userData?.dateOfBirth || registrationData?.birthdate,
+            gender: userData?.gender || userData?.sex || registrationData?.gender,
             role: userData?.role_id || userData?.role, // Ưu tiên role_id
             role_id: userData?.role_id, // Giữ lại role_id gốc
             token: result.token, // Lưu token để có thể decode thông tin
@@ -124,6 +149,12 @@ export const AuthProvider = ({ children }) => {
           console.log('AuthContext - Setting user:', processedUser);
           setUser(processedUser);
           setIsAuthenticated(true);
+          
+          // Xóa thông tin đăng ký đã lưu sau khi merge thành công
+          if (savedRegistrationInfo) {
+            localStorage.removeItem('registrationInfo');
+            console.log('AuthContext - Cleaned up registration info after successful merge');
+          }
           
           // Tạm thời tắt getUserProfile vì backend chưa hỗ trợ
           // TODO: Bật lại khi backend có API lấy user profile

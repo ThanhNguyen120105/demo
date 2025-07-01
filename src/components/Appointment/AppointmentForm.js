@@ -19,7 +19,8 @@ import {
   faHospital,
   faMapMarkerAlt,
   faInfoCircle,
-  faExclamationTriangle
+  faExclamationTriangle,
+  faVenusMars
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
 import { useLocation } from 'react-router-dom';
@@ -44,6 +45,7 @@ const AppointmentForm = () => {
     phone: '',
     dob: '',
     name: '',
+    gender: '',
     registrationType: 'hiv-care',
     consultationType: 'direct' // direct: khám trực tiếp, anonymous: khám ẩn danh
   });
@@ -71,22 +73,103 @@ const AppointmentForm = () => {
 
   // useEffect để auto-fill thông tin user khi component mount
   useEffect(() => {
+    console.log('=== DETAILED AUTO-FILL DEBUG ===');
+    console.log('⚡ Auto-fill effect triggered');
+    
+    // Kiểm tra localStorage
+    console.log('📦 Checking localStorage...');
+    const savedRegistrationInfo = localStorage.getItem('registrationInfo');
+    const savedUser = localStorage.getItem('user');
+    console.log('- registrationInfo in localStorage:', savedRegistrationInfo);
+    console.log('- user in localStorage:', savedUser);
+    
+    // Lấy thông tin từ registrationInfo backup (nếu có)
+    let registrationData = {};
+    if (savedRegistrationInfo) {
+      try {
+        registrationData = JSON.parse(savedRegistrationInfo);
+        console.log('✅ Found backup registration info:', registrationData);
+      } catch (e) {
+        console.warn('❌ Failed to parse backup registration info:', e);
+      }
+    } else {
+      console.log('ℹ️ No backup registration info found');
+    }
+    
+    // Kiểm tra user object
+    console.log('👤 Checking user object...');
     if (user) {
-      console.log('Auto-filling user name from user object:', user);
+      console.log('✅ User object exists:', user);
+      console.log('📋 User properties:', Object.keys(user));
       
-      const nameToFill = user.fullName || user.name || '';
+      // Log từng property riêng biệt
+      console.log('🔍 Individual user properties:');
+      console.log('  - user.fullName:', user.fullName);
+      console.log('  - user.name:', user.name);
+      console.log('  - user.phoneNumber:', user.phoneNumber);
+      console.log('  - user.phone:', user.phone);
+      console.log('  - user.gender:', user.gender);
+      console.log('  - user.birthdate:', user.birthdate);
+      console.log('  - user.dob:', user.dob);
       
-      console.log('Name to fill:', nameToFill);
+      // Extract thông tin từ user object với fallback từ registrationData
+      const nameToFill = user.fullName || user.name || user.displayName || registrationData.fullName || '';
+      const phoneToFill = user.phoneNumber || user.phone || user.telephone || registrationData.phoneNumber || '';
+      const genderToFill = user.gender || user.sex || registrationData.gender || '';
+      const dobToFill = user.birthdate || user.dob || user.dateOfBirth || user.birthday || registrationData.birthdate || '';
+      
+      console.log('🎯 Final extracted values:');
+      console.log('  - Name:', nameToFill, '(source: user or backup)');
+      console.log('  - Phone:', phoneToFill, '(source: user or backup)');
+      console.log('  - Gender:', genderToFill, '(source: user or backup)');
+      console.log('  - DOB:', dobToFill, '(source: user or backup)');
       
       setFormData(prev => {
         const newData = {
           ...prev,
-          name: nameToFill // Chỉ auto-fill họ tên, phone để user tự nhập
+          name: nameToFill,
+          phone: phoneToFill,
+          gender: genderToFill,
+          dob: dobToFill
         };
-        console.log('Updated formData with user name:', newData);
+        console.log('📝 FormData UPDATE:');
+        console.log('  BEFORE:', {
+          name: prev.name,
+          phone: prev.phone,
+          gender: prev.gender,
+          dob: prev.dob
+        });
+        console.log('  AFTER:', {
+          name: newData.name,
+          phone: newData.phone,
+          gender: newData.gender,
+          dob: newData.dob
+        });
         return newData;
       });
-    }  }, [user]); // Dependency array chứa user để re-run khi user thay đổi  // useEffect để load doctors từ database
+      
+      // Xóa backup info sau khi đã sử dụng
+      if (savedRegistrationInfo && (registrationData.fullName || registrationData.phoneNumber || registrationData.gender || registrationData.birthdate)) {
+        localStorage.removeItem('registrationInfo');
+        console.log('🧹 Cleaned up backup registration info after use');
+      }
+    } else if (Object.keys(registrationData).length > 0) {
+      // Nếu không có user nhưng có registrationData
+      console.log('⚠️ No user object, using backup registration info:', registrationData);
+      
+      setFormData(prev => ({
+        ...prev,
+        name: registrationData.fullName || '',
+        phone: registrationData.phoneNumber || '',
+        gender: registrationData.gender || '',
+        dob: registrationData.birthdate || ''
+      }));
+    } else {
+      console.log('❌ No user object or backup registration info available for auto-fill');
+    }
+    
+    console.log('=== END AUTO-FILL DEBUG ===');
+  }, [user]); // Dependency array chứa user để re-run khi user thay đổi  // useEffect để load doctors từ database
   useEffect(() => {
     const loadDoctors = async () => {
       setLoadingDoctors(true);
@@ -259,8 +342,8 @@ const AppointmentForm = () => {
       }
       setFormStep(4);} else if (formStep === 4) {
       // Final validation: kiểm tra các required fields
-      if (!formData.name || !formData.phone) {
-        alert('Vui lòng điền đầy đủ họ tên và số điện thoại');
+      if (!formData.name || !formData.phone || !formData.dob || !formData.gender) {
+        alert('Vui lòng điền đầy đủ họ tên, số điện thoại, ngày sinh và giới tính');
         return;
       }
       
@@ -308,7 +391,9 @@ const AppointmentForm = () => {
         reason: formData.healthIssues || '', // Lý do khám bệnh
         alternativeName: formData.name,
         alternativePhoneNumber: formData.phone,
-        notes: formData.notes || '', // Ghi chú riêng biệt
+        birthdate: formData.dob,
+        gender: formData.gender,
+        notes: formData.healthIssues || '',
         doctorId: formData.doctor || null, // Giữ nguyên string UUID, không parseInt
         serviceId: parseInt(formData.serviceId), // Service ID thực từ user chọn (1 hoặc 2)
         anonymous: formData.consultationType === 'anonymous', // true nếu khám ẩn danh
@@ -1046,7 +1131,8 @@ const AppointmentForm = () => {
                   placeholder="Nhập họ và tên đầy đủ"
                 />
                 <small className="text-muted">Họ tên như trong CMND/CCCD</small>
-              </div>              <Row>                <Col md={6}>
+              </div>              <Row>
+                <Col md={6}>
                   <div className="form-group">
                     <Form.Label>
                       <FontAwesomeIcon icon={faPhone} className="me-1" />
@@ -1071,8 +1157,6 @@ const AppointmentForm = () => {
                     )}
                   </div>
                 </Col>
-                {/* Commented out Date of Birth field as per requirement */}
-                {/*
                 <Col md={6}>
                   <div className="form-group">
                     <Form.Label>
@@ -1086,9 +1170,34 @@ const AppointmentForm = () => {
                       onChange={handleInputChange}
                       required
                     />
+                    <small className="text-muted">Ngày sinh như trong CMND/CCCD</small>
                   </div>
                 </Col>
-                */}
+              </Row>
+
+              <Row>
+                <Col md={6}>
+                  <div className="form-group">
+                    <Form.Label>
+                      <FontAwesomeIcon icon={faVenusMars} className="me-1" />
+                      Giới Tính *
+                    </Form.Label>
+                    <Form.Select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Chọn giới tính</option>
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                    </Form.Select>
+                    <small className="text-muted">Thông tin giới tính</small>
+                  </div>
+                </Col>
+                <Col md={6}>
+                  {/* Cột trống để cân bằng layout */}
+                </Col>
               </Row>
 
               {/* Commented out BHYT/Patient ID field as per requirement */}

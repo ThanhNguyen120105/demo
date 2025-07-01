@@ -1562,3 +1562,706 @@ body .modal.show .modal-dialog.medical-result-modal-80::after {
 body .modal.show {
   overflow-x: hidden !important;
 }
+
+/* ============================================
+   APPOINTMENT DETAIL MODAL GRID LAYOUT STYLES 
+   ============================================ */
+
+/* Desktop Modal - Hợp nhất với backdrop để chiếm 70% */
+.appointment-detail-modal-new .modal-dialog {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  min-height: 80vh !important;
+  margin: 1.75rem auto !important;
+}
+
+.appointment-detail-modal-new .modal-content {
+  height: 80vh !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  width: 100% !important;
+}
+
+/* Override Bootstrap với specificity cao */
+html body .modal.appointment-detail-modal-new .modal-dialog,
+html body .modal.appointment-detail-modal-new .modal-dialog.modal-xl,
+html body .fade.appointment-detail-modal-new.modal.show .modal-dialog,
+html body .fade.appointment-detail-modal-new.modal.show .modal-dialog.modal-xl.modal-dialog-centered {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  margin: 1.75rem auto !important;
+  padding: 0 !important;
+}
+
+/* Loại bỏ padding Bootstrap và làm backdrop trong suốt */
+html body.modal-open,
+html body .modal.appointment-detail-modal-new,
+html body .fade.appointment-detail-modal-new.modal.show {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Loại bỏ hoàn toàn backdrop */
+.modal-backdrop,
+.modal-backdrop.fade,
+.modal-backdrop.fade.show,
+.modal-backdrop.show {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Modal container chiếm toàn bộ màn hình - CSS mạnh nhất */
+html body .modal.fade.appointment-detail-modal-new.show,
+html body .appointment-detail-modal-new.modal.fade.show,
+body .modal.fade.appointment-detail-modal-new.show,
+.modal.fade.appointment-detail-modal-new.show,
+.appointment-detail-modal-new.modal.fade.show {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(3px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  z-index: 1050 !important;
+  overflow: hidden !important;
+}
+
+/* Modal dialog chiếm đúng 70% màn hình - KHÔNG backdrop */
+html body .appointment-detail-modal-new.modal.fade.show .modal-dialog.modal-xl.modal-dialog-centered,
+html body .appointment-detail-modal-new.modal.fade.show .modal-dialog.modal-xl,
+html body .appointment-detail-modal-new.modal.fade.show .modal-dialog,
+.appointment-detail-modal-new .modal-dialog.modal-xl.modal-dialog-centered,
+.appointment-detail-modal-new .modal-dialog.modal-xl,
+.appointment-detail-modal-new .modal-dialog {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  height: 80vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  position: relative !important;
+  flex: none !important;
+}
+
+/* Đảm bảo chỉ modal content có background */
+.appointment-detail-modal-new .modal-content {
+  background: white !important;
+  border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden;
+}
+
+/* Override body padding khi modal mở - CSS mạnh nhất */
+html body.modal-open,
+body.modal-open,
+html body[class*="modal-open"],
+body[class*="modal-open"] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+}
+
+/* Override mọi style inline và Bootstrap có thể thêm */
+.modal.appointment-detail-modal-new[style],
+.appointment-detail-modal-new.modal[style],
+div[class*="appointment-detail-modal-new"][style] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1050 !important;
+}
+
+/* Đảm bảo không có element nào khác can thiệp */
+html, body {
+  box-sizing: border-box !important;
+}
+
+html *, body * {
+  box-sizing: border-box !important;
+}
+
+/* CSS nhất quán cho tất cả modal dialog */
+.modal.appointment-detail-modal-new .modal-dialog.modal-xl.modal-dialog-centered,
+.modal.appointment-detail-modal-new .modal-dialog.modal-xl,
+.modal.fade.appointment-detail-modal-new.show .modal-dialog.modal-xl.modal-dialog-centered,
+.modal.fade.appointment-detail-modal-new.show .modal-dialog.modal-xl,
+.appointment-detail-modal-new .modal-dialog[class*="modal-xl"][class*="modal-dialog-centered"],
+div[class*="appointment-detail-modal-new"] .modal-dialog[class*="modal-xl"],
+* html body div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+html body div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+body div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+.appointment-detail-modal-new[style] .modal-dialog,
+.appointment-detail-modal-new .modal-dialog[style] {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  height: 80vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+  flex: none !important;
+}
+
+.appointment-detail-modal-new .modal-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 16px 16px 0 0;
+}
+
+.appointment-detail-modal-new .modal-body {
+  height: calc(80vh - 100px);
+  overflow: hidden;
+}
+
+/* Grid layout container */
+.appointment-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 80px 40px;
+  gap: 20px;
+  height: 100%;
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+/* ============================================
+   ÔÔ 1: THÔNG TIN LỊCH HẸN (LỚN BẾN TRÁI)
+   ============================================ */
+.appointment-info-card {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.15);
+  padding: 0;
+  overflow: hidden;
+}
+
+.appointment-info-card .card-header {
+  background: #2196f3;
+  color: white;
+  padding: 16px 20px;
+  font-weight: 600;
+  border-radius: 16px 16px 0 0;
+  margin: 0;
+}
+
+.appointment-info-card .card-content {
+  padding: 20px;
+  height: calc(100% - 56px);
+  overflow-y: auto;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  min-height: 50px;
+  max-height: 50px;
+  width: 50%;
+  max-width: 100%;
+}
+
+.info-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateX(5px);
+}
+
+.info-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+  color: #2196f3;
+  margin-right: 12px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.info-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.info-label {
+  display: block;
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.info-value {
+  display: block;
+  font-size: 13px;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.3;
+  width: fit-content;
+}
+
+/* ============================================
+   ÔÔ 2: THÔNG TIN KHÁM BỆNH (NHỎ TRÊN BÊN PHẢI)
+   ============================================ */
+.patient-info-card {
+  grid-row: 1;
+  grid-column: 2;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.15);
+  padding: 0;
+  overflow: hidden;
+  width: 95%;
+  justify-self: center;
+}
+
+.patient-info-card .card-header {
+  background: #ff9800;
+  color: white;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 16px 16px 0 0;
+  margin: 0;
+}
+
+.patient-info-card .card-content {
+  padding: 18px;
+  height: calc(100% - 48px);
+  overflow-y: auto;
+}
+
+.info-item-small {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  min-height: 52px;
+  width: 50%;
+  max-width: 90%;
+}
+
+.info-item-small:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.info-icon-small {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 8px;
+  color: #ff9800;
+  margin-right: 14px;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.info-content-small {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.info-label-small {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 3px;
+  line-height: 1.2;
+}
+
+.info-value-small {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ============================================
+   ÔÔ 3: XEM KẾT QUẢ XÉT NGHIỆM (GIỮA BÊN PHẢI)
+   ============================================ */
+.medical-result-card {
+  grid-row: 2;
+  grid-column: 2;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.15);
+  padding: 0;
+  overflow: hidden;
+  height: 80px;
+  min-height: 80px;
+  max-height: 80px;
+  width: 95%;
+  justify-self: center;
+}
+
+.medical-result-card .card-header {
+  background: #4caf50;
+  color: white;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 16px 16px 0 0;
+  margin: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.medical-result-card .card-content {
+  padding: 8px 12px;
+  height: calc(100% - 32px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+/* ============================================
+   ÔÔ 4: NÚT ĐÓNG (NHỎ DƯỚI BÊN PHẢI)
+   ============================================ */
+.close-button-card {
+  grid-row: 3;
+  grid-column: 2;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.close-button-card .btn {
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 16px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 36px;
+  width: auto;
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.close-button-card .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   DESKTOP ONLY - NO RESPONSIVE NEEDED
+   ============================================ */
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.appointment-info-card .card-content::-webkit-scrollbar,
+.patient-info-card .card-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.appointment-info-card .card-content::-webkit-scrollbar-track,
+.patient-info-card .card-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.appointment-info-card .card-content::-webkit-scrollbar-thumb {
+  background: rgba(33, 150, 243, 0.5);
+  border-radius: 3px;
+}
+
+.patient-info-card .card-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 152, 0, 0.5);
+  border-radius: 3px;
+}
+
+.appointment-info-card .card-content::-webkit-scrollbar-thumb:hover,
+.patient-info-card .card-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* ===============================================
+   FORCE MODAL WIDTH - OVERRIDE TẤT CẢ CSS KHÁC
+   =============================================== */
+html body div.modal.appointment-detail-modal-new.show div.modal-dialog,
+html body div.modal.fade.appointment-detail-modal-new.show div.modal-dialog,
+html body div.modal.appointment-detail-modal-new div.modal-dialog,
+body div.modal.appointment-detail-modal-new div.modal-dialog,
+div.modal.appointment-detail-modal-new div.modal-dialog,
+.modal.appointment-detail-modal-new .modal-dialog,
+.appointment-detail-modal-new .modal-dialog {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  min-width: 900px !important;
+  height: 80vh !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  position: relative !important;
+  flex: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Force override inline styles */
+html body div[class*="appointment-detail-modal-new"][style*="width"],
+html body div[class*="appointment-detail-modal-new"] div[style*="width"],
+body div[class*="appointment-detail-modal-new"][style*="width"],
+body div[class*="appointment-detail-modal-new"] div[style*="width"],
+div[class*="appointment-detail-modal-new"][style*="width"],
+div[class*="appointment-detail-modal-new"] div[style*="width"] {
+  width: 70vw !important;
+  max-width: 70vw !important;
+  min-width: 900px !important;
+}
+
+/* Override custom-modal-centered for appointment detail modal */
+.appointment-detail-modal-new .custom-modal-centered,
+.appointment-detail-modal-new.custom-modal-centered,
+div.appointment-detail-modal-new .custom-modal-centered,
+div.appointment-detail-modal-new.custom-modal-centered {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  min-width: 900px !important;
+}
+
+/* Override appointment-history modal dialog styles */
+.appointment-history .appointment-detail-modal-new .modal-dialog,
+.appointment-history .modal.appointment-detail-modal-new .modal-dialog,
+html body .appointment-history .appointment-detail-modal-new .modal-dialog,
+html body .appointment-history .modal.appointment-detail-modal-new .modal-dialog {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  min-width: 900px !important;
+  height: 80vh !important;
+}
+
+/* Final ultimate override - highest priority CSS */
+html[lang] body.modal-open div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+html[lang] body div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+html body.modal-open div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered,
+body.modal-open div.modal.fade.appointment-detail-modal-new.show div.modal-dialog.modal-xl.modal-dialog-centered {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  min-width: 900px !important;
+  height: 80vh !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ===============================================
+   LOẠI BỎ BACKDROP CHO APPOINTMENT DETAIL MODAL
+   =============================================== */
+/* Làm backdrop trong suốt hoặc ẩn hoàn toàn */
+.modal.appointment-detail-modal-new .modal-backdrop,
+.appointment-detail-modal-new .modal-backdrop,
+.modal-backdrop.appointment-detail-modal-new,
+.appointment-detail-modal-new + .modal-backdrop,
+.modal.appointment-detail-modal-new + .modal-backdrop {
+  background-color: transparent !important;
+  opacity: 0 !important;
+  backdrop-filter: none !important;
+  display: none !important;
+}
+
+/* Override Bootstrap modal backdrop */
+body.modal-open .modal.appointment-detail-modal-new .modal-backdrop,
+body.modal-open .appointment-detail-modal-new .modal-backdrop,
+html body.modal-open .modal.appointment-detail-modal-new .modal-backdrop,
+html body.modal-open .appointment-detail-modal-new .modal-backdrop {
+  background-color: transparent !important;
+  opacity: 0 !important;
+  backdrop-filter: none !important;
+  display: none !important;
+}
+
+/* Override global backdrop cho appointment detail modal */
+.modal.fade.appointment-detail-modal-new.show::before,
+.modal.appointment-detail-modal-new.show::before,
+.appointment-detail-modal-new.modal.show::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Remove backdrop completely for appointment detail modal */
+.modal.appointment-detail-modal-new {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+/* ===============================================
+   FORCE MODAL 70VW - INLINE OVERRIDE
+   =============================================== */
+.modal-70vw {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  margin: 0 auto !important;
+}
+
+.modal-70vw .modal-content {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ultimate override với highest specificity */
+html body .modal.appointment-detail-modal-new .modal-dialog.modal-70vw,
+html body .modal.fade.appointment-detail-modal-new.show .modal-dialog.modal-70vw,
+body .modal.appointment-detail-modal-new .modal-dialog.modal-70vw,
+.modal.appointment-detail-modal-new .modal-dialog.modal-70vw {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  display: block !important;
+}
+
+/* Force override Bootstrap default styles */
+@media (min-width: 1200px) {
+  .modal-70vw {
+    max-width: 70vw !important;
+    width: 70vw !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .modal-70vw {
+    max-width: 70vw !important;
+    width: 70vw !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .modal-70vw {
+    max-width: 70vw !important;
+    width: 70vw !important;
+  }
+}
+
+/* Override all Bootstrap modal-xl and modal-lg defaults */
+.modal-dialog.modal-70vw.modal-xl,
+.modal-dialog.modal-70vw.modal-lg,
+.modal-dialog.modal-70vw {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  margin: 1.75rem auto !important;
+}
+
+/* Force inline style approach */
+div[class*="modal-dialog"][class*="modal-70vw"],
+.modal .modal-dialog.modal-70vw,
+.modal.fade .modal-dialog.modal-70vw,
+.modal.show .modal-dialog.modal-70vw {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  margin: 1.75rem auto !important;
+  transform: none !important;
+}
+
+/* Ultimate force - override everything */
+* .modal-70vw,
+html * .modal-70vw,
+body * .modal-70vw {
+  max-width: 70vw !important;
+  width: 70vw !important;
+}
+
+/* ===============================================
+   NUCLEAR OPTION - MAXIMUM SPECIFICITY
+   =============================================== */
+html:not(#fake) body:not(#fake) .modal:not(#fake).appointment-detail-modal-new:not(#fake) .modal-dialog:not(#fake).modal-70vw:not(#fake) {
+  max-width: 70vw !important;
+  width: 70vw !important;
+  min-width: 900px !important;
+  margin: 1.75rem auto !important;
+  transform: none !important;
+  left: 0 !important;
+  right: 0 !important;
+  position: relative !important;
+}
+
+/* Inline style override */
+[style*="modal-70vw"],
+.modal-70vw[style],
+.modal-dialog.modal-70vw[style] {
+  max-width: 70vw !important;
+  width: 70vw !important;
+}
+
+/* Grid layout cũng cần rộng */
+.appointment-detail-grid {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+}
+
+/* Modal content 70vw */
+.modal-content-70vw {
+  width: 70vw !important;
+  max-width: 70vw !important;
+  min-width: 900px !important;
+  margin: 0 auto !important;
+}
+
+/* Force modal content size */
+.modal-70vw .modal-content-70vw,
+.modal-dialog.modal-70vw .modal-content,
+.modal-dialog.modal-70vw .modal-content-70vw {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+}
+
+

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Card, InputGroup, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock, faPhone, faUser, faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faPhone, faUser, faUserPlus, faCalendarAlt, faVenusMars } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
 
@@ -16,11 +16,13 @@ const Signup = () => {
     name: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    birthdate: '',
+    gender: ''
   });
   const [validationErrors, setValidationErrors] = useState({});
 
-  const { email, name, phone, password, confirmPassword } = formData;
+  const { email, name, phone, password, confirmPassword, birthdate, gender } = formData;
 
   // Chuyển hướng nếu đã đăng nhập
   useEffect(() => {
@@ -79,6 +81,21 @@ const Signup = () => {
       errors.phone = 'Số điện thoại không hợp lệ';
     }
     
+    if (!birthdate) {
+      errors.birthdate = 'Vui lòng chọn ngày sinh';
+    } else {
+      const birthDate = new Date(birthdate);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 0 || age > 120) {
+        errors.birthdate = 'Ngày sinh không hợp lệ';
+      }
+    }
+    
+    if (!gender) {
+      errors.gender = 'Vui lòng chọn giới tính';
+    }
+    
     if (!password) {
       errors.password = 'Vui lòng nhập mật khẩu';
     } else if (password.length < 6) {
@@ -98,7 +115,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('Form submitted with data:', { email, name, phone, password });
+    console.log('Form submitted with data:', { email, name, phone, password, birthdate, gender });
     
     if (!validateForm()) {
       console.log('Form validation failed');
@@ -111,7 +128,9 @@ const Signup = () => {
         email,
         name: name.trim(),
         phone: phone.trim(),
-        password
+        password,
+        birthdate,
+        gender
       });
       
       console.log('Register result:', result);
@@ -224,6 +243,53 @@ const Signup = () => {
                       {validationErrors.phone && (
                         <Form.Control.Feedback type="invalid">
                           {validationErrors.phone}
+                        </Form.Control.Feedback>
+                      )}
+                    </InputGroup>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Ngày Sinh</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text className="auth-input-icon">
+                        <FontAwesomeIcon icon={faCalendarAlt} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        type="date"
+                        name="birthdate"
+                        value={birthdate}
+                        onChange={handleChange}
+                        className={`auth-input ${validationErrors.birthdate ? 'is-invalid' : ''}`}
+                        disabled={isLoading}
+                      />
+                      {validationErrors.birthdate && (
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.birthdate}
+                        </Form.Control.Feedback>
+                      )}
+                    </InputGroup>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Giới Tính</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text className="auth-input-icon">
+                        <FontAwesomeIcon icon={faVenusMars} />
+                      </InputGroup.Text>
+                      <Form.Select
+                        name="gender"
+                        value={gender}
+                        onChange={handleChange}
+                        className={`auth-input ${validationErrors.gender ? 'is-invalid' : ''}`}
+                        disabled={isLoading}
+                      >
+                        <option value="">Chọn giới tính</option>
+                        <option value="MALE">Nam</option>
+                        <option value="FEMALE">Nữ</option>
+                      </Form.Select>
+                      {validationErrors.gender && (
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.gender}
                         </Form.Control.Feedback>
                       )}
                     </InputGroup>

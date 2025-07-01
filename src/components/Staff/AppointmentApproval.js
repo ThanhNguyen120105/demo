@@ -381,10 +381,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                       <Card className="h-100 shadow-sm border-0">                        <Card.Header className="bg-light">
                           <div className="d-flex justify-content-between align-items-center">                            <h6 className="mb-0">
                               <FontAwesomeIcon icon={faUserMd} className="me-2 text-primary" />
-                              {appointment.detailsLoaded ? 
-                                (appointment.userName || appointment.alternativeName || `Lịch hẹn #${appointment.id}`) :
-                                `Lịch hẹn #${appointment.id}`
-                              }
+                              {appointment.userName || appointment.alternativeName || 'Bệnh nhân'}
                             </h6>
                             {getStatusBadge(appointment)}
                           </div>
@@ -455,7 +452,14 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
       </Row>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+      <Modal 
+        show={showDetailModal} 
+        onHide={() => setShowDetailModal(false)} 
+        size="lg" 
+        centered
+        className="staff-appointment-detail-modal"
+        dialogClassName="staff-modal-centered"
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faEye} className="me-2" />
@@ -474,9 +478,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                 <p><strong>Số điện thoại:</strong> {appointmentDetails.alternativePhoneNumber || 'N/A'}</p>
                 {/* TODO: Uncomment when backend provides email data */}
                 {/* <p><strong>Email:</strong> {appointmentDetails.email || 'N/A'}</p> */}
-                {appointmentDetails.id && (
-                  <p><strong>Mã lịch hẹn:</strong> {appointmentDetails.id}</p>
-                )}
+
               </Col>
               <Col md={6}>
                 <h6 className="text-primary">Thông tin lịch hẹn</h6>
@@ -563,7 +565,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
       </Modal>
 
       {/* Approval Modal */}
-      <Modal show={showApprovalModal} onHide={() => setShowApprovalModal(false)}>
+      <Modal show={showApprovalModal} onHide={() => setShowApprovalModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faCheck} className="me-2 text-success" />
@@ -608,7 +610,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
       </Modal>
 
       {/* Rejection Modal */}
-      <Modal show={showRejectionModal} onHide={() => setShowRejectionModal(false)}>
+      <Modal show={showRejectionModal} onHide={() => setShowRejectionModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faTimes} className="me-2 text-danger" />

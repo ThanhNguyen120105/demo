@@ -91,12 +91,26 @@ export const authAPI = {
   register: async (userData) => {
     try {
       console.log('Calling register API with data:', userData);
-      const response = await api.post('/auth/register', {
+      
+      // Đảm bảo format ngày đúng (YYYY-MM-DD)
+      let formattedBirthdate = userData.birthdate;
+      if (userData.birthdate) {
+        const date = new Date(userData.birthdate);
+        formattedBirthdate = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      }
+      
+      const requestData = {
         email: userData.email,
         password: userData.password,
         fullName: userData.name || userData.fullName,
-        phoneNumber: userData.phone || userData.phoneNumber
-      });
+        phoneNumber: userData.phone || userData.phoneNumber,
+        birthdate: formattedBirthdate,
+        gender: userData.gender
+      };
+      
+      console.log('Request data with formatted birthdate:', requestData);
+      
+      const response = await api.post('/auth/register', requestData);
       
       console.log('Register API response:', response.data);
       return {
