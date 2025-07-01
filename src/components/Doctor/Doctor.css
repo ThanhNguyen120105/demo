@@ -1804,7 +1804,6 @@ div.modal.arv-tool-modal .btn-close:hover {
   background: linear-gradient(135deg, #f8fcff 0%, #e3f2fd 100%) !important;
 }
 
-<<<<<<< HEAD
 /* Enhanced Badges with Professional Colors */
 .arv-tool-container .badge {
   font-size: 0.9rem !important;
@@ -2392,25 +2391,5 @@ html body div.modal.arv-tool-modal.show .modal-content {
     border-radius: 0 !important;
     height: 100vh !important;
     max-height: 100vh !important;
-  }
-}
-
-/* Confirmation modal styles */
-.confirmation-modal .arv-info div:last-child {
-  margin-bottom: 0;
-}
-
-.appointment-detail-modal .modal-dialog {
-  display: flex !important;
-  align-items: center;
-  min-height: 100vh;
-  justify-content: center;
-}
-
-@media (max-width: 768px) {
-  .appointment-detail-modal .modal-dialog {
-    min-height: unset;
-    align-items: flex-start;
-    margin: 1rem auto !important;
   }
 }

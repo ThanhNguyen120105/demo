@@ -463,13 +463,15 @@ const DoctorAppointments = () => {
         name: value.name,
         type: value.type,
         size: value.size,
-        hasData: !!value.data
+        hasData: !!value.data,
+        hasMetadata: !!value.arvMetadata
       });
       
       setMedicalReport(prevReport => ({
         ...prevReport,
         arvFile: value, // Store the file object for API upload
-        arvRegimenResultURL: value.name || 'arv-selection-result.pdf' // Store filename for display
+        arvRegimenResultURL: value.name || 'arv-selection-result.pdf', // Store filename for display
+        arvMetadata: value.arvMetadata || null // Store ARV metadata for later PDF recreation
       }));
       return;
     }
@@ -849,7 +851,7 @@ const DoctorAppointments = () => {
         ast: medicalReport.ast ? parseInt(medicalReport.ast) : null,
         totalCholesterol: medicalReport.totalCholesterol ? parseInt(medicalReport.totalCholesterol) : null,
         ldl: medicalReport.ldl ? parseInt(medicalReport.ldl) : null,
-        hdl: medicalReport.hdl ? parseInt(medicalReport.hdl) : null,        trigilycerides: medicalReport.trigilycerides ? parseInt(medicalReport.trigilycerides) : null,
+        hdl: medicalReport.hdl ? parseInt(medicalReport.hdl) : null,        triglycerides: medicalReport.trigilycerides ? parseInt(medicalReport.trigilycerides) : null,
         patientProgressEvaluation: medicalReport.patientProgressEvaluation || null,
         plan: medicalReport.plan || null,
         recommendation: medicalReport.recommendation || null,        medicalResultMedicines: Array.isArray(medicalReport.medicalResultMedicines) && medicalReport.medicalResultMedicines.length > 0 ?
@@ -863,7 +865,8 @@ const DoctorAppointments = () => {
             })) : null, // Send null instead of empty array
         // ARV file handling - include the file object for upload
         arvFile: medicalReport.arvFile || null, // File object from ARV Selection Tool
-        arvRegimenResultURL: medicalReport.arvRegimenResultURL || ""
+        arvRegimenResultURL: medicalReport.arvRegimenResultURL || "",
+        arvMetadata: medicalReport.arvMetadata || null // Include ARV metadata for later use
       };console.log('=== DEBUG: Trying to update existing report ===');
       console.log('Medical Result ID:', medicalReport.medicalResultId);      console.log('Doctor from token:', tokenDoctorId);
       console.log('Doctor in updateData:', updateData.doctorId);
@@ -935,7 +938,8 @@ const DoctorAppointments = () => {
           successMessage += `\n\n💊 Đã lưu ${updateData.medicalResultMedicines.length} loại thuốc.`;
         }
         
-        alert(successMessage);
+        // Đã có modal xác nhận, không cần alert nữa
+        // alert(successMessage);
         
         if (selectedAppointment) {
           localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
@@ -1021,24 +1025,30 @@ const DoctorAppointments = () => {
                     
                     if (arvResult.success) {
                       console.log('=== SUCCESS: ARV file uploaded separately ===');
-                      alert('✅ Đã lưu báo cáo y tế và file ARV thành công!\n\n' +
-                            '📋 Báo cáo cơ bản: ✅\n' +
-                            '📎 File ARV: ✅\n' +
-                            '💊 Thuốc: Cần thêm riêng sau này');
+                      // Đã có modal xác nhận, không cần alert
+                      // alert('✅ Đã lưu báo cáo y tế và file ARV thành công!\n\n' +
+                      //       '📋 Báo cáo cơ bản: ✅\n' +
+                      //       '📎 File ARV: ✅\n' +
+                      //       '💊 Thuốc: Cần thêm riêng sau này');
                     } else {
                       console.log('=== FAILED: ARV upload failed ===', arvResult);
-                      alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
-                            '❌ Không thể tải file ARV: ' + (arvResult.message || 'Lỗi không xác định') + '\n\n' +
-                            'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
+                      // Đã có modal xác nhận, chỉ log lỗi
+                      console.error('❌ Không thể tải file ARV:', arvResult.message || 'Lỗi không xác định');
+                      // alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
+                      //       '❌ Không thể tải file ARV: ' + (arvResult.message || 'Lỗi không xác định') + '\n\n' +
+                      //       'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
                     }
                   } catch (arvError) {
                     console.error('=== ARV UPLOAD ERROR ===', arvError);
-                    alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
-                          '❌ Lỗi khi tải file ARV: ' + arvError.message + '\n\n' +
-                          'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
+                    // Đã có modal xác nhận, chỉ log lỗi
+                    console.error('❌ Lỗi khi tải file ARV:', arvError.message);
+                    // alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
+                    //       '❌ Lỗi khi tải file ARV: ' + arvError.message + '\n\n' +
+                    //       'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
                   }
                 } else {
-                  alert(baseSuccessMessage);
+                  // Đã có modal xác nhận, không cần alert
+                  // alert(baseSuccessMessage);
                 }
               } else {
                 alert(baseSuccessMessage);
@@ -1128,7 +1138,7 @@ const DoctorAppointments = () => {
                 totalCholesterol: updateData.totalCholesterol,
                 ldl: updateData.ldl,
                 hdl: updateData.hdl,
-                trigilycerides: updateData.trigilycerides,
+                triglycerides: updateData.triglycerides,
                 patientProgressEvaluation: updateData.patientProgressEvaluation,
                 plan: updateData.plan,
                 recommendation: updateData.recommendation,
@@ -1151,7 +1161,8 @@ const DoctorAppointments = () => {
                   successMessage += '\n\n⚠️ Lưu ý: Chưa bao gồm thông tin thuốc và file ARV do vấn đề quyền truy cập.\nBạn có thể thêm sau bằng cách chỉnh sửa báo cáo.';
                 }
                 
-                alert(successMessage);
+                // Đã có modal xác nhận, không cần alert
+                // alert(successMessage);
                 if (selectedAppointment) {
                   localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
                 }
@@ -1330,7 +1341,8 @@ const DoctorAppointments = () => {
               }),
               // ARV file handling - URL from database, but no file object for existing data
               arvRegimenResultURL: existingMedicalResult.data.arvRegimenResultURL || null,
-              arvFile: null // No file object for existing data, only URL reference
+              arvFile: null, // No file object for existing data, only URL reference
+              arvMetadata: existingMedicalResult.data.arvMetadata || null // Load ARV metadata if available
             };
             console.log('📋 Populated medical report with existing data:', loadedReport);
             console.log('💊 Final medicines array:', loadedReport.medicalResultMedicines);
@@ -1992,10 +2004,7 @@ const DoctorAppointments = () => {
                   </div>
                 )}
                 
-                <div className="alert alert-info mt-3 mb-0">
-                  <FontAwesomeIcon icon={faCheck} className="me-2" />
-                  Sau khi hoàn thành, trạng thái sẽ chuyển thành <strong>"COMPLETED"</strong> và không thể thay đổi.
-                </div>
+
               </div>
             )}
           </Modal.Body>

@@ -16,6 +16,53 @@ const AppointmentDetailModal = ({ show, onHide, appointment, loading }) => {
     return null;
   }
 
+  // Hàm mapping service ID thành tên dịch vụ
+  const getServiceDisplay = (appointment) => {
+    // Tìm serviceId từ nhiều trường khác nhau có thể có trong appointment
+    let serviceId = appointment?.serviceId || 
+                    appointment?.service?.id || 
+                    appointment?.service?.serviceId;
+    
+    // Nếu không có serviceId, tạo từ appointmentType
+    if (!serviceId && appointment?.appointmentType) {
+      switch (appointment.appointmentType.toUpperCase()) {
+        case 'INITIAL':
+          serviceId = 1;
+          break;
+        case 'FOLLOW_UP':
+          serviceId = 2;
+          break;
+        default:
+          serviceId = 1;
+          break;
+      }
+    }
+    
+    // Hardcode mapping - không gọi API
+    switch (serviceId) {
+      case 1:
+      case '1':
+        return 'Khám và xét nghiệm HIV';
+      case 2:
+      case '2':
+        return 'Theo dõi tải lượng virus';
+      default:
+        // Fallback dựa trên appointmentType nếu vẫn không có serviceId
+        if (appointment?.appointmentType) {
+          switch (appointment.appointmentType.toLowerCase()) {
+            case 'initial':
+              return 'Khám và xét nghiệm HIV';
+            case 'follow_up':
+            case 'followup':
+              return 'Theo dõi tải lượng virus';
+            default:
+              return appointment.appointmentType;
+          }
+        }
+        return 'Dịch vụ khám bệnh';
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Không có thông tin';
     try {
@@ -167,7 +214,7 @@ const AppointmentDetailModal = ({ show, onHide, appointment, loading }) => {
                 <div className="detail-group">
                   <h6 className="detail-label">Dịch vụ</h6>
                   <p className="detail-value">
-                    {appointment.appointmentService || appointment.serviceName || 'Không có thông tin'}
+                    {appointment.appointmentService || appointment.serviceName || getServiceDisplay(appointment)}
                   </p>
                 </div>
               </Col>

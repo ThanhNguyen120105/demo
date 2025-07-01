@@ -30,7 +30,7 @@ import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import DoctorAppointments from './components/Doctor/DoctorAppointments';
 import ARVSelectionTool from './components/Doctor/ARVSelectionTool';
 import UnansweredQuestions from './components/Doctor/UnansweredQuestions';
-import DoctorMedicalRecords from './components/Doctor/DoctorMedicalRecords'; // Added from 6adb463
+
 import ApiTestDemo from './components/Demo/ApiTestDemo';
 import StaffTestLogin from './components/Demo/StaffTestLogin'; // From HEAD
 
@@ -85,7 +85,7 @@ function App() {
               <Route path="/doctor" element={<DoctorRoute><DoctorDashboard /></DoctorRoute>} />
               <Route path="/doctor/dashboard" element={<DoctorRoute><DoctorDashboard /></DoctorRoute>} />
               <Route path="/doctor/appointments" element={<DoctorRoute><DoctorAppointments /></DoctorRoute>} />
-              <Route path="/doctor/medical-records" element={<DoctorRoute><DoctorMedicalRecords /></DoctorRoute>} /> {/* Added from 6adb463, wrapped with DoctorRoute */}
+
               <Route path="/doctor/arv-tool" element={<DoctorRoute><ARVSelectionTool /></DoctorRoute>} />
               <Route path="/doctor/unanswered-questions" element={<DoctorRoute><UnansweredQuestions /></DoctorRoute>} />
             </Routes>

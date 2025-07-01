@@ -1564,7 +1564,8 @@ export const medicalResultAPI = {  // Tạo medical result cho appointment
               console.log('🔄 API: Mapping medicine for update:', med, '→', apiMedicine);
               return apiMedicine;
             })
-          : []
+          : [],
+        arvMetadata: medicalData.arvMetadata || null // Include ARV metadata for later PDF recreation
       };
       
       // Send data as JSON blob under "data" key (matching @RequestPart("data"))

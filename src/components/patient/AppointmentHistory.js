@@ -895,7 +895,6 @@ const AppointmentHistory = () => {
                   Kết quả ARV
                 </Card.Header>
                 <Card.Body>
-<<<<<<< HEAD
                   <div className="mb-3">
                     <label className="form-label">Báo cáo ARV</label>
                     {(medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL) ? (
@@ -932,19 +931,6 @@ const AppointmentHistory = () => {
                       </div>
                     </div>
                   )}
-=======
-                   <div className="bg-light p-3 rounded">
-                     <p className="mb-0">
-                       <FontAwesomeIcon icon={faFilePdf} className="me-2 text-danger" />
-                       <strong>Báo cáo ARV:</strong> {medicalResult.arvResults?.fileName || medicalResult.arvRegimenResultURL || 'Chưa có báo cáo'}
-                     </p>
-                     {(medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations) && (
-                       <p className="mb-0 mt-2">
-                         <strong>Khuyến nghị:</strong> {medicalResult.arvResults?.recommendations || medicalResult.arvRecommendations}
-                       </p>
-                     )}
-                   </div>
->>>>>>> a4d4a3af3b94c0b4c19c2fe5f7cbec73a06c89eb
                 </Card.Body>
               </Card>
 

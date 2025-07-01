@@ -3,9 +3,16 @@ import { Modal, Button, Card, Form, Row, Col, Badge } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUserMd, faHeartbeat, faVial, faFilePdf, faEye, faTimes, faSlidersH,
-  faPills, faClipboardList
+  faPills, faClipboardList, faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import ARVSelectionTool from './ARVSelectionTool';
+import { generateVietnameseHTMLtoPDF } from '../../utils/vietnamese-html-to-pdf';
+
+// CSS styles cho required field
+const requiredFieldStyle = {
+  color: 'red',
+  marginLeft: '2px'
+};
 
 const MedicalReportModal = ({
   show,
@@ -27,6 +34,10 @@ const MedicalReportModal = ({
 
   const handleARVSelect = (pdfFile) => {
     onChange('arvResultFile', pdfFile);
+    // Lưu metadata ARV nếu có
+    if (pdfFile.arvMetadata) {
+      onChange('arvMetadata', pdfFile.arvMetadata);
+    }
     setShowARVTool(false);
   };
 
@@ -43,6 +54,112 @@ const MedicalReportModal = ({
     }
     setShowDeleteARVConfirm(false);
     setARVToDelete(null);
+  };
+
+  // Function để tải file PDF ARV từ memory (file mới chưa lưu)
+  const handleDownloadNewARVFile = () => {
+    try {
+      console.log('💾 Tải file PDF ARV mới từ memory...');
+      
+      if (!report.arvResultFile) {
+        alert('❌ Không tìm thấy file ARV để tải xuống.');
+        return;
+      }
+
+      // Tạo tên file để download
+      const fileName = `Bao-cao-ARV-${appointment?.alternativeName || 'BenhNhan'}-${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.pdf`;
+      
+      if (report.arvResultFile.data) {
+        // File có base64 data từ ARV Selection Tool
+        const byteCharacters = atob(report.arvResultFile.data);
+        const byteNumbers = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const blob = new Blob([byteNumbers], { type: 'application/pdf' });
+        
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+        console.log('✅ File PDF ARV mới đã được tải xuống thành công!');
+      } else if (report.arvResultFile.file) {
+        // File object trực tiếp
+        const downloadUrl = window.URL.createObjectURL(report.arvResultFile.file);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+        console.log('✅ File PDF ARV mới đã được tải xuống thành công!');
+      } else {
+        alert('❌ Định dạng file không hợp lệ để tải xuống.');
+      }
+      
+    } catch (error) {
+      console.error('❌ Lỗi tải file PDF ARV mới:', error);
+      alert('❌ Có lỗi xảy ra khi tải file PDF ARV. Vui lòng thử lại.');
+    }
+  };
+
+  // Function để tải file PDF ARV đã có sẵn trong hệ thống
+  const handleDownloadExistingARVFile = async () => {
+    try {
+      console.log('💾 Tải file PDF ARV đã có sẵn...');
+      
+      // Kiểm tra xem có URL file ARV không
+      if (!report.arvRegimenResultURL) {
+        alert('❌ Không tìm thấy file báo cáo ARV để tải xuống.\n\nVui lòng tạo báo cáo ARV trước.');
+        return;
+      }
+
+      console.log('📁 ARV file URL:', report.arvRegimenResultURL);
+      
+      // Tạo tên file để download
+      const fileName = `Bao-cao-ARV-${appointment?.alternativeName || 'BenhNhan'}-${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.pdf`;
+      
+      try {
+        // Tải file từ URL
+        const response = await fetch(report.arvRegimenResultURL);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        
+        // Tạo URL để download
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+        console.log('✅ File PDF ARV đã được tải xuống thành công!');
+        
+      } catch (fetchError) {
+        console.error('❌ Lỗi tải file từ server:', fetchError);
+        
+        // Fallback: mở file trong tab mới
+        console.log('🔄 Fallback: Mở file trong tab mới...');
+        window.open(report.arvRegimenResultURL, '_blank');
+      }
+      
+    } catch (error) {
+      console.error('❌ Lỗi tải file PDF ARV:', error);
+      alert('❌ Có lỗi xảy ra khi tải file PDF ARV. Vui lòng thử lại.');
+    }
   };
 
   // Hàm xóa một thuốc khỏi danh sách
@@ -115,7 +232,10 @@ const MedicalReportModal = ({
               <Row>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Cân nặng</Form.Label>
+                    <Form.Label>
+                      Cân nặng
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -123,12 +243,16 @@ const MedicalReportModal = ({
                       value={report.weight || ''}
                       onChange={(e) => onChange('weight', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                   </Form.Group>
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Chiều cao</Form.Label>
+                    <Form.Label>
+                      Chiều cao
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -136,6 +260,7 @@ const MedicalReportModal = ({
                       value={report.height || ''}
                       onChange={(e) => onChange('height', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -154,7 +279,10 @@ const MedicalReportModal = ({
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Nhiệt độ</Form.Label>
+                    <Form.Label>
+                      Nhiệt độ
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="number" 
                       step="0.1"
@@ -162,30 +290,39 @@ const MedicalReportModal = ({
                       value={report.temperature || ''}
                       onChange={(e) => onChange('temperature', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                   </Form.Group>
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Huyết áp</Form.Label>
+                    <Form.Label>
+                      Huyết áp
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="text" 
                       placeholder="120/80 mmHg" 
                       value={report.bloodPressure || ''}
                       onChange={(e) => onChange('bloodPressure', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                   </Form.Group>
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Nhịp tim</Form.Label>
+                    <Form.Label>
+                      Nhịp tim
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="number" 
                       placeholder="bpm" 
                       value={report.heartRate || ''}
                       onChange={(e) => onChange('heartRate', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -204,7 +341,10 @@ const MedicalReportModal = ({
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Chỉ số CD4</Form.Label>
+                    <Form.Label>
+                      Chỉ số CD4
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="number" 
                       step="1"
@@ -212,19 +352,24 @@ const MedicalReportModal = ({
                       value={report.cd4Count || ''}
                       onChange={(e) => onChange('cd4Count', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                     <Form.Text className="text-muted">tế bào/mm³</Form.Text>
                   </Form.Group>
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Tải lượng virus</Form.Label>
+                    <Form.Label>
+                      Tải lượng virus
+                      <span style={requiredFieldStyle}>*</span>
+                    </Form.Label>
                     <Form.Control 
                       type="text" 
                       placeholder="< 20" 
                       value={report.viralLoad || ''}
                       onChange={(e) => onChange('viralLoad', e.target.value)}
                       readOnly={readOnly}
+                      required
                     />
                     <Form.Text className="text-muted">bản sao/mL</Form.Text>
                   </Form.Group>
@@ -418,6 +563,16 @@ const MedicalReportModal = ({
                       <FontAwesomeIcon icon={faEye} className="me-1" />
                       Xem
                     </Button>
+                    <Button 
+                      variant="outline-success" 
+                      size="sm" 
+                      className="me-2"
+                      onClick={() => handleDownloadExistingARVFile()}
+                      title="Tải file PDF ARV đã có sẵn"
+                    >
+                      <FontAwesomeIcon icon={faDownload} className="me-1" />
+                      TẢI FILE
+                    </Button>
                     {!readOnly && (
                       <Button 
                         variant="outline-danger" 
@@ -448,6 +603,16 @@ const MedicalReportModal = ({
                     >
                       <FontAwesomeIcon icon={faEye} className="me-1" />
                       Xem
+                    </Button>
+                    <Button 
+                      variant="outline-success" 
+                      size="sm" 
+                      className="me-2"
+                      onClick={() => handleDownloadNewARVFile()}
+                      title="Tải file PDF ARV mới"
+                    >
+                      <FontAwesomeIcon icon={faDownload} className="me-1" />
+                      TẢI FILE
                     </Button>
                     <Button 
                       variant="outline-danger" 
@@ -541,7 +706,10 @@ const MedicalReportModal = ({
             </Card.Header>
             <Card.Body>
               <Form.Group className="mb-3">
-                <Form.Label>Đánh giá tiến triển bệnh nhân *</Form.Label>
+                <Form.Label>
+                  Đánh giá tiến triển bệnh nhân
+                  <span style={requiredFieldStyle}>*</span>
+                </Form.Label>
                 <Form.Control 
                   as="textarea" 
                   rows={3} 
@@ -554,7 +722,10 @@ const MedicalReportModal = ({
               </Form.Group>
               
               <Form.Group className="mb-3">
-                <Form.Label>Kế hoạch điều trị *</Form.Label>
+                <Form.Label>
+                  Kế hoạch điều trị
+                  <span style={requiredFieldStyle}>*</span>
+                </Form.Label>
                 <Form.Control 
                   as="textarea" 
                   rows={3} 
@@ -567,7 +738,10 @@ const MedicalReportModal = ({
               </Form.Group>
               
               <Form.Group>
-                <Form.Label>Khuyến nghị *</Form.Label>
+                <Form.Label>
+                  Khuyến nghị
+                  <span style={requiredFieldStyle}>*</span>
+                </Form.Label>
                 <Form.Control 
                   as="textarea" 
                   rows={4} 

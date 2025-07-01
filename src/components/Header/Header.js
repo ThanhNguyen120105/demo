@@ -118,7 +118,7 @@ const Header = () => {
                       <div className="dropdown-menu show">
                         <Link to={getDashboardRoute(user)} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <FontAwesomeIcon icon={faUser} className="me-2" />
-                          {isDoctor(user) ? 'Dashboard bác sĩ' : 'Thông tin cá nhân'}
+                          {isDoctor(user) ? 'Trang làm việc của bác sĩ' : 'Thông tin cá nhân'}
                         </Link>
                         
                         <div className="dropdown-divider"></div>

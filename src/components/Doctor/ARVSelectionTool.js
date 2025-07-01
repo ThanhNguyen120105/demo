@@ -12,8 +12,11 @@ import './Doctor.css';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { vietnameseToAscii } from '../../utils/vietnamese-ascii';
-import { generateVietnamesePDF } from '../../utils/html-pdf-generator';
+import { generateVietnamesePDF as generateHTMLPDF } from '../../utils/html-pdf-generator';
 import { ARVReportWebViewer, generateWebReport } from '../../utils/vietnamese-web-viewer';
+import { generateVietnamesePDF } from '../../utils/vietnamese-pdf-generator';
+import { generateVietnameseHTMLtoPDF } from '../../utils/vietnamese-html-to-pdf';
+import { generateVietnamesePDFForSupabase } from '../../utils/vietnamese-pdf-supabase';
 
 const ARVSelectionTool = ({ onSelect, appointment }) => {
   const [activeTab, setActiveTab] = useState('arv-tool');
@@ -1058,6 +1061,111 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
 </html>`;
   };
 
+  // TẠO PDF TIẾNG VIỆT CẢI TIẾN - GIẢI QUYẾT VẤN ĐỀ FONT!
+  const generateImprovedVietnamesePDF = async () => {
+    try {
+      console.log('🎯 Tạo PDF tiếng Việt với HTML-to-PDF...');
+      
+      const reportData = {
+        appointment,
+        specialPopulation,
+        viralLoad,
+        cd4Count,
+        hlaB5701,
+        tropism,
+        comorbidities,
+        coMedications,
+        selectedRegimens,
+        notes,
+        getSpecialPopulationDisplay,
+        getViralLoadDisplay,
+        getCd4Display,
+        getTropismDisplay,
+        comorbidityOptions
+      };
+      
+      const result = await generateVietnameseHTMLtoPDF(reportData);
+      
+      if (result.success) {
+        console.log('✅ HTML-to-PDF thành công!');
+        if (result.method === 'html-print') {
+          alert('✅ Đã mở cửa sổ in với font tiếng Việt chính xác!\n\n' +
+                'Từ cửa sổ đó bạn có thể:\n' +
+                '• In thành PDF (Save as PDF)\n' +
+                '• In trực tiếp\n' +
+                '• Font tiếng Việt sẽ hiển thị đúng 100%');
+        } else {
+          alert('✅ Đã tải xuống file HTML với font tiếng Việt!\n\n' +
+                'Mở file HTML và in thành PDF để có font chính xác.');
+        }
+      } else {
+        console.error('❌ Lỗi HTML-to-PDF:', result.error);
+        alert('❌ Có lỗi xảy ra khi tạo HTML-to-PDF. Vui lòng thử lại.');
+      }
+      
+    } catch (error) {
+      console.error('❌ Lỗi HTML-to-PDF:', error);
+      alert('❌ Có lỗi xảy ra khi tạo HTML-to-PDF. Vui lòng thử lại.');
+    }
+  };
+
+  // TẠO PDF JSPDF CẢI TIẾN (Backup)
+  const generateJSPDFImproved = async () => {
+    try {
+      console.log('🎨 Tạo PDF tiếng Việt với jsPDF cải tiến...');
+      
+      const reportData = {
+        appointment,
+        specialPopulation,
+        viralLoad,
+        cd4Count,
+        hlaB5701,
+        tropism,
+        comorbidities,
+        coMedications,
+        selectedRegimens,
+        notes,
+        getSpecialPopulationDisplay,
+        getViralLoadDisplay,
+        getCd4Display,
+        getTropismDisplay,
+        comorbidityOptions
+      };
+      
+      const result = await generateVietnamesePDF(reportData);
+      
+      if (result.success) {
+        console.log('✅ PDF tiếng Việt cải tiến đã được tạo thành công!');
+        alert('✅ PDF jsPDF cải tiến đã được tạo thành công!\n\nFont tiếng Việt được xử lý tốt hơn.');
+        
+        // Create a base64 string of the PDF
+        const reader = new FileReader();
+        reader.readAsDataURL(result.blob);
+        reader.onloadend = function() {
+          const base64data = reader.result.split(',')[1];
+          
+          if (onSelect) {
+            onSelect({
+              name: result.fileName,
+              type: 'application/pdf',
+              size: result.blob.size,
+              data: base64data,
+              file: result.file,
+              lastModified: Date.now()
+            });
+          }
+        };
+      } else {
+        console.error('❌ Lỗi tạo PDF:', result.error);
+        alert('❌ Có lỗi xảy ra khi tạo PDF tiếng Việt. Vui lòng thử lại.');
+      }
+      
+    } catch (error) {
+      console.error('❌ Lỗi tạo PDF tiếng Việt cải tiến:', error);
+      alert('❌ Có lỗi xảy ra khi tạo PDF tiếng Việt. Vui lòng thử lại.');
+    }
+  };
+
   // XEM TRỰC TIẾP TRÊN WEB - FONT TIẾNG VIỆT HOÀN HẢO!
   const showWebReportViewer = () => {
     try {
@@ -1174,9 +1282,82 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  // TẠO BÁO CÁO ARV VÀ LUU VÀO DATABASE
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    generateVietnamesePDFMethod();
+    
+    try {
+      console.log('📤 Tạo báo cáo ARV và lưu vào database...');
+      
+      const reportData = {
+        appointment,
+        specialPopulation,
+        viralLoad,
+        cd4Count,
+        hlaB5701,
+        tropism,
+        comorbidities,
+        coMedications,
+        selectedRegimens,
+        notes,
+        getSpecialPopulationDisplay,
+        getViralLoadDisplay,
+        getCd4Display,
+        getTropismDisplay,
+        comorbidityOptions
+      };
+      
+      // Tạo PDF với font tiếng Việt cải tiến cho Supabase
+      const result = await generateVietnamesePDFForSupabase(reportData);
+      
+      if (result.success) {
+        console.log('✅ PDF đã được tạo thành công!');
+        
+        // Create a base64 string of the PDF để lưu vào database
+        const reader = new FileReader();
+        reader.readAsDataURL(result.blob);
+        reader.onloadend = function() {
+          const base64data = reader.result.split(',')[1];
+          
+          if (onSelect) {
+            onSelect({
+              name: result.fileName,
+              type: 'application/pdf',
+              size: result.blob.size,
+              data: base64data,
+              file: result.file,
+              lastModified: Date.now(),
+              isARVReport: true, // Flag để identify báo cáo ARV
+              reportType: 'arv-regimen-selection',
+              // Lưu metadata ARV để có thể tái tạo PDF sau này
+              arvMetadata: {
+                appointment,
+                specialPopulation,
+                viralLoad,
+                cd4Count,
+                hlaB5701,
+                tropism,
+                comorbidities,
+                coMedications,
+                selectedRegimens,
+                notes,
+                timestamp: Date.now()
+              }
+            });
+          }
+          
+          // No alert - just log success
+          console.log('✅ Báo cáo ARV đã được tạo và lưu vào hệ thống thành công');
+        };
+    } else {
+        console.error('❌ Lỗi tạo báo cáo:', result.error);
+        alert('❌ Có lỗi xảy ra khi tạo báo cáo ARV. Vui lòng thử lại.');
+      }
+      
+    } catch (error) {
+      console.error('❌ Lỗi tạo báo cáo ARV:', error);
+      alert('❌ Có lỗi xảy ra khi tạo báo cáo ARV. Vui lòng thử lại.');
+    }
   };
 
   const downloadLastPdf = () => {
@@ -1702,42 +1883,19 @@ const ARVSelectionTool = ({ onSelect, appointment }) => {
                 </Form.Text>
                 </Form.Group>
 
-                <div className="d-flex justify-content-center gap-3 mt-4">
-                  {/* NÚT CHÍNH: XEM TRỰC TIẾP TRÊN WEB */}
-                  <Button 
-                    type="button" 
-                    variant="success" 
-                    size="lg"
-                    disabled={selectedRegimens.length === 0 && (!notes.customRegimen || notes.customRegimen.trim() === '')}
-                    onClick={showWebReportViewer}
-                    className="main-action-btn"
-                  >
-                    <FontAwesomeIcon icon={faEye} className="me-2" />
-                    XEM BÁO CÁO TRỰC TIẾP
-                  </Button>
-                  
-                  {/* Các tùy chọn phụ cho PDF */}
+                                <div className="d-flex justify-content-center mt-4">
+                  {/* NÚT DUY NHẤT: TẠO BÁO CÁO ARV (Lưu vào Database) */}
                   <Button 
                     type="submit" 
-                    variant="outline-primary" 
+                    variant="primary" 
                     size="lg"
                     disabled={selectedRegimens.length === 0 && (!notes.customRegimen || notes.customRegimen.trim() === '')}
+                    className="px-5 py-3"
+                    title="Tạo báo cáo PDF và lưu vào hệ thống database"
                   >
-                    <FontAwesomeIcon icon={faDownload} className="me-2" />
-                    Tải PDF (Tiếng Việt)
+                    <FontAwesomeIcon icon={faFilePdf} className="me-2" />
+                    TẠO BÁO CÁO ARV
                   </Button>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline-secondary" 
-                    size="lg"
-                    disabled={selectedRegimens.length === 0 && (!notes.customRegimen || notes.customRegimen.trim() === '')}
-                    onClick={generatePDF}
-                  >
-                  <FontAwesomeIcon icon={faFilePdf} className="me-2" />
-                    PDF ASCII (Dự phòng)
-                </Button>
-
               </div>
             </Form>
           </Card.Body>

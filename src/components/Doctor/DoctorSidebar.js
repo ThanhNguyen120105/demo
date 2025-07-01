@@ -5,17 +5,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserMd,
-  faClipboardList, faSignOutAlt, faFileAlt,
-  faQuestionCircle
+  faClipboardList, faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { doctorAPI, appointmentAPI } from '../../services/api';
 import { getUserInfoFromToken } from '../../utils/jwtUtils';
 
 const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { logout, user } = useAuth();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { user } = useAuth();
   const [currentDoctor, setCurrentDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [appointmentsCount, setAppointmentsCount] = useState(0);
@@ -115,17 +111,6 @@ const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
     }
   }, [user]);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setShowLogoutModal(false);
-    }
-  };
-  
   return (
     <Col md={3} lg={2} className="sidebar">
       <div className="sidebar-header">
@@ -186,53 +171,8 @@ const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
             <Badge bg="danger" className="ms-auto">{unansweredCount}</Badge>
           )}
         </ListGroup.Item>
-        <ListGroup.Item 
-          action 
-          active={activeTab === 'medical-records'} 
-          onClick={() => setActiveTab('medical-records')}
-          as={Link} to="/doctor/medical-records"
-        >
-          <FontAwesomeIcon icon={faFileAlt} className="menu-icon" />
-          Hồ Sơ Cá Nhân
-        </ListGroup.Item>
       </ListGroup>
-        <div className="sidebar-footer">
-        <Button 
-          variant="outline-danger" 
-          className="logout-btn"
-          onClick={() => setShowLogoutModal(true)}
-        >
-          <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
-          Đăng Xuất
-        </Button>
-      </div>
 
-      {/* Logout Confirmation Modal */}
-      <Modal 
-        show={showLogoutModal} 
-        onHide={() => setShowLogoutModal(false)} 
-        centered
-        className="logout-confirmation-modal"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faSignOutAlt} className="text-warning me-2" />
-            Xác nhận đăng xuất
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowLogoutModal(false)}>
-            Hủy
-          </Button>
-          <Button variant="danger" onClick={handleLogout}>
-            <FontAwesomeIcon icon={faSignOutAlt} className="me-1" />
-            Đăng Xuất
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </Col>
   );
 };
