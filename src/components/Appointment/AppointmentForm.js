@@ -391,13 +391,9 @@ const AppointmentForm = () => {
         reason: formData.healthIssues || '', // Lý do khám bệnh
         alternativeName: formData.name,
         alternativePhoneNumber: formData.phone,
-<<<<<<< HEAD
         birthdate: formData.dob,
         gender: formData.gender,
         notes: formData.healthIssues || '',
-=======
-        notes: formData.notes || '', // Ghi chú riêng biệt
->>>>>>> 4c6674ed5c0b773c7835a8c9bd46d77a3ccca378
         doctorId: formData.doctor || null, // Giữ nguyên string UUID, không parseInt
         serviceId: parseInt(formData.serviceId), // Service ID thực từ user chọn (1 hoặc 2)
         anonymous: formData.consultationType === 'anonymous', // true nếu khám ẩn danh

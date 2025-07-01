@@ -270,7 +270,7 @@ const AppointmentApproval = () => {
       </Row>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faEye} className="me-2" />
@@ -316,7 +316,7 @@ const AppointmentApproval = () => {
       </Modal>
 
       {/* Approval Modal */}
-      <Modal show={showApprovalModal} onHide={() => setShowApprovalModal(false)}>
+      <Modal show={showApprovalModal} onHide={() => setShowApprovalModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faCheck} className="me-2 text-success" />
@@ -361,7 +361,7 @@ const AppointmentApproval = () => {
       </Modal>
 
       {/* Rejection Modal */}
-      <Modal show={showRejectionModal} onHide={() => setShowRejectionModal(false)}>
+      <Modal show={showRejectionModal} onHide={() => setShowRejectionModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faTimes} className="me-2 text-danger" />
