@@ -11,6 +11,7 @@ import {
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
 import AppointmentDetailModal from '../common/AppointmentDetailModal';
+// import VideoCall from '../VideoCall/videoCall'; // No longer needed
 import { appointmentAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -29,6 +30,10 @@ const DoctorDashboard = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointmentDetail, setAppointmentDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  
+  // Video call states - No longer needed
+  // const [showVideoCall, setShowVideoCall] = useState(false);
+  // const [videoCallAppointment, setVideoCallAppointment] = useState(null);
 
   // Mapping functions
   const getAppointmentTypeDisplay = (type) => {
@@ -171,6 +176,13 @@ const DoctorDashboard = () => {
       setAppointmentDetail(null);
       setDetailLoading(false);
     }, 200);
+  };
+
+  const handleVideoCall = (appointment) => {
+    console.log('Starting video call for appointment:', appointment);
+    // Open video call in new tab
+    const videoCallUrl = `/video-call/${appointment.id}/doctor`;
+    window.open(videoCallUrl, '_blank', 'width=1200,height=800');
   };
 
   // Helper functions cho modal
@@ -324,14 +336,26 @@ const DoctorDashboard = () => {
                                       </span>
                                     </td>
                                     <td>
+                                      <div className="d-flex gap-2">
                                       <Button 
                                         variant="outline-primary" 
                                         size="sm"
                                         onClick={() => handleShowDetailModal(appointment)}
                                       >
                                         <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                        Xem chi tiết lịch hẹn
+                                          Chi tiết
+                                        </Button>
+                                        {appointment.status === 'ACCEPTED' && (
+                                          <Button 
+                                            variant="success" 
+                                            size="sm"
+                                            onClick={() => handleVideoCall(appointment)}
+                                          >
+                                            <FontAwesomeIcon icon={faVideo} className="me-1" />
+                                            Video Call
                                       </Button>
+                                        )}
+                                      </div>
                                     </td>
                                   </tr>
                                 );
@@ -395,14 +419,26 @@ const DoctorDashboard = () => {
                                     </span>
                                   </td>
                                   <td>
+                                    <div className="d-flex gap-2">
                                     <Button 
                                       variant="outline-primary" 
                                       size="sm"
                                       onClick={() => handleShowDetailModal(appointment)}
                                     >
                                       <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                      Xem chi tiết lịch hẹn
+                                        Chi tiết
+                                      </Button>
+                                      {appointment.status === 'ACCEPTED' && (
+                                        <Button 
+                                          variant="success" 
+                                          size="sm"
+                                          onClick={() => handleVideoCall(appointment)}
+                                        >
+                                          <FontAwesomeIcon icon={faVideo} className="me-1" />
+                                          Video Call
                                     </Button>
+                                      )}
+                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -436,6 +472,8 @@ const DoctorDashboard = () => {
                 getStatusBadge={getStatusBadge}
               />
             )}
+
+            {/* Video call now opens in new tab */}
           </Col>
         </Row>
       </Container>

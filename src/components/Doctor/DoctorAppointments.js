@@ -10,7 +10,7 @@ import {
   faChevronLeft, faChevronRight, faSearch, faPlus, faTimes, faCheck, faClock,
   faNotesMedical, faVial, faPrescriptionBottleAlt,
   faStethoscope, faUserFriends, faBaby, faSlidersH, faHeartbeat, 
-  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills, faSave, faInfoCircle
+  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills, faSave, faInfoCircle, faVideo
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
@@ -18,6 +18,7 @@ import ARVSelectionTool from './ARVSelectionTool';
 import MedicineSelector from './MedicineSelector';
 import MedicalReportModal from './MedicalReportModal';
 import AppointmentDetailModal from '../common/AppointmentDetailModal';
+// import VideoCall from '../VideoCall/videoCall'; // No longer needed
 import { appointmentAPI, userAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -198,6 +199,10 @@ const DoctorAppointments = () => {
   // State cho AppointmentDetailModal
   const [showAppointmentDetailModal, setShowAppointmentDetailModal] = useState(false);
   const [appointmentDetailData, setAppointmentDetailData] = useState(null);
+  
+  // Video call states - No longer needed
+  // const [showVideoCall, setShowVideoCall] = useState(false);
+  // const [videoCallAppointment, setVideoCallAppointment] = useState(null);
   const [loadingAppointmentDetail, setLoadingAppointmentDetail] = useState(false);
   
   // State cho modal xác nhận
@@ -268,7 +273,8 @@ const DoctorAppointments = () => {
                   appointmentType: detailedAppt.appointmentType,
                   slotStartTime: detailedAppt.slotStartTime,
                   slotEndTime: detailedAppt.slotEndTime,
-                  appointmentService: detailedAppt.appointmentService
+                  appointmentService: detailedAppt.appointmentService,
+                  consultationType: detailedAppt.consultationType // Thêm log cho consultationType
                 });
               }
               
@@ -291,6 +297,7 @@ const DoctorAppointments = () => {
                 appointmentType: detailedAppt.appointmentType || appointment.appointmentType,
                 userId: detailedAppt.userId || appointment.userId,
                 appointmentService: detailedAppt.appointmentService, // Tên dịch vụ từ API
+                consultationType: detailedAppt.consultationType || appointment.consultationType, // Thêm consultationType
                 detailsLoaded: true
               });
             } else {
@@ -332,6 +339,7 @@ const DoctorAppointments = () => {
                 service: appointment.service,
                 appointmentType: appointment.appointmentType,
                 userId: appointment.userId,
+                consultationType: appointment.consultationType, // Thêm consultationType
                 detailsLoaded: false
               });
             }
@@ -358,6 +366,7 @@ const DoctorAppointments = () => {
               service: appointment.service,
               appointmentType: appointment.appointmentType,
               userId: appointment.userId,
+              consultationType: appointment.consultationType, // Thêm consultationType
               detailsLoaded: false
             });
           }
@@ -1622,6 +1631,14 @@ const DoctorAppointments = () => {
     }
   };
 
+  // Hàm xử lý video call
+  const handleVideoCall = (appointment) => {
+    console.log('Starting video call for appointment:', appointment);
+    // Open video call in new tab
+    const videoCallUrl = `/video-call/${appointment.id}/doctor`;
+    window.open(videoCallUrl, '_blank', 'width=1200,height=800');
+  };
+
   return (
     <div className="doctor-dashboard">
       <Container fluid>
@@ -1772,15 +1789,30 @@ const DoctorAppointments = () => {
                             </div>
                             
                             <div className="appointment-actions mt-2">
-                              <Button
-                                variant="outline-secondary" 
-                                size="sm" 
-                                className="action-btn me-1"
-                                onClick={() => handleShowAppointmentDetails(appointment)}
-                              >
-                                <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                Chi tiết lịch hẹn
-                              </Button>
+                              {/* Layout "chi tiết lịch hẹn | videoCall" cho tất cả lịch hẹn */}
+                              <div className="d-flex align-items-center gap-2">
+                                <Button
+                                  variant="outline-secondary" 
+                                  size="sm" 
+                                  className="action-btn flex-grow-1"
+                                  onClick={() => handleShowAppointmentDetails(appointment)}
+                                >
+                                  <FontAwesomeIcon icon={faClipboardList} className="me-1" />
+                                  Chi tiết lịch hẹn
+                                </Button>
+                                
+                                <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
+                                
+                                <Button
+                                  variant="success" 
+                                  size="sm" 
+                                  className="action-btn flex-grow-1"
+                                  onClick={() => handleVideoCall(appointment)}
+                                >
+                                  <FontAwesomeIcon icon={faVideo} className="me-1" />
+                                  Video Call
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -2100,6 +2132,7 @@ const DoctorAppointments = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+                 {/* Video call now opens in new tab */}
       </Container>
     </div>
   );

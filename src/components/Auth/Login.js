@@ -187,7 +187,7 @@ const Login = () => {
                     </Link>
                   </p>
                     <div className="mt-2">
-                    <Link to="/doctor/login" className="text-primary text-decoration-none">
+                    <Link to="/doctor-login" className="text-primary text-decoration-none">
                       <FontAwesomeIcon icon={faUserMd} className="me-2" />
                       Đăng nhập dành cho Bác sĩ
                     </Link>

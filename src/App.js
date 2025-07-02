@@ -36,47 +36,59 @@ import StaffTestLogin from './components/Demo/StaffTestLogin'; // From HEAD
 
 // Staff Components
 import StaffDashboard from './components/Staff/StaffDashboard'; // From HEAD
-import AppointmentApproval from './components/Staff/AppointmentApproval'; // Added for appointment approval
+import AppointmentApproval from './components/Staff/AppointmentApproval';
 
-// Route Guards
-import DoctorRoute from './components/common/DoctorRoute'; // From HEAD
-import StaffRoute from './components/common/StaffRoute'; // From HEAD
-import ProtectedRoute from './components/common/ProtectedRoute'; // Added for protected routes
+// Auth Components
+import ProtectedRoute from './components/common/ProtectedRoute';
+import DoctorRoute from './components/common/DoctorRoute';
+import StaffRoute from './components/common/StaffRoute';
+
+// Video Call
+import VideoCallPage from './components/VideoCall/VideoCallPage';
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
         <Router>
-          <ScrollToTop />
           <div className="App">
+            <ScrollToTop />
+            <Routes>
+              {/* Video Call Route - No header/footer */}
+              <Route path="/video-call/:appointmentId/:userRole" element={<VideoCallPage />} />
+              
+              {/* Normal routes with header/footer */}
+              <Route path="/*" element={
+                <>
             <Header />
-            <Routes>              <Route path="/" element={<Home />} />
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/appointment" element={<AppointmentPage />} />
-              <Route path="/patient/dashboard" element={<PatientDashboard />} /> {/* Added from 6adb463 */}
-              
-              {/* Route cho lịch sử khám bệnh - chỉ dành cho CUSTOMER */}
-              <Route 
-                path="/lich-su-kham-benh" 
-                element={
-                  <ProtectedRoute requiredRole="CUSTOMER">
-                    <AppointmentHistory />
-                  </ProtectedRoute>
-                } 
-              />
+                    <Route path="/doctors" element={<Doctors />} />
+                    <Route path="/qa" element={<QnA />} />
+                    
+                    {/* Auth Routes */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/doctor-login" element={<DoctorLogin />} />
+                    <Route path="/signup" element={<Signup />} />
+                    
+                    {/* Patient Routes - Using ProtectedRoute */}
+                    <Route path="/appointment" element={<ProtectedRoute><AppointmentPage /></ProtectedRoute>} />
+                    <Route path="/patient" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
+                    <Route path="/patient/dashboard" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
+                    <Route path="/patient/appointment-history" element={<ProtectedRoute><AppointmentHistory /></ProtectedRoute>} />
+                    <Route path="/lich-su-kham-benh" element={<ProtectedRoute><AppointmentHistory /></ProtectedRoute>} />
             
+                    {/* Test Routes */}
               <Route path="/test-results" element={<TestResultsLookup />} />
-              <Route path="/doctors" element={<Doctors />} />
-              <Route path="/qna" element={<QnA />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/doctor/login" element={<DoctorLogin />} /> {/* From HEAD */}
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/navigation" element={<NavigationDemo />} />
+                    <Route path="/navigation-demo" element={<NavigationDemo />} />
               <Route path="/api-test" element={<ApiTestDemo />} />
-              <Route path="/staff-test-login" element={<StaffTestLogin />} /> {/* From HEAD */}              {/* Staff Routes - Using StaffRoute from HEAD */}
+                    <Route path="/staff-test-login" element={<StaffTestLogin />} />
+
+                    {/* Staff Routes - Using StaffRoute from HEAD */}
               <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/appointment-approval" element={<StaffRoute><AppointmentApproval /></StaffRoute>} />
@@ -90,6 +102,9 @@ function App() {
               <Route path="/doctor/unanswered-questions" element={<DoctorRoute><UnansweredQuestions /></DoctorRoute>} />
             </Routes>
             <Footer />
+                </>
+              } />
+            </Routes>
           </div>
         </Router>
       </NotificationProvider>

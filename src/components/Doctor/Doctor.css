@@ -614,6 +614,116 @@
   box-shadow: 0 0 0 0.1rem rgba(30, 136, 229, 0.25);
 }
 
+/* Video Call Button Styles */
+.video-call-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+.video-call-btn:hover {
+  background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+  color: white;
+}
+
+.video-call-btn:focus {
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+  color: white;
+}
+
+/* Action buttons container */
+.appointment-actions .btn {
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Layout đặc biệt cho lịch hẹn ẩn danh: "chi tiết lịch hẹn | videoCall" */
+.appointment-actions .d-flex.align-items-center.gap-2 {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.appointment-actions .d-flex.align-items-center.gap-2 .action-btn.flex-grow-1 {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.appointment-actions .d-flex.align-items-center.gap-2 .action-btn.flex-grow-1:first-child {
+  background-color: #fff;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+.appointment-actions .d-flex.align-items-center.gap-2 .action-btn.flex-grow-1:first-child:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.appointment-actions .d-flex.align-items-center.gap-2 .action-btn.flex-grow-1:last-child {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.appointment-actions .d-flex.align-items-center.gap-2 .action-btn.flex-grow-1:last-child:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Separator styling */
+.appointment-actions .text-muted {
+  font-weight: bold;
+  color: #6c757d !important;
+  padding: 0 4px;
+}
+
+/* Responsive video call button */
+@media (max-width: 768px) {
+  .appointment-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .appointment-actions .btn {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 100%;
+  }
+}
+
+/* Video call status indicator */
+.video-call-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.video-call-status.available {
+  background-color: #d1f2d9;
+  color: #0f5132;
+}
+
+.video-call-status .status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
 .form-text.text-muted {
   font-size: 0.825rem;
 }

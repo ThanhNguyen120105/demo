@@ -18,11 +18,13 @@ import {
   faUser,
   faPhone,
   faBirthdayCake,
-  faVenusMars
+  faVenusMars,
+  faVideo
 } from '@fortawesome/free-solid-svg-icons';
 import { appointmentAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import './AppointmentHistory.css';
+// import VideoCall from '../VideoCall/videoCall'; // No longer needed
 
 const AppointmentHistory = () => {
   const { user } = useAuth();  const [appointments, setAppointments] = useState([]);
@@ -37,6 +39,9 @@ const AppointmentHistory = () => {
   const [medicalResult, setMedicalResult] = useState(null);
   const [loadingMedicalResult, setLoadingMedicalResult] = useState(false);
   const [currentMedicalResultId, setCurrentMedicalResultId] = useState(null);
+  // Video call states - No longer needed
+  // const [showVideoCall, setShowVideoCall] = useState(false);
+  // const [videoCallAppointment, setVideoCallAppointment] = useState(null);
 
   // Force modal width sau khi render
   useEffect(() => {
@@ -112,6 +117,24 @@ const AppointmentHistory = () => {
   const handleCancelClick = (appointment) => {
     setSelectedAppointment(appointment);
     setShowCancelModal(true);
+  };
+
+  const handleVideoCall = (appointment) => {
+    console.log('Starting video call for appointment:', appointment);
+    // Open video call in new tab
+    const videoCallUrl = `/video-call/${appointment.id}/patient`;
+    console.log('Opening video call URL:', videoCallUrl);
+    
+    // Try to open new tab
+    const newTab = window.open(videoCallUrl, '_blank', 'width=1200,height=800,location=yes,menubar=yes,toolbar=yes,status=yes');
+    
+    // Check if popup was blocked
+    if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
+      alert('Popup bị chặn! Vui lòng cho phép popup trong trình duyệt và thử lại.');
+      console.error('Popup blocked by browser');
+    } else {
+      console.log('Video call tab opened successfully');
+    }
   };
 
   // Hàm xem chi tiết lịch hẹn
@@ -340,6 +363,7 @@ const AppointmentHistory = () => {
                           <td style={{ padding: '15px', verticalAlign: 'middle' }}>
                             <div className="d-flex gap-2 flex-wrap justify-content-center">
                               {(appointment.status === 'ACCEPTED' || appointment.status === 'COMPLETED') ? (
+                                <>
                                 <Button
                                   variant="outline-info"
                                   size="sm"
@@ -349,6 +373,18 @@ const AppointmentHistory = () => {
                                   <FontAwesomeIcon icon={faEye} className="me-2" size="sm" />
                                   Xem chi tiết
                                 </Button>
+                                  {appointment.status === 'ACCEPTED' && (
+                                    <Button
+                                      variant="success"
+                                      size="sm"
+                                      onClick={() => handleVideoCall(appointment)}
+                                      style={{ fontSize: '0.8rem', padding: '8px 16px', minWidth: '120px' }}
+                                    >
+                                      <FontAwesomeIcon icon={faVideo} className="me-2" size="sm" />
+                                      Video Call
+                                    </Button>
+                                  )}
+                                </>
                               ) : (
                                 <Button
                                   variant="outline-danger"
@@ -1140,6 +1176,8 @@ const AppointmentHistory = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+             {/* Video call now opens in new tab */}
 
     </div>
   );

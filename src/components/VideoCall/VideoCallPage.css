@@ -1,0 +1,272 @@
+.video-call-page {
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.video-call-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.video-call-status {
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.video-main-container {
+  display: flex;
+  height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
+.remote-video-container {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remote-video {
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.remote-video.has-user {
+  display: block;
+}
+
+.remote-video.no-user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.waiting-message {
+  text-align: center;
+  color: white;
+}
+
+.waiting-icon {
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
+.local-video-container {
+  width: 300px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.local-video-container.expanded {
+  width: 400px;
+}
+
+.local-video {
+  width: 100%;
+  height: 200px;
+  background-color: #333;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.local-video.expanded {
+  height: 300px;
+}
+
+.local-video.camera-off {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-off-message {
+  text-align: center;
+  color: white;
+}
+
+.user-label {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.video-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.control-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.control-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.control-button.audio-on {
+  background: #28a745;
+  color: white;
+}
+
+.control-button.audio-off {
+  background: #dc3545;
+  color: white;
+}
+
+.control-button.video-on {
+  background: #007bff;
+  color: white;
+}
+
+.control-button.video-off {
+  background: #6c757d;
+  color: white;
+}
+
+.control-button.utility {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.control-button.end-call {
+  background: #dc3545;
+  color: white;
+}
+
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-alert {
+  position: fixed;
+  top: 80px;
+  left: 2rem;
+  right: 2rem;
+  z-index: 999;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.back-button {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.room-info {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.demo-badge {
+  background: #ffc107 !important;
+  color: #000 !important;
+  font-weight: 500;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .video-main-container {
+    flex-direction: column;
+    padding: 60px 0;
+  }
+  
+  .local-video-container {
+    width: 100%;
+    padding: 0.5rem;
+  }
+  
+  .local-video {
+    height: 150px;
+  }
+  
+  .remote-video-container {
+    padding: 0.5rem;
+  }
+  
+  .video-controls {
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .control-button {
+    width: 50px;
+    height: 50px;
+    font-size: 1rem;
+  }
+  
+  .video-call-header {
+    padding: 0.5rem 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .error-alert {
+    left: 1rem;
+    right: 1rem;
+  }
+} 
