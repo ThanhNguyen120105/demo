@@ -128,6 +128,15 @@ const AppointmentDetailModal = ({
                     <strong>Dịch vụ:</strong> 
                     <span className="ms-2">{appointmentDetail.appointmentService || getServiceDisplay(appointmentDetail)}</span>
                   </p>
+                  <p className="mb-2">
+                    <strong>Hình thức khám:</strong> 
+                    <Badge 
+                      bg={appointmentDetail.isAnonymous === true ? 'warning' : 'primary'} 
+                      className="ms-2 small-badge"
+                    >
+                      {appointmentDetail.isAnonymous === true ? 'Khám ẩn danh' : 'Khám trực tiếp'}
+                    </Badge>
+                  </p>
                   <p className="mb-0">
                     <strong>Trạng thái:</strong> 
                     <span className="ms-2">{getStatusBadge(appointmentDetail.status)}</span>

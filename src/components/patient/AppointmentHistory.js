@@ -373,7 +373,7 @@ const AppointmentHistory = () => {
                                   <FontAwesomeIcon icon={faEye} className="me-2" size="sm" />
                                   Xem chi tiết
                                 </Button>
-                                  {appointment.status === 'ACCEPTED' && (
+                                  {appointment.status === 'ACCEPTED' && appointment.isAnonymous === true && (
                                     <Button
                                       variant="success"
                                       size="sm"

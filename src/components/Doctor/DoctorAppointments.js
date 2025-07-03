@@ -298,6 +298,7 @@ const DoctorAppointments = () => {
                 userId: detailedAppt.userId || appointment.userId,
                 appointmentService: detailedAppt.appointmentService, // Tên dịch vụ từ API
                 consultationType: detailedAppt.consultationType || appointment.consultationType, // Thêm consultationType
+                isAnonymous: detailedAppt.isAnonymous !== undefined ? detailedAppt.isAnonymous : appointment.isAnonymous, // Đảm bảo isAnonymous được giữ nguyên
                 detailsLoaded: true
               });
             } else {
@@ -340,6 +341,7 @@ const DoctorAppointments = () => {
                 appointmentType: appointment.appointmentType,
                 userId: appointment.userId,
                 consultationType: appointment.consultationType, // Thêm consultationType
+                isAnonymous: appointment.isAnonymous, // Giữ nguyên isAnonymous từ API
                 detailsLoaded: false
               });
             }
@@ -367,6 +369,7 @@ const DoctorAppointments = () => {
               appointmentType: appointment.appointmentType,
               userId: appointment.userId,
               consultationType: appointment.consultationType, // Thêm consultationType
+              isAnonymous: appointment.isAnonymous, // Giữ nguyên isAnonymous từ API
               detailsLoaded: false
             });
           }
@@ -1789,29 +1792,34 @@ const DoctorAppointments = () => {
                             </div>
                             
                             <div className="appointment-actions mt-2">
-                              {/* Layout "chi tiết lịch hẹn | videoCall" cho tất cả lịch hẹn */}
+                              {/* Hiển thị "chi tiết lịch hẹn" luôn có, "videoCall" chỉ cho bệnh nhân ẩn danh */}
                               <div className="d-flex align-items-center gap-2">
                                 <Button
                                   variant="outline-secondary" 
                                   size="sm" 
-                                  className="action-btn flex-grow-1"
+                                  className={`action-btn ${appointment.isAnonymous === true ? 'flex-grow-1' : 'w-100'}`}
                                   onClick={() => handleShowAppointmentDetails(appointment)}
                                 >
                                   <FontAwesomeIcon icon={faClipboardList} className="me-1" />
                                   Chi tiết lịch hẹn
                                 </Button>
                                 
-                                <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
-                                
-                                <Button
-                                  variant="success" 
-                                  size="sm" 
-                                  className="action-btn flex-grow-1"
-                                  onClick={() => handleVideoCall(appointment)}
-                                >
-                                  <FontAwesomeIcon icon={faVideo} className="me-1" />
-                                  Video Call
-                                </Button>
+                                {/* Chỉ hiển thị Video Call cho bệnh nhân khám ẩn danh */}
+                                {appointment.isAnonymous === true && (
+                                  <>
+                                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
+                                    
+                                    <Button
+                                      variant="success" 
+                                      size="sm" 
+                                      className="action-btn flex-grow-1"
+                                      onClick={() => handleVideoCall(appointment)}
+                                    >
+                                      <FontAwesomeIcon icon={faVideo} className="me-1" />
+                                      Video Call
+                                    </Button>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
