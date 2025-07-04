@@ -419,26 +419,14 @@ const DoctorDashboard = () => {
                                     </span>
                                   </td>
                                   <td>
-                                    <div className="d-flex gap-2">
                                     <Button 
                                       variant="outline-primary" 
                                       size="sm"
                                       onClick={() => handleShowDetailModal(appointment)}
                                     >
                                       <FontAwesomeIcon icon={faClipboardList} className="me-1" />
-                                        Chi tiết
-                                      </Button>
-                                      {appointment.status === 'ACCEPTED' && (
-                                        <Button 
-                                          variant="success" 
-                                          size="sm"
-                                          onClick={() => handleVideoCall(appointment)}
-                                        >
-                                          <FontAwesomeIcon icon={faVideo} className="me-1" />
-                                          Video Call
+                                      Chi tiết
                                     </Button>
-                                      )}
-                                    </div>
                                   </td>
                                 </tr>
                               );

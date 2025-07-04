@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserMd, faEnvelope, faLock, faPhone, faUser } from '@fortawesome/free-solid-svg-icons';
-import { authAPI } from '../../services/api';
+import { 
+  faUserMd, faEnvelope, faLock, faPhone, faUser, faCalendarAlt, 
+  faVenusMars, faImage, faHospital, faStethoscope, faAward, faFileText 
+} from '@fortawesome/free-solid-svg-icons';
+import { doctorAPI } from '../../services/api';
 
 const CreateDoctorAccount = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    birthdate: '',
+    gender: '',
+    avatarURL: '',
+    specialization: '',
+    hospital: '',
+    description: '',
+    awards: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', content: '' });
@@ -70,7 +80,7 @@ const CreateDoctorAccount = () => {
     setMessage({ type: '', content: '' });
 
     try {
-      const result = await authAPI.registerAsDoctor(formData);
+      const result = await doctorAPI.createDoctor(formData);
       
       if (result.success) {
         setMessage({ type: 'success', content: result.message });
@@ -79,7 +89,14 @@ const CreateDoctorAccount = () => {
           email: '',
           password: '',
           fullName: '',
-          phoneNumber: ''
+          phoneNumber: '',
+          birthdate: '',
+          gender: '',
+          avatarURL: '',
+          specialization: '',
+          hospital: '',
+          description: '',
+          awards: ''
         });
         setValidated(false);
       } else {
@@ -101,7 +118,14 @@ const CreateDoctorAccount = () => {
       email: '',
       password: '',
       fullName: '',
-      phoneNumber: ''
+      phoneNumber: '',
+      birthdate: '',
+      gender: '',
+      avatarURL: '',
+      specialization: '',
+      hospital: '',
+      description: '',
+      awards: ''
     });
     setMessage({ type: '', content: '' });
     setValidated(false);
@@ -211,6 +235,139 @@ const CreateDoctorAccount = () => {
                       <Form.Control.Feedback type="invalid">
                         Mật khẩu phải có ít nhất 6 ký tự
                       </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* Thông tin cá nhân */}
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                        Ngày sinh
+                      </Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="birthdate"
+                        value={formData.birthdate}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                      />
+                    </Form.Group>
+                  </Col>
+                  
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faVenusMars} className="me-2" />
+                        Giới tính
+                      </Form.Label>
+                      <Form.Select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                      >
+                        <option value="">Chọn giới tính</option>
+                        <option value="MALE">Nam</option>
+                        <option value="FEMALE">Nữ</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faStethoscope} className="me-2" />
+                        Chuyên khoa
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="specialization"
+                        value={formData.specialization}
+                        onChange={handleInputChange}
+                        placeholder="VD: Điều trị HIV/AIDS"
+                        disabled={loading}
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* Thông tin công việc */}
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faHospital} className="me-2" />
+                        Bệnh viện
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="hospital"
+                        value={formData.hospital}
+                        onChange={handleInputChange}
+                        placeholder="Tên bệnh viện nơi công tác"
+                        disabled={loading}
+                      />
+                    </Form.Group>
+                  </Col>
+                  
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faImage} className="me-2" />
+                        URL Avatar
+                      </Form.Label>
+                      <Form.Control
+                        type="url"
+                        name="avatarURL"
+                        value={formData.avatarURL}
+                        onChange={handleInputChange}
+                        placeholder="https://example.com/avatar.jpg"
+                        disabled={loading}
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* Mô tả chi tiết */}
+                <Row>
+                  <Col md={12}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faFileText} className="me-2" />
+                        Mô tả
+                      </Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        placeholder="Mô tả kinh nghiệm, chuyên môn của bác sĩ..."
+                        disabled={loading}
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={12}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faAward} className="me-2" />
+                        Giải thưởng & Thành tựu
+                      </Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={2}
+                        name="awards"
+                        value={formData.awards}
+                        onChange={handleInputChange}
+                        placeholder="Các giải thưởng, thành tựu đã đạt được..."
+                        disabled={loading}
+                      />
                     </Form.Group>
                   </Col>
                 </Row>

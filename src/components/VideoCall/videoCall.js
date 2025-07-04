@@ -38,9 +38,45 @@ const VideoCall = ({
   const [demoMode, setDemoMode] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
+  // Check browser compatibility and provide debug info
+  const getBrowserInfo = () => {
+    const userAgent = navigator.userAgent;
+    let browser = 'Unknown';
+    
+    if (userAgent.includes('Chrome')) browser = 'Chrome';
+    else if (userAgent.includes('Firefox')) browser = 'Firefox';
+    else if (userAgent.includes('Safari')) browser = 'Safari';
+    else if (userAgent.includes('Edge')) browser = 'Edge';
+    
+    return {
+      browser,
+      supportsWebRTC: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+      supportsRTC: !!window.RTCPeerConnection,
+      userAgent: userAgent.substring(0, 100) + '...'
+    };
+  };
+
+  // Log connection debug info
+  const logDebugInfo = () => {
+    const browserInfo = getBrowserInfo();
+    console.log('=== VIDEO CALL DEBUG INFO ===');
+    console.log('Browser:', browserInfo.browser);
+    console.log('WebRTC Support:', browserInfo.supportsWebRTC);
+    console.log('RTC Support:', browserInfo.supportsRTC);
+    console.log('Channel Name:', getChannelName());
+    console.log('User Role:', userRole);
+    console.log('Appointment ID:', appointmentId);
+    console.log('Demo Mode:', demoMode);
+    console.log('Connection Status:', connectionStatus);
+    console.log('==============================');
+  };
+
   // Generate unique channel name based on appointment
   const getChannelName = () => {
-    return 'abc'; // Fixed channel name to match the token generated in Agora console
+    if (appointmentId) {
+      return `appointment_${appointmentId}`;
+    }
+    return 'test_room_cross_browser'; // Fixed test channel name for debugging
   };
 
   // Check camera/microphone permissions
@@ -156,7 +192,7 @@ const VideoCall = ({
         return;
       }
 
-      // Create Agora client
+      // Create Agora client with improved cross-browser compatibility
       if (client.current) {
         try {
           await client.current.leave();
@@ -167,8 +203,13 @@ const VideoCall = ({
 
       client.current = AgoraRTC.createClient({ 
         mode: 'rtc', 
-        codec: 'vp8'
+        codec: 'vp8',  // VP8 is better supported across browsers than VP9/H264
+        enableLogUpload: false, // Disable for better performance
+        logFilter: AgoraRTC.LOG_FILTER_ERROR // Reduce console noise
       });
+
+      // Enable dual stream mode for better network adaptation
+      await client.current.enableDualStream();
 
       if (!client.current) {
         throw new Error('Failed to create Agora client');
@@ -229,18 +270,21 @@ const VideoCall = ({
 
   const handleAgoraError = (error) => {
     console.error('Agora error details:', error);
+    logDebugInfo(); // Log debug info when error occurs
     
     if (error.code === 'CAN_NOT_GET_GATEWAY_SERVER') {
-      setError('Không thể kết nối đến máy chủ Agora. Đang chuyển sang chế độ demo...');
+      setError('Không thể kết nối đến máy chủ Agora. Vui lòng kiểm tra kết nối internet và thử lại.');
     } else if (error.code === 'INVALID_PARAMS') {
       setError('Thông số kết nối không hợp lệ. Đang chuyển sang chế độ demo...');
     } else if (error.code === 'NOT_SUPPORTED') {
-      setError('Trình duyệt của bạn không hỗ trợ video call. Vui lòng sử dụng Chrome, Firefox hoặc Safari.');
-    } else if (error.name === 'NotAllowedError') {
+      setError('Trình duyệt của bạn không hỗ trợ video call. Vui lòng sử dụng Chrome, Firefox, Safari hoặc Edge phiên bản mới.');
+    } else if (error.code === 'PERMISSION_DENIED' || error.name === 'NotAllowedError') {
       setError('Vui lòng cho phép truy cập camera và microphone để sử dụng video call.');
       setPermissionDenied(true);
+    } else if (error.code === 'NETWORK_ERROR') {
+      setError('Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại.');
     } else {
-      setError(`Lỗi kết nối Agora. Đang chuyển sang chế độ demo...`);
+      setError(`Lỗi kết nối: ${error.message || error.code || 'Unknown error'}. Đang chuyển sang chế độ demo...`);
     }
   };
 
@@ -262,26 +306,31 @@ const VideoCall = ({
     try {
       console.log('Creating local tracks...');
       
-      // Create audio track
+      // Create audio track with cross-browser compatible settings
       localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack({
         encoderConfig: {
-          sampleRate: 48000,
-          stereo: true,
-          bitrate: 128,
+          sampleRate: 44100, // More universally supported
+          stereo: false, // Mono for better compatibility
+          bitrate: 64, // Lower bitrate for better stability
         },
+        microphoneId: 'default' // Use default device
       });
       
-      // Create video track
+      // Create video track with conservative settings for cross-browser compatibility
       localVideoTrack.current = await AgoraRTC.createCameraVideoTrack({
         encoderConfig: {
-          width: { min: 320, ideal: 640, max: 1280 },
-          height: { min: 240, ideal: 480, max: 720 },
-          frameRate: 15,
-          bitrateMin: 300,
-          bitrateMax: 1000,
-        }
+          width: { min: 320, ideal: 480, max: 640 }, // Conservative resolution
+          height: { min: 240, ideal: 360, max: 480 },
+          frameRate: 15, // Lower frame rate for stability
+          bitrateMin: 200,
+          bitrateMax: 500, // Conservative bitrate
+        },
+        cameraId: 'default', // Use default camera
+        facingMode: 'user' // Front-facing camera preference
       });
 
+      console.log('Local tracks created successfully');
+      
       // Play local video
       if (localContainer.current && localVideoTrack.current) {
         localContainer.current.innerHTML = '';
@@ -313,21 +362,47 @@ const VideoCall = ({
   const handleUserPublished = async (user, mediaType) => {
     try {
       console.log('User published:', user.uid, 'mediaType:', mediaType);
-      await client.current.subscribe(user, mediaType);
-      console.log('Subscribed to user:', user.uid, 'mediaType:', mediaType);
+      
+      // Subscribe with retry logic for better cross-browser compatibility
+      let subscribed = false;
+      let retries = 3;
+      
+      while (!subscribed && retries > 0) {
+        try {
+          await client.current.subscribe(user, mediaType);
+          subscribed = true;
+          console.log('Subscribed to user:', user.uid, 'mediaType:', mediaType);
+        } catch (subscribeError) {
+          console.warn(`Subscribe attempt failed (${4-retries}/3):`, subscribeError);
+          retries--;
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      }
+      
+      if (!subscribed) {
+        console.error('Failed to subscribe after all retries');
+        return;
+      }
 
-      if (mediaType === 'video' && remoteContainer.current) {
-        user.videoTrack.play(remoteContainer.current);
+      if (mediaType === 'video' && remoteContainer.current && user.videoTrack) {
+        // Clear container before playing new video
+        if (remoteContainer.current.firstChild) {
+          remoteContainer.current.innerHTML = '';
+        }
+        
+        await user.videoTrack.play(remoteContainer.current);
         setHasRemoteUser(true);
         console.log('Remote video playing');
       }
       
-      if (mediaType === 'audio') {
-        user.audioTrack.play();
+      if (mediaType === 'audio' && user.audioTrack) {
+        await user.audioTrack.play();
         console.log('Remote audio playing');
       }
     } catch (error) {
-      console.error('Failed to subscribe to user:', error);
+      console.error('Failed to handle user published:', error);
     }
   };
 
@@ -354,20 +429,57 @@ const VideoCall = ({
       if (videoTrack) {
         videoTrack.enabled = !videoEnabled;
         setVideoEnabled(!videoEnabled);
+        
+        // Safely handle video element display in demo mode
+        if (localContainer.current) {
+          const videoElement = localContainer.current.querySelector('video');
+          if (videoElement) {
+            videoElement.style.display = videoTrack.enabled ? 'block' : 'none';
+          }
+        }
       }
       return;
     }
     
     if (localVideoTrack.current) {
       try {
+        const newVideoState = !videoEnabled;
+        
         if (videoEnabled) {
+          // Turning off video - just disable the track, don't manipulate DOM
           await localVideoTrack.current.setEnabled(false);
         } else {
+          // Turning on video - enable track and ensure it's playing
           await localVideoTrack.current.setEnabled(true);
+          
+          // Ensure video is playing in container
+          if (localContainer.current) {
+            try {
+              // Use a more React-friendly approach
+              const container = localContainer.current;
+              const existingVideo = container.querySelector('video');
+              
+              if (!existingVideo) {
+                // Only re-play if no video element exists
+                await localVideoTrack.current.play(container);
+              } else {
+                // Just ensure the existing video is visible and playing
+                existingVideo.style.display = 'block';
+                if (existingVideo.paused) {
+                  existingVideo.play().catch(e => console.warn('Could not play video:', e));
+                }
+              }
+            } catch (playError) {
+              console.warn('Could not manage video playback:', playError);
+            }
+          }
         }
-        setVideoEnabled(!videoEnabled);
+        
+        setVideoEnabled(newVideoState);
       } catch (error) {
         console.error('Failed to toggle video:', error);
+        // Simple fallback without DOM manipulation
+        setVideoEnabled(!videoEnabled);
       }
     }
   };
@@ -458,6 +570,8 @@ const VideoCall = ({
   useEffect(() => {
     if (show) {
       console.log('VideoCall modal opened');
+      logDebugInfo(); // Log debug information when modal opens
+      
       // Start with demo mode for better reliability
       initializeDemoMode();
     }
@@ -661,6 +775,21 @@ const VideoCall = ({
           >
             <FontAwesomeIcon icon={videoEnabled ? faVideo : faVideoSlash} />
           </Button>
+          
+          {demoMode && (
+            <Button
+              variant="outline-primary"
+              onClick={() => {
+                leaveCall();
+                setTimeout(() => initializeAgoraClient(), 500);
+              }}
+              size="sm"
+              title="Chuyển sang chế độ Agora thật để kết nối với người khác"
+            >
+              <FontAwesomeIcon icon={faCog} className="me-1" />
+              Kết nối thật
+            </Button>
+          )}
           
           <Button
             variant="danger"

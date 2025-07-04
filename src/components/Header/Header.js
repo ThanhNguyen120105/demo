@@ -27,10 +27,32 @@ import NotificationBell from './NotificationBell';
 const Header = () => {
   const [expanded, setExpanded] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [currentUserInfo, setCurrentUserInfo] = useState(null);
   const { user, isAuthenticated, logout } = useAuth();
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Lắng nghe event cập nhật thông tin user
+  useEffect(() => {
+    const handleUserInfoUpdate = (event) => {
+      console.log('Header - User info updated:', event.detail);
+      setCurrentUserInfo(event.detail);
+    };
+
+    window.addEventListener('userInfoUpdated', handleUserInfoUpdate);
+    
+    return () => {
+      window.removeEventListener('userInfoUpdated', handleUserInfoUpdate);
+    };
+  }, []);
+  
+  // Reset currentUserInfo khi user thay đổi
+  useEffect(() => {
+    if (!user) {
+      setCurrentUserInfo(null);
+    }
+  }, [user]);
   // Debug: Log user data
   console.log('Header - User data:', user);
   console.log('Header - isAuthenticated:', isAuthenticated);
@@ -113,7 +135,7 @@ const Header = () => {
                       onClick={toggleDropdown}
                       style={{ cursor: 'pointer' }}
                     >                      <FontAwesomeIcon icon={faUserCircle} />
-                      <span>Xin chào, {getDisplayName(user)}</span>
+                      <span>Xin chào, {getDisplayName(currentUserInfo || user)}</span>
                     </div>                    {dropdownOpen && (
                       <div className="dropdown-menu show">
                         {user?.role !== 'CUSTOMER' && (

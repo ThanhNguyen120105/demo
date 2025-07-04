@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserTie,
   faQuestionCircle, faCog, faFileAlt,
-  faTasks, faUserMd
+  faTasks, faUserMd, faList
 } from '@fortawesome/free-solid-svg-icons';
 
 const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendingQuestions = 0 }) => {
@@ -66,6 +66,16 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
         >
           <FontAwesomeIcon icon={faUserMd} className="menu-icon" />
           Tạo tài khoản Bác sĩ
+        </ListGroup.Item>
+
+        <ListGroup.Item 
+          action 
+          active={activeTab === 'doctorManagement'} 
+          onClick={() => setActiveTab('doctorManagement')}
+          style={{ cursor: 'pointer' }}
+        >
+          <FontAwesomeIcon icon={faList} className="menu-icon" />
+          Danh sách bác sĩ
         </ListGroup.Item>
         
         {/* <ListGroup.Item 

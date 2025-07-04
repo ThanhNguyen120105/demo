@@ -1636,10 +1636,48 @@ const DoctorAppointments = () => {
 
   // Hàm xử lý video call
   const handleVideoCall = (appointment) => {
+    // Kiểm tra xem có thể thực hiện video call không
+    if (!canMakeVideoCall(appointment)) {
+      alert('Video Call chỉ có thể thực hiện trong khung giờ khám của ngày hôm nay.\n\nVui lòng thử lại trong khoảng thời gian từ ' + 
+            appointment.slotStartTime + ' đến ' + appointment.slotEndTime + '.');
+      return;
+    }
+
     console.log('Starting video call for appointment:', appointment);
     // Open video call in new tab
     const videoCallUrl = `/video-call/${appointment.id}/doctor`;
     window.open(videoCallUrl, '_blank', 'width=1200,height=800');
+  };
+
+  // Hàm kiểm tra xem có thể thực hiện Video Call hay không
+  const canMakeVideoCall = (appointment) => {
+    if (!appointment || !appointment.appointmentDate || !appointment.slotStartTime || !appointment.slotEndTime) {
+      return false;
+    }
+
+    const now = new Date();
+    const currentDate = now.toDateString();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Chuyển thời gian hiện tại thành phút
+
+    // Kiểm tra ngày, tháng, năm khớp với ngày hiện tại
+    const appointmentDate = new Date(appointment.appointmentDate);
+    const appointmentDateString = appointmentDate.toDateString();
+    
+    if (currentDate !== appointmentDateString) {
+      return false;
+    }
+
+    // Chuyển đổi slotStartTime và slotEndTime thành phút
+    const parseTime = (timeStr) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const slotStart = parseTime(appointment.slotStartTime);
+    const slotEnd = parseTime(appointment.slotEndTime);
+
+    // Kiểm tra thời gian hiện tại có nằm trong khoảng slot không
+    return currentTime >= slotStart && currentTime <= slotEnd;
   };
 
   return (
@@ -1810,13 +1848,22 @@ const DoctorAppointments = () => {
                                     <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
                                     
                                     <Button
-                                      variant="success" 
+                                      variant={canMakeVideoCall(appointment) ? "success" : "secondary"} 
                                       size="sm" 
                                       className="action-btn flex-grow-1"
                                       onClick={() => handleVideoCall(appointment)}
+                                      disabled={!canMakeVideoCall(appointment)}
+                                      title={!canMakeVideoCall(appointment) ? 
+                                        "Video Call chỉ khả dụng trong khung giờ khám của ngày hôm nay" : 
+                                        "Bắt đầu Video Call"}
                                     >
                                       <FontAwesomeIcon icon={faVideo} className="me-1" />
                                       Video Call
+                                      {!canMakeVideoCall(appointment) && (
+                                        <small className="d-block" style={{ fontSize: '0.7rem', marginTop: '2px' }}>
+                                          (Chưa đến giờ)
+                                        </small>
+                                      )}
                                     </Button>
                                   </>
                                 )}

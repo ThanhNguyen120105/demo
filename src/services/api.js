@@ -1310,6 +1310,166 @@ export const doctorAPI = {
         data: {}
       };
     }
+  },
+
+  // ===== DOCTOR CRUD FUNCTIONS FOR STAFF =====
+  
+  // Lấy danh sách tất cả bác sĩ (dành cho staff)
+  getAllDoctorsForStaff: async () => {
+    try {
+      console.log('=== DEBUG getAllDoctorsForStaff API ===');
+      console.log('Getting all doctors from /api/doctor/getAllDoctors...');
+      
+      const response = await api.get('/doctor/getAllDoctors');
+      
+      console.log('=== DEBUG getAllDoctorsForStaff Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || [],
+        message: response.data?.message || 'Lấy danh sách bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getAllDoctorsForStaff Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy danh sách bác sĩ',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  },
+
+  // Lấy chi tiết bác sĩ theo ID (dành cho staff)
+  getDoctorDetailById: async (doctorId) => {
+    try {
+      console.log('=== DEBUG getDoctorDetailById API ===');
+      console.log('Getting doctor detail for ID:', doctorId);
+      
+      const response = await api.get(`/doctor/${doctorId}`);
+      
+      console.log('=== DEBUG getDoctorDetailById Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || {},
+        message: response.data?.message || 'Lấy chi tiết bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getDoctorDetailById Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy chi tiết bác sĩ',
+        error: error.response?.data || error.message,
+        data: {}
+      };
+    }
+  },
+
+  // Tạo bác sĩ mới (dành cho staff)
+  createDoctor: async (doctorData) => {
+    try {
+      console.log('=== DEBUG createDoctor API ===');
+      console.log('Creating doctor with data:', doctorData);
+      
+      const response = await api.post('/doctor/create', doctorData);
+      
+      console.log('=== DEBUG createDoctor Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || {},
+        message: response.data?.message || 'Tạo tài khoản bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG createDoctor Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tạo tài khoản bác sĩ',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Cập nhật thông tin bác sĩ (dành cho staff)
+  updateDoctor: async (doctorId, doctorData) => {
+    try {
+      console.log('=== DEBUG updateDoctor API ===');
+      console.log('Updating doctor ID:', doctorId);
+      console.log('Update data:', doctorData);
+      
+      const response = await api.put(`/doctor/update/${doctorId}`, doctorData);
+      
+      console.log('=== DEBUG updateDoctor Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || {},
+        message: response.data?.message || 'Cập nhật thông tin bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG updateDoctor Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể cập nhật thông tin bác sĩ',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Xóa bác sĩ (dành cho staff)
+  deleteDoctor: async (doctorId) => {
+    try {
+      console.log('=== DEBUG deleteDoctor API ===');
+      console.log('Deleting doctor ID:', doctorId);
+      
+      const response = await api.delete(`/doctor/delete/${doctorId}`);
+      
+      console.log('=== DEBUG deleteDoctor Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || {},
+        message: response.data?.message || 'Xóa bác sĩ thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG deleteDoctor Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể xóa bác sĩ',
+        error: error.response?.data || error.message
+      };
+    }
   }
 };
 

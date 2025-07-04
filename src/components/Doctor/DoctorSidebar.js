@@ -74,6 +74,25 @@ const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
           
           if (foundDoctor) {
             setCurrentDoctor(foundDoctor);
+            
+            // Cập nhật user context với thông tin bác sĩ mới nhất
+            const updatedUser = {
+              ...user,
+              fullName: foundDoctor.fullName,
+              name: foundDoctor.fullName,
+              doctorName: foundDoctor.fullName,
+              specialization: foundDoctor.specialization,
+              avatarURL: foundDoctor.avatarURL
+            };
+            
+            // Cập nhật localStorage và context
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            
+            // Trigger một event để Header refresh
+            window.dispatchEvent(new CustomEvent('userInfoUpdated', { 
+              detail: updatedUser 
+            }));
+            
           } else {
             // Fallback: sử dụng thông tin từ token
             if (userInfo) {
@@ -115,7 +134,37 @@ const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
     <Col md={3} lg={2} className="sidebar">
       <div className="sidebar-header">
         <div className="doctor-avatar">
-          <FontAwesomeIcon icon={faUserMd} className="avatar-icon" />
+          {currentDoctor && currentDoctor.avatarURL ? (
+            <>
+              <img 
+                src={currentDoctor.avatarURL} 
+                alt={`Avatar ${currentDoctor.fullName}`}
+                className="avatar-image"
+                onError={(e) => {
+                  // Nếu ảnh lỗi, ẩn ảnh và hiển thị icon mặc định
+                  e.target.style.display = 'none';
+                  const iconElement = e.target.parentElement.querySelector('.avatar-icon');
+                  if (iconElement) {
+                    iconElement.style.display = 'block';
+                  }
+                }}
+                onLoad={(e) => {
+                  // Nếu ảnh load thành công, ẩn icon
+                  const iconElement = e.target.parentElement.querySelector('.avatar-icon');
+                  if (iconElement) {
+                    iconElement.style.display = 'none';
+                  }
+                }}
+              />
+              <FontAwesomeIcon 
+                icon={faUserMd} 
+                className="avatar-icon" 
+                style={{ display: 'none' }}
+              />
+            </>
+          ) : (
+            <FontAwesomeIcon icon={faUserMd} className="avatar-icon" />
+          )}
         </div>
         {loading ? (
           <>

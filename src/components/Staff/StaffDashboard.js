@@ -6,6 +6,7 @@ import StaffOverview from './StaffOverview';
 import AppointmentApproval from './AppointmentApproval';
 import QuestionApproval from './QuestionApproval';
 import CreateDoctorAccount from './CreateDoctorAccount';
+import DoctorManagement from './DoctorManagement';
 
 const StaffDashboard = () => {
   const [activeTab, setActiveTab] = useState('appointments'); // Default to appointments (Duyệt đơn) for staff
@@ -19,6 +20,8 @@ const StaffDashboard = () => {
         return <QuestionApproval />;
       case 'createDoctor':
         return <CreateDoctorAccount />;
+      case 'doctorManagement':
+        return <DoctorManagement />;
       default:
         return <AppointmentApproval />; // Default to AppointmentApproval instead of StaffOverview
     }
