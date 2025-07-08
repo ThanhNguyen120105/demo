@@ -331,11 +331,14 @@ const VideoCall = ({
 
       console.log('Local tracks created successfully');
       
-      // Play local video
+      // Play local video safely
       if (localContainer.current && localVideoTrack.current) {
-        localContainer.current.innerHTML = '';
-        localVideoTrack.current.play(localContainer.current);
-        console.log('Local video playing');
+        const container = localContainer.current;
+        if (container.isConnected) {
+          container.innerHTML = '';
+          await localVideoTrack.current.play(container);
+          console.log('Local video playing');
+        }
       }
     } catch (error) {
       console.error('Failed to create local tracks:', error);
@@ -387,14 +390,14 @@ const VideoCall = ({
       }
 
       if (mediaType === 'video' && remoteContainer.current && user.videoTrack) {
-        // Clear container before playing new video
-        if (remoteContainer.current.firstChild) {
-          remoteContainer.current.innerHTML = '';
+        const container = remoteContainer.current;
+        if (container.isConnected) {
+          // Clear container safely before playing new video
+          container.innerHTML = '';
+          await user.videoTrack.play(container);
+          setHasRemoteUser(true);
+          console.log('Remote video playing');
         }
-        
-        await user.videoTrack.play(remoteContainer.current);
-        setHasRemoteUser(true);
-        console.log('Remote video playing');
       }
       
       if (mediaType === 'audio' && user.audioTrack) {
@@ -446,27 +449,35 @@ const VideoCall = ({
         const newVideoState = !videoEnabled;
         
         if (videoEnabled) {
-          // Turning off video - just disable the track, don't manipulate DOM
+          // Turning off video - just disable the track, avoid DOM manipulation
           await localVideoTrack.current.setEnabled(false);
         } else {
-          // Turning on video - enable track and ensure it's playing
+          // Turning on video - enable track with safer DOM handling
           await localVideoTrack.current.setEnabled(true);
           
-          // Ensure video is playing in container
+          // Check if we need to restart video playback with safety checks
           if (localContainer.current) {
             try {
-              // Use a more React-friendly approach
               const container = localContainer.current;
-              const existingVideo = container.querySelector('video');
               
-              if (!existingVideo) {
-                // Only re-play if no video element exists
-                await localVideoTrack.current.play(container);
-              } else {
-                // Just ensure the existing video is visible and playing
-                existingVideo.style.display = 'block';
-                if (existingVideo.paused) {
-                  existingVideo.play().catch(e => console.warn('Could not play video:', e));
+              // Ensure container is still valid and attached to DOM
+              if (container && container.isConnected && container.parentNode) {
+                const existingVideo = container.querySelector('video');
+                
+                if (!existingVideo) {
+                  // Only create new video element if none exists
+                  setTimeout(async () => {
+                    try {
+                      if (localVideoTrack.current && container.isConnected) {
+                        await localVideoTrack.current.play(container);
+                      }
+                    } catch (e) {
+                      console.warn('Delayed video play failed:', e);
+                    }
+                  }, 100);
+                } else {
+                  // Just ensure the existing video is visible
+                  existingVideo.style.display = 'block';
                 }
               }
             } catch (playError) {
@@ -478,7 +489,7 @@ const VideoCall = ({
         setVideoEnabled(newVideoState);
       } catch (error) {
         console.error('Failed to toggle video:', error);
-        // Simple fallback without DOM manipulation
+        // Simple fallback - just update state without DOM manipulation
         setVideoEnabled(!videoEnabled);
       }
     }

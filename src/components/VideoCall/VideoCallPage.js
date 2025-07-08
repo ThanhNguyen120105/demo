@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Container, Row, Col, Button, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -36,6 +36,7 @@ const VideoCallPage = () => {
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState([]);
+  const [isToggling, setIsToggling] = useState(false);
 
   const getChannelName = () => {
     return 'abc'; // Fixed channel name to match the token generated in Agora console
@@ -273,10 +274,21 @@ const VideoCallPage = () => {
         }
       });
 
+      // Play local video with React-safe approach
       if (localContainer.current && localVideoTrack.current) {
-        localContainer.current.innerHTML = '';
-        localVideoTrack.current.play(localContainer.current);
-        console.log('Local video playing');
+        const container = localContainer.current;
+        // Use requestAnimationFrame to avoid DOM conflicts with React
+        requestAnimationFrame(async () => {
+          try {
+            if (container && localVideoTrack.current) {
+              // Don't clear innerHTML, let Agora manage the video element
+              await localVideoTrack.current.play(container);
+              console.log('Local video playing');
+            }
+          } catch (error) {
+            console.warn('Failed to play local video:', error);
+          }
+        });
       }
     } catch (error) {
       console.error('Failed to create local tracks:', error);
@@ -306,9 +318,21 @@ const VideoCallPage = () => {
       await client.current.subscribe(user, mediaType);
       console.log('Subscribed to user:', user.uid, 'mediaType:', mediaType);
 
-      if (mediaType === 'video' && remoteContainer.current) {
-        user.videoTrack.play(remoteContainer.current);
-        setHasRemoteUser(true);
+      if (mediaType === 'video' && remoteContainer.current && user.videoTrack) {
+        const container = remoteContainer.current;
+        // Use requestAnimationFrame to avoid DOM conflicts
+        requestAnimationFrame(async () => {
+          try {
+            if (container && user.videoTrack) {
+              // Don't clear innerHTML, let Agora manage it
+              await user.videoTrack.play(container);
+              setHasRemoteUser(true);
+              console.log('Remote video playing');
+            }
+          } catch (error) {
+            console.warn('Failed to play remote video:', error);
+          }
+        });
         
         // Update remote users list
         setRemoteUsers(prev => {
@@ -371,53 +395,60 @@ const VideoCallPage = () => {
     setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
   };
 
-  const toggleVideo = async () => {
-    if (demoMode && mediaStream.current) {
-      const videoTrack = mediaStream.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoEnabled;
-        setVideoEnabled(!videoEnabled);
-      }
-      return;
-    }
+  const toggleVideo = useCallback(async () => {
+    if (isToggling) return; // Prevent multiple simultaneous toggles
     
-    if (localVideoTrack.current) {
-      try {
-        if (videoEnabled) {
-          await localVideoTrack.current.setEnabled(false);
-        } else {
-          await localVideoTrack.current.setEnabled(true);
+    setIsToggling(true);
+    
+    try {
+      if (demoMode && mediaStream.current) {
+        const videoTrack = mediaStream.current.getVideoTracks()[0];
+        if (videoTrack) {
+          const newState = !videoEnabled;
+          videoTrack.enabled = newState;
+          setVideoEnabled(newState);
         }
-        setVideoEnabled(!videoEnabled);
-      } catch (error) {
-        console.error('Failed to toggle video:', error);
+        return;
       }
+      
+      if (localVideoTrack.current) {
+        const newVideoState = !videoEnabled;
+        
+        // Update track state
+        await localVideoTrack.current.setEnabled(newVideoState);
+        
+        // Update React state
+        setVideoEnabled(newVideoState);
+      }
+    } catch (error) {
+      console.error('Failed to toggle video:', error);
+    } finally {
+      setIsToggling(false);
     }
-  };
+  }, [videoEnabled, demoMode, isToggling]);
 
-  const toggleAudio = async () => {
+  const toggleAudio = useCallback(async () => {
     if (demoMode && mediaStream.current) {
       const audioTrack = mediaStream.current.getAudioTracks()[0];
       if (audioTrack) {
-        audioTrack.enabled = !audioEnabled;
-        setAudioEnabled(!audioEnabled);
+        const newState = !audioEnabled;
+        audioTrack.enabled = newState;
+        setAudioEnabled(newState);
       }
       return;
     }
     
     if (localAudioTrack.current) {
       try {
-        if (audioEnabled) {
-          await localAudioTrack.current.setEnabled(false);
-        } else {
-          await localAudioTrack.current.setEnabled(true);
-        }
-        setAudioEnabled(!audioEnabled);
+        const newAudioState = !audioEnabled;
+        await localAudioTrack.current.setEnabled(newAudioState);
+        setAudioEnabled(newAudioState);
       } catch (error) {
         console.error('Failed to toggle audio:', error);
+        setAudioEnabled(audioEnabled);
       }
     }
-  };
+  }, [audioEnabled, demoMode]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -432,7 +463,7 @@ const VideoCallPage = () => {
   };
 
   // Clean up resources without closing window
-  const cleanupResources = async () => {
+  const cleanupResources = useCallback(async () => {
     try {
       console.log('Cleaning up resources...');
       
@@ -440,9 +471,12 @@ const VideoCallPage = () => {
         mediaStream.current.getTracks().forEach(track => track.stop());
         mediaStream.current = null;
         
-        if (localContainer.current) {
-          localContainer.current.innerHTML = '';
-        }
+        // Safely clear container
+        requestAnimationFrame(() => {
+          if (localContainer.current) {
+            localContainer.current.innerHTML = '';
+          }
+        });
       } else {
         if (localAudioTrack.current) {
           localAudioTrack.current.close();
@@ -463,10 +497,17 @@ const VideoCallPage = () => {
           client.current = null;
         }
       }
+      
+      // Reset states
+      setIsConnected(false);
+      setHasRemoteUser(false);
+      setRemoteUsers([]);
+      setConnectionStatus('disconnected');
+      
     } catch (error) {
       console.error('Failed to cleanup resources:', error);
     }
-  };
+  }, [demoMode]);
 
   const leaveCall = async () => {
     try {
@@ -664,7 +705,7 @@ const VideoCallPage = () => {
           className={`control-button ${audioEnabled ? 'audio-on' : 'audio-off'}`}
           onClick={toggleAudio}
           title={audioEnabled ? "Tắt microphone" : "Bật microphone"}
-          disabled={!isConnected && !demoMode}
+          disabled={(!isConnected && !demoMode) || isToggling}
         >
           <FontAwesomeIcon icon={audioEnabled ? faMicrophone : faMicrophoneSlash} />
         </button>
@@ -673,7 +714,7 @@ const VideoCallPage = () => {
           className={`control-button ${videoEnabled ? 'video-on' : 'video-off'}`}
           onClick={toggleVideo}
           title={videoEnabled ? "Tắt camera" : "Bật camera"}
-          disabled={!isConnected && !demoMode}
+          disabled={(!isConnected && !demoMode) || isToggling}
         >
           <FontAwesomeIcon icon={videoEnabled ? faVideo : faVideoSlash} />
         </button>
