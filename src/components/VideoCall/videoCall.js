@@ -412,7 +412,8 @@ const VideoCall = ({
   const handleUserUnpublished = (user, mediaType) => {
     console.log('User unpublished:', user.uid, 'mediaType:', mediaType);
     if (mediaType === 'video') {
-      setHasRemoteUser(false);
+      // Không set hasRemoteUser = false vì user vẫn còn trong call, chỉ tắt camera
+      setHasRemoteUser(false); // Tạm thời giữ nguyên logic cũ cho modal version
     }
   };
 
@@ -430,14 +431,15 @@ const VideoCall = ({
       // Demo mode toggle
       const videoTrack = mediaStream.current.getVideoTracks()[0];
       if (videoTrack) {
-        videoTrack.enabled = !videoEnabled;
-        setVideoEnabled(!videoEnabled);
+        const newState = !videoEnabled;
+        videoTrack.enabled = newState;
+        setVideoEnabled(newState);
         
-        // Safely handle video element display in demo mode
+        // Ẩn hoàn toàn video element trong demo mode
         if (localContainer.current) {
           const videoElement = localContainer.current.querySelector('video');
           if (videoElement) {
-            videoElement.style.display = videoTrack.enabled ? 'block' : 'none';
+            videoElement.style.display = newState ? 'block' : 'none';
           }
         }
       }
@@ -449,7 +451,7 @@ const VideoCall = ({
         const newVideoState = !videoEnabled;
         
         if (videoEnabled) {
-          // Turning off video - just disable the track, avoid DOM manipulation
+          // Turning off video - disable the track
           await localVideoTrack.current.setEnabled(false);
         } else {
           // Turning on video - enable track with safer DOM handling
@@ -746,8 +748,35 @@ const VideoCall = ({
                   <div className="w-100 h-100 d-flex align-items-center justify-content-center text-white">
                     <div className="text-center">
                       <FontAwesomeIcon icon={faVideoSlash} size="2x" className="mb-2" />
-                      <p className="mb-0">Camera đã tắt</p>
+                      <p className="mb-0">Đã tắt camera</p>
+                      {/* Hiển thị mic status khi tắt camera */}
+                      {!audioEnabled && (
+                        <div className="mt-2">
+                          <FontAwesomeIcon icon={faMicrophoneSlash} size="1x" className="me-1" />
+                          <small>Mic đã tắt</small>
+                        </div>
+                      )}
                     </div>
+                  </div>
+                )}
+                
+                {/* Local mic status - hiển thị khi có video nhưng tắt mic */}
+                {videoEnabled && !audioEnabled && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    background: 'rgba(220, 53, 69, 0.9)',
+                    color: 'white',
+                    padding: '6px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                    zIndex: 10
+                  }}>
+                    <FontAwesomeIcon icon={faMicrophoneSlash} style={{ fontSize: '14px' }} />
                   </div>
                 )}
                 

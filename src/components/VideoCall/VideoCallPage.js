@@ -23,7 +23,7 @@ const VideoCallPage = () => {
   const localVideoTrack = useRef(null);
   const localContainer = useRef();
   const remoteContainer = useRef();
-  const mediaStream = useRef(null);
+
   
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -32,11 +32,16 @@ const VideoCallPage = () => {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [error, setError] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [demoMode, setDemoMode] = useState(false);
+
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState([]);
   const [isToggling, setIsToggling] = useState(false);
+  const [localVideoPosition, setLocalVideoPosition] = useState({ x: 0, y: 20 });
+  const [localVideoSize, setLocalVideoSize] = useState({ width: 150, height: 200 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const dragInfo = useRef({});
 
   const getChannelName = () => {
     return 'abc'; // Fixed channel name to match the token generated in Agora console
@@ -76,64 +81,7 @@ const VideoCallPage = () => {
     }
   };
 
-  // Demo mode với WebRTC thuần
-  const initializeDemoMode = async () => {
-    try {
-      console.log('Starting demo mode...');
-      setIsConnecting(true);
-      setDemoMode(true);
-      setError(null);
-      
-      const hasPermission = await checkPermissions();
-      if (!hasPermission) {
-        return;
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 } 
-        }, 
-        audio: true 
-      });
-      
-      mediaStream.current = stream;
-      
-      if (localContainer.current) {
-        localContainer.current.innerHTML = '';
-        
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.autoplay = true;
-        video.muted = true;
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.style.objectFit = 'cover';
-        video.style.borderRadius = '12px';
-        localContainer.current.appendChild(video);
-        
-        console.log('Demo video playing');
-      }
-      
-      setIsConnected(true);
-      setConnectionStatus('connected');
-      setError('Chế độ demo đang hoạt động - Video call sẽ hoạt động khi có người khác tham gia');
-      
-    } catch (error) {
-      console.error('Demo mode failed:', error);
-      setPermissionDenied(true);
-      
-      if (error.name === 'NotAllowedError') {
-        setError('Vui lòng cho phép truy cập camera và microphone để sử dụng video call.');
-      } else {
-        setError(`Không thể khởi tạo video call: ${error.message}`);
-      }
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+
 
   // Initialize Agora client
   const initializeAgoraClient = async () => {
@@ -141,7 +89,6 @@ const VideoCallPage = () => {
       setIsConnecting(true);
       setConnectionStatus('connecting');
       setError(null);
-      setDemoMode(false);
 
       console.log('Initializing Agora client...');
       console.log('App ID:', APP_ID);
@@ -211,11 +158,11 @@ const VideoCallPage = () => {
       handleAgoraError(error);
       setConnectionStatus('disconnected');
       
-      // Tạm thời comment để debug lỗi rõ hơn
-      // console.log('Falling back to demo mode...');
-      // setTimeout(() => {
-      //   initializeDemoMode();
-      // }, 500);
+      // Retry connection after 3 seconds instead of demo mode
+      console.log('Retrying Agora connection in 3 seconds...');
+      setTimeout(() => {
+        initializeAgoraClient();
+      }, 3000);
     } finally {
       setIsConnecting(false);
     }
@@ -225,16 +172,16 @@ const VideoCallPage = () => {
     console.error('Agora error details:', error);
     
     if (error.code === 'CAN_NOT_GET_GATEWAY_SERVER') {
-      setError('Không thể kết nối đến máy chủ Agora. Đang chuyển sang chế độ demo...');
+      setError('Đang kết nối đến máy chủ video call...');
     } else if (error.code === 'INVALID_PARAMS') {
-      setError('Thông số kết nối không hợp lệ. Đang chuyển sang chế độ demo...');
+      setError('Đang thiết lập kết nối...');
     } else if (error.code === 'NOT_SUPPORTED') {
       setError('Trình duyệt của bạn không hỗ trợ video call. Vui lòng sử dụng Chrome, Firefox hoặc Safari.');
     } else if (error.name === 'NotAllowedError') {
       setError('Vui lòng cho phép truy cập camera và microphone để sử dụng video call.');
       setPermissionDenied(true);
     } else {
-      setError(`Lỗi kết nối Agora. Đang chuyển sang chế độ demo...`);
+      setError(`Đang kết nối...`);
     }
   };
 
@@ -344,6 +291,9 @@ const VideoCallPage = () => {
           }
         });
         
+        // Set hasRemoteUser to true khi có video từ remote user
+        setHasRemoteUser(true);
+        
         console.log('Remote video playing');
       }
       
@@ -370,7 +320,7 @@ const VideoCallPage = () => {
   const handleUserUnpublished = (user, mediaType) => {
     console.log('User unpublished:', user.uid, 'mediaType:', mediaType);
     if (mediaType === 'video') {
-      setHasRemoteUser(false);
+      // Không set hasRemoteUser = false vì user vẫn còn trong call, chỉ tắt camera
       setRemoteUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, hasVideo: false } : u));
     }
     if (mediaType === 'audio') {
@@ -401,16 +351,6 @@ const VideoCallPage = () => {
     setIsToggling(true);
     
     try {
-      if (demoMode && mediaStream.current) {
-        const videoTrack = mediaStream.current.getVideoTracks()[0];
-        if (videoTrack) {
-          const newState = !videoEnabled;
-          videoTrack.enabled = newState;
-          setVideoEnabled(newState);
-        }
-        return;
-      }
-      
       if (localVideoTrack.current) {
         const newVideoState = !videoEnabled;
         
@@ -419,36 +359,30 @@ const VideoCallPage = () => {
         
         // Update React state
         setVideoEnabled(newVideoState);
+        
+        console.log(`Video ${newVideoState ? 'enabled' : 'disabled'}`);
       }
     } catch (error) {
       console.error('Failed to toggle video:', error);
     } finally {
       setIsToggling(false);
     }
-  }, [videoEnabled, demoMode, isToggling]);
+  }, [videoEnabled, isToggling]);
 
   const toggleAudio = useCallback(async () => {
-    if (demoMode && mediaStream.current) {
-      const audioTrack = mediaStream.current.getAudioTracks()[0];
-      if (audioTrack) {
-        const newState = !audioEnabled;
-        audioTrack.enabled = newState;
-        setAudioEnabled(newState);
-      }
-      return;
-    }
-    
     if (localAudioTrack.current) {
       try {
         const newAudioState = !audioEnabled;
         await localAudioTrack.current.setEnabled(newAudioState);
         setAudioEnabled(newAudioState);
+        
+        console.log(`Audio ${newAudioState ? 'enabled' : 'disabled'}`);
       } catch (error) {
         console.error('Failed to toggle audio:', error);
         setAudioEnabled(audioEnabled);
       }
     }
-  }, [audioEnabled, demoMode]);
+  }, [audioEnabled]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -467,35 +401,23 @@ const VideoCallPage = () => {
     try {
       console.log('Cleaning up resources...');
       
-      if (demoMode && mediaStream.current) {
-        mediaStream.current.getTracks().forEach(track => track.stop());
-        mediaStream.current = null;
-        
-        // Safely clear container
-        requestAnimationFrame(() => {
-          if (localContainer.current) {
-            localContainer.current.innerHTML = '';
-          }
-        });
-      } else {
-        if (localAudioTrack.current) {
-          localAudioTrack.current.close();
-          localAudioTrack.current = null;
-        }
-        
-        if (localVideoTrack.current) {
-          localVideoTrack.current.close();
-          localVideoTrack.current = null;
-        }
+      if (localAudioTrack.current) {
+        localAudioTrack.current.close();
+        localAudioTrack.current = null;
+      }
+      
+      if (localVideoTrack.current) {
+        localVideoTrack.current.close();
+        localVideoTrack.current = null;
+      }
 
-        if (client.current) {
-          try {
-            await client.current.leave();
-          } catch (e) {
-            console.log('Leave error (ignored):', e.message);
-          }
-          client.current = null;
+      if (client.current) {
+        try {
+          await client.current.leave();
+        } catch (e) {
+          console.log('Leave error (ignored):', e.message);
         }
+        client.current = null;
       }
       
       // Reset states
@@ -507,7 +429,7 @@ const VideoCallPage = () => {
     } catch (error) {
       console.error('Failed to cleanup resources:', error);
     }
-  }, [demoMode]);
+  }, []);
 
   const leaveCall = async () => {
     try {
@@ -531,7 +453,7 @@ const VideoCallPage = () => {
     
     const hasPermission = await checkPermissions();
     if (hasPermission) {
-      initializeDemoMode();
+      initializeAgoraClient();
     }
   };
 
@@ -541,18 +463,107 @@ const VideoCallPage = () => {
     initializeAgoraClient();
   };
 
-  const switchToDemoMode = () => {
-    setError(null);
-    setPermissionDenied(false);
-    initializeDemoMode();
+  // --- Drag and Resize Handlers ---
+
+  const handleMouseDown = (e) => {
+    // Prevent starting drag on resize handle
+    if (e.target.classList.contains('resize-handle')) {
+      return;
+    }
+    setIsDragging(true);
+    dragInfo.current = {
+      startX: e.clientX - localVideoPosition.x,
+      startY: e.clientY - localVideoPosition.y,
+    };
+    e.preventDefault();
   };
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragInfo.current.startX;
+    const newY = e.clientY - dragInfo.current.startY;
+    
+    const padding = 10;
+    const maxX = window.innerWidth - localVideoSize.width - padding;
+    const maxY = window.innerHeight - localVideoSize.height - padding;
+    
+    setLocalVideoPosition({
+      x: Math.max(padding, Math.min(newX, maxX)),
+      y: Math.max(padding, Math.min(newY, maxY))
+    });
+  }, [isDragging, localVideoSize]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+  
+  const handleResizeMouseDown = (e) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    dragInfo.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: localVideoSize.width,
+        startHeight: localVideoSize.height,
+    };
+    document.body.style.cursor = 'nwse-resize';
+  };
+
+  const handleResizeMouseMove = useCallback((e) => {
+    if (!isResizing) return;
+    const { startX, startWidth } = dragInfo.current;
+    const deltaX = e.clientX - startX;
+    let newWidth = startWidth + deltaX;
+
+    const minWidth = 120;
+    const maxWidth = Math.min(window.innerWidth - 40, 600);
+    if (newWidth < minWidth) newWidth = minWidth;
+    if (newWidth > maxWidth) newWidth = maxWidth;
+
+    const aspectRatio = 4 / 3;
+    const newHeight = newWidth * aspectRatio;
+
+    setLocalVideoSize({ width: newWidth, height: newHeight });
+  }, [isResizing]);
+
+  const handleResizeMouseUp = useCallback(() => {
+    setIsResizing(false);
+    document.body.style.cursor = 'default';
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+  
+  useEffect(() => {
+    if (isResizing) {
+        window.addEventListener('mousemove', handleResizeMouseMove);
+        window.addEventListener('mouseup', handleResizeMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleResizeMouseMove);
+            window.removeEventListener('mouseup', handleResizeMouseUp);
+        };
+    }
+  }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
   useEffect(() => {
     console.log('VideoCall page opened');
     console.log('Appointment ID:', appointmentId);
     console.log('User Role:', userRole);
     
-    // Start with Agora first, fallback to demo
+    // Set initial position to top right corner
+    const initialX = window.innerWidth - localVideoSize.width - 20;
+    setLocalVideoPosition({ x: initialX, y: 20 });
+    
+    // Always start with Agora
     initializeAgoraClient();
 
     // Cleanup on page unload
@@ -575,19 +586,29 @@ const VideoCallPage = () => {
       return 'Cần quyền truy cập camera/microphone';
     }
     
-    if (demoMode) {
-      return 'Chế độ demo - Video call đang hoạt động';
-    }
-    
     switch (connectionStatus) {
       case 'connecting':
-        return 'Đang kết nối...';
+        return 'Đang kết nối video call...';
       case 'connected':
-        return hasRemoteUser ? `Đã kết nối với ${remoteUsers.length} người` : 'Đang chờ người khác tham gia...';
+        if (remoteUsers.length > 0) {
+          const remoteUser = remoteUsers[0];
+          const statusParts = [];
+          if (remoteUser.hasVideo) statusParts.push('camera');
+          if (remoteUser.hasAudio) statusParts.push('mic');
+          
+          if (statusParts.length > 0) {
+            return `Đã kết nối với ${userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'}`;
+          } else {
+            return `${userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tham gia cuộc gọi`;
+          }
+        }
+        return 'Sẵn sàng - Đang chờ đối phương...';
       default:
-        return 'Chưa kết nối';
+        return 'Đang thiết lập kết nối...';
     }
   };
+
+  const isPipMode = remoteUsers.length > 0 && remoteUsers[0]?.hasVideo;
 
   return (
     <div className="video-call-page">
@@ -603,28 +624,27 @@ const VideoCallPage = () => {
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
             Quay lại
           </Button>
-          <h5 className="text-white mb-0">
+                      <h5 className="text-white mb-0">
             <FontAwesomeIcon icon={faVideo} className="me-2" />
             Video Call - {getUserName()}
-            {demoMode && <span className="badge demo-badge ms-2">Demo</span>}
           </h5>
         </div>
         
         <div className="video-call-status">
-          <FontAwesomeIcon icon={faUsers} className="me-2" />
+          <div className="connection-indicator"></div>
           <small>{getStatusMessage()}</small>
           {isConnecting && <Spinner size="sm" className="ms-2" />}
         </div>
       </div>
 
-      {/* Error Alert */}
+      {/* Connection Status */}
       {error && (
         <div className="error-alert">
-          <Alert variant={demoMode ? "warning" : permissionDenied ? "danger" : "info"}>
+          <Alert variant={permissionDenied ? "danger" : "warning"}>
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <strong>
-                  {permissionDenied ? "Cần quyền truy cập:" : demoMode ? "Chế độ demo:" : "Thông báo:"}
+                  {permissionDenied ? "Cần quyền truy cập:" : "Trạng thái:"}
                 </strong>
                 <div>{error}</div>
               </div>
@@ -633,16 +653,11 @@ const VideoCallPage = () => {
                   <Button variant="outline-primary" size="sm" onClick={requestPermissions}>
                     Cho phép quyền
                   </Button>
-                ) : !demoMode ? (
-                  <>
-                    <Button variant="outline-danger" size="sm" onClick={retryConnection} className="me-2">
-                      Thử lại Agora
-                    </Button>
-                    <Button variant="outline-warning" size="sm" onClick={switchToDemoMode}>
-                      Demo Mode
-                    </Button>
-                  </>
-                ) : null}
+                ) : !isConnecting && (
+                  <Button variant="outline-primary" size="sm" onClick={retryConnection}>
+                    Kết nối lại
+                  </Button>
+                )}
               </div>
             </div>
           </Alert>
@@ -653,49 +668,93 @@ const VideoCallPage = () => {
       <div className="video-main-container">
         {/* Remote Video (Main) */}
         <div className="remote-video-container">
+          {/* Remote video stream */}
           <div 
             ref={remoteContainer}
-            className={`remote-video ${hasRemoteUser ? 'has-user' : 'no-user'}`}
-          >
-            {!hasRemoteUser && (
-              <div className="waiting-message">
-                <FontAwesomeIcon icon={faVideo} size="4x" className="waiting-icon" />
-                <h3>
-                  {demoMode 
-                    ? 'Chế độ demo - Chia sẻ link này với người khác để video call'
+            className={`remote-video ${(remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'has-user' : 'no-user'}`}
+            style={{ display: (remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'block' : 'none' }}
+          />
+          
+          {/* Waiting/Camera off message overlay */}
+          {(remoteUsers.length === 0 || (remoteUsers.length > 0 && !remoteUsers[0]?.hasVideo)) && (
+            <div className="waiting-message">
+              <FontAwesomeIcon 
+                icon={remoteUsers.length > 0 ? faVideoSlash : faVideo} 
+                size="4x" 
+                className="waiting-icon" 
+              />
+                              <h3>
+                  {remoteUsers.length > 0
+                    ? `${userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt camera`
                     : `Đang chờ ${userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'} tham gia...`
                   }
                 </h3>
-                <p className="room-info">Room: {getChannelName()}</p>
-                
-                {permissionDenied && (
-                  <Button variant="outline-light" onClick={requestPermissions}>
-                    <FontAwesomeIcon icon={faCog} className="me-2" />
-                    Cho phép quyền truy cập
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
+              <p className="room-info">Room: {getChannelName()}</p>
+              
+              {permissionDenied && (
+                <Button variant="outline-light" onClick={requestPermissions}>
+                  <FontAwesomeIcon icon={faCog} className="me-2" />
+                  Cho phép quyền truy cập
+                </Button>
+              )}
+            </div>
+          )}
+          
+          {/* Remote user mic status indicator - hiển thị khi có remote user nhưng tắt mic */}
+          {remoteUsers.length > 0 && !remoteUsers[0]?.hasAudio && (
+            <div className="remote-mic-status">
+              <FontAwesomeIcon icon={faMicrophoneSlash} className="mic-off-icon" />
+              <span className="mic-status-text">
+                {userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt mic
+              </span>
+            </div>
+          )}
+          
+
         </div>
 
-        {/* Local Video (Side) */}
-        <div className={`local-video-container ${!hasRemoteUser ? 'expanded' : ''}`}>
+        {/* Local Video (Side / Center) */}
+        <div 
+          className={`local-video-container ${isDragging ? 'dragging' : ''}`}
+          style={{
+            width: `${localVideoSize.width}px`,
+            height: `${localVideoSize.height}px`,
+            left: `${localVideoPosition.x}px`,
+            top: `${localVideoPosition.y}px`,
+          }}
+          onMouseDown={handleMouseDown}
+        >
+          {/* Video rendering target */}
           <div 
             ref={localContainer}
-            className={`local-video ${!hasRemoteUser ? 'expanded' : ''} ${!videoEnabled ? 'camera-off' : ''}`}
-          >
-            {!videoEnabled && (
+            className={`local-video ${!videoEnabled ? 'camera-off' : ''}`}
+            style={{ display: videoEnabled ? 'block' : 'none' }}
+          />
+          
+          {/* Camera off message overlay */}
+          {!videoEnabled && (
+            <div className={`local-video camera-off`}>
               <div className="camera-off-message">
                 <FontAwesomeIcon icon={faVideoSlash} size="2x" className="mb-2" />
-                <p className="mb-0">Camera đã tắt</p>
+                <p className="mb-0">Đã tắt camera</p>
               </div>
-            )}
-            
-            <div className="user-label">
-              {getUserName()} (Bạn) {demoMode && "- Demo"}
             </div>
+          )}
+
+          {/* User label - always visible */}
+          <div className="user-label">
+            {getUserName()} (Bạn)
           </div>
+          
+          {/* Local mic status - always visible when mic is off */}
+          {!audioEnabled && (
+            <div className="local-mic-status">
+              <FontAwesomeIcon icon={faMicrophoneSlash} className="local-mic-off-icon" />
+            </div>
+          )}
+
+          {/* Resize Handle */}
+          <div className="resize-handle" onMouseDown={handleResizeMouseDown}></div>
         </div>
       </div>
 
@@ -705,7 +764,7 @@ const VideoCallPage = () => {
           className={`control-button ${audioEnabled ? 'audio-on' : 'audio-off'}`}
           onClick={toggleAudio}
           title={audioEnabled ? "Tắt microphone" : "Bật microphone"}
-          disabled={(!isConnected && !demoMode) || isToggling}
+          disabled={!isConnected || isToggling}
         >
           <FontAwesomeIcon icon={audioEnabled ? faMicrophone : faMicrophoneSlash} />
         </button>
@@ -714,7 +773,7 @@ const VideoCallPage = () => {
           className={`control-button ${videoEnabled ? 'video-on' : 'video-off'}`}
           onClick={toggleVideo}
           title={videoEnabled ? "Tắt camera" : "Bật camera"}
-          disabled={(!isConnected && !demoMode) || isToggling}
+          disabled={!isConnected || isToggling}
         >
           <FontAwesomeIcon icon={videoEnabled ? faVideo : faVideoSlash} />
         </button>
