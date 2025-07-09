@@ -138,6 +138,11 @@ const VideoCallPage = () => {
   }, [userRole, appointmentId]);
 
   const sendSystemMessage = useCallback((text) => {
+    // Bỏ qua các thông báo liên quan đến RTM
+    if (text.includes('RTM') || text.includes('chat')) {
+      return;
+    }
+    
     const systemMessage = {
       id: Date.now().toString(),
       text,
@@ -1114,19 +1119,12 @@ const VideoCallPage = () => {
 
       {/* Chat Panel */}
       {isChatOpen && (
-        <div className="chat-panel">
+        <div className={`chat-panel ${isChatOpen ? 'open' : ''}`}>
           <div className="chat-header">
             <h6 className="chat-title">
-              <FontAwesomeIcon icon={faComment} className="me-2" />
+              <FontAwesomeIcon icon={faComment} />
               Chat với {userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'}
             </h6>
-            <div className="chat-status">
-              {chatConnected ? (
-                <span className="chat-connected">🟢 RTM Live</span>
-              ) : (
-                <span className="chat-demo">🟡 Demo Mode</span>
-              )}
-            </div>
             <button className="chat-close-btn" onClick={toggleChat}>
               <FontAwesomeIcon icon={faTimes} />
             </button>
@@ -1136,14 +1134,7 @@ const VideoCallPage = () => {
             {messages.length === 0 ? (
               <div className="no-messages">
                 <FontAwesomeIcon icon={faComment} className="no-messages-icon" />
-                <p>
-                  Hãy bắt đầu cuộc trò chuyện!
-                </p>
-                <small>
-                  {chatConnected 
-                    ? 'Tin nhắn sẽ được gửi real-time qua Agora RTM' 
-                    : 'Demo mode - tin nhắn lưu trong localStorage'}
-                </small>
+                <p>Hãy bắt đầu cuộc trò chuyện!</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -1158,22 +1149,16 @@ const VideoCallPage = () => {
                   }`}
                 >
                   <div className="message-content">
-                    <div className="message-text">{message.text}</div>
-                    <div className="message-info">
-                      <span className="message-sender">{message.senderName}</span>
-                      <span className="message-time">
-                        {new Date(message.timestamp).toLocaleTimeString('vi-VN', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                      {/* Hiển thị trạng thái gửi */}
-                      {message.sender === userRole && (
-                        <span className="message-status">
-                          {chatConnected ? '✓✓' : '💾'}
-                        </span>
-                      )}
-                    </div>
+                    {message.text}
+                  </div>
+                  <div className="message-info">
+                    <span className="message-sender">{message.senderName}</span>
+                    <span className="message-time">
+                      {new Date(message.timestamp).toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
                   </div>
                 </div>
               ))
@@ -1205,11 +1190,6 @@ const VideoCallPage = () => {
                 <FontAwesomeIcon icon={faPaperPlane} />
               </button>
             </div>
-            <small className="chat-privacy-note">
-              🔒 {chatConnected 
-                ? 'Tin nhắn real-time qua Agora RTM' 
-                : 'Demo mode - localStorage sync'}
-            </small>
           </div>
         </div>
       )}
