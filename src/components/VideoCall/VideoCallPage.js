@@ -1,18 +1,19 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Container, Row, Col, Button, Alert, Spinner } from 'react-bootstrap';
+import { Button, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faVideo, faVideoSlash, faMicrophone, faMicrophoneSlash, 
-  faPhone, faExpand, faCompress, faCog, faExclamationTriangle,
-  faArrowLeft, faUsers
+  faPhone, faExpand, faCompress, faCog,
+  faArrowLeft, faComment, faPaperPlane, faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import AgoraRTC from 'agora-rtc-sdk-ng';
+import AgoraRTM from 'agora-rtm-sdk';
 import './VideoCallPage.css';
 
-// Sử dụng App ID demo công khai của Agora để test
-const APP_ID = 'aab8b8f5a8cd4469a63042fcfafe7063'; // Demo App ID công khai
-const TOKEN = null; // Test mode không cần token
+// Sử dụng cùng App ID cho cả RTC và RTM để tránh conflict
+const APP_ID = 'aab8b8f5a8cd4469a63042fcfafe7063'; // Test App ID không cần token
+const TOKEN = '007eJxTYLiSEjndlEE74EjJCdZvNWrKXD/D8n+sOvPp8mW7CTYBZ8UUGIxMTE3SElOMzMwM0kxSjAwsDRNT0ywtUo0tDdIMjVKSHZ7lZjQEMjL4HvBiYWSAQBCfmSExKZmBAQAZ+x7L'; // Token mới cho channel 'abc'
 
 const VideoCallPage = () => {
   const { appointmentId, userRole } = useParams();
@@ -24,6 +25,9 @@ const VideoCallPage = () => {
   const localContainer = useRef();
   const remoteContainer = useRef();
 
+  // Chat related refs
+  const rtmClient = useRef(null);
+  const rtmChannel = useRef(null);
   
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -43,12 +47,310 @@ const VideoCallPage = () => {
   const [isResizing, setIsResizing] = useState(false);
   const dragInfo = useRef({});
 
-  const getChannelName = () => {
-    return 'abc'; // Fixed channel name to match the token generated in Agora console
+  // Chat states
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [chatConnected, setChatConnected] = useState(false);
+  const [isDemoMode] = useState(false); // Set to false for real RTM chat
+
+  const getChannelName = useCallback(() => {
+    return 'abc'; // Channel name cố định để test token
+  }, []);
+
+  const getUserName = useCallback(() => {
+    return userRole === 'doctor' ? 'Bác sĩ' : 'Bệnh nhân';
+  }, [userRole]);
+
+  // Chat functions
+  const initializeDemoMode = useCallback(() => {
+    console.log('Initializing enhanced demo chat with cross-tab sync...');
+    
+    // Load existing messages from localStorage
+    const storageKey = `chat_${appointmentId}`;
+    const savedMessages = localStorage.getItem(storageKey);
+    
+    if (savedMessages) {
+      try {
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(parsedMessages);
+        console.log('Loaded', parsedMessages.length, 'messages from localStorage');
+      } catch (e) {
+        console.error('Failed to parse saved messages:', e);
+        const defaultMessages = [
+          {
+            id: '1',
+            text: 'Xin chào! Demo chat đã sẵn sàng.',
+            sender: userRole === 'doctor' ? 'patient' : 'doctor',
+            timestamp: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
+            senderName: userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'
+          }
+        ];
+        setMessages(defaultMessages);
+        localStorage.setItem(storageKey, JSON.stringify(defaultMessages));
+      }
+    } else {
+      const initialMessages = [
+        {
+          id: '1',
+          text: 'Demo chat đã sẵn sàng! Hãy thử gửi tin nhắn.',
+          sender: 'system',
+          timestamp: new Date().toISOString(),
+          senderName: 'Hệ thống'
+        }
+      ];
+      setMessages(initialMessages);
+      localStorage.setItem(storageKey, JSON.stringify(initialMessages));
+    }
+    
+    setChatConnected(false); // Demo mode - not real RTM
+    
+    // Enhanced cross-tab communication
+    const handleStorageChange = (e) => {
+      console.log('Storage change detected:', e.key, e.newValue);
+      if (e.key === storageKey && e.newValue) {
+        try {
+          const newMessages = JSON.parse(e.newValue);
+          console.log('Updating messages from another tab:', newMessages.length);
+          setMessages(prev => {
+            // Merge và deduplicate messages
+            const merged = [...prev];
+            newMessages.forEach(newMsg => {
+              if (!merged.find(m => m.id === newMsg.id)) {
+                merged.push(newMsg);
+              }
+            });
+            return merged.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          });
+        } catch (error) {
+          console.error('Failed to parse storage update:', error);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [userRole, appointmentId]);
+
+  const sendSystemMessage = useCallback((text) => {
+    const systemMessage = {
+      id: Date.now().toString(),
+      text,
+      sender: 'system',
+      timestamp: new Date().toISOString(),
+      senderName: 'Hệ thống'
+    };
+    setMessages(prev => [...prev, systemMessage]);
+  }, []);
+
+  const initializeChatClient = useCallback(async () => {
+    try {
+      console.log('🚀 Starting RTM v1 initialization...');
+      console.log('AgoraRTM:', AgoraRTM);
+      console.log('AgoraRTM.createInstance:', typeof AgoraRTM.createInstance);
+      console.log('APP_ID:', APP_ID);
+      
+      // Cleanup RTM client nếu đã tồn tại
+      if (rtmClient.current) {
+        try {
+          console.log('Cleaning up previous RTM client...');
+          await rtmClient.current.logout();
+        } catch (e) {
+          console.log('Previous RTM client cleanup:', e.message);
+        }
+      }
+      
+      // RTM v1 initialization
+      console.log('Creating RTM instance...');
+      rtmClient.current = AgoraRTM.createInstance(APP_ID);
+      console.log('✅ RTM v1 client created successfully:', rtmClient.current);
+      
+      // Tạo unique user ID
+      const userId = `${userRole}_${appointmentId}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('Generated user ID:', userId);
+      
+      // Login RTM v1 with token (nếu cần)
+      console.log('Attempting RTM login...');
+      // Thử login không token trước
+      try {
+        await rtmClient.current.login({ uid: userId });
+        console.log('✅ RTM v1 logged in successfully without token');
+      } catch (error) {
+        console.log('Login without token failed, trying with empty token...');
+        await rtmClient.current.login({ uid: userId, token: '' });
+        console.log('✅ RTM v1 logged in successfully with empty token');
+      }
+      
+      // Create and join channel RTM v1
+      const channelName = 'abc';
+      console.log('Creating RTM channel:', channelName);
+      rtmChannel.current = rtmClient.current.createChannel(channelName);
+      console.log('RTM channel created:', rtmChannel.current);
+      
+      console.log('Joining RTM channel...');
+      await rtmChannel.current.join();
+      console.log('✅ RTM v1 channel joined successfully');
+      
+      // Setup event listeners cho RTM v1
+      rtmChannel.current.on('ChannelMessage', (message, memberId) => {
+        console.log('📨 RTM v1 message received:', message.text, 'from:', memberId);
+        
+        // Không hiển thị tin nhắn của chính mình
+        if (memberId === userId) return;
+        
+        const isFromDoctor = memberId.includes('doctor');
+        const newMsg = {
+          id: `${Date.now()}_${Math.random()}`,
+          text: message.text,
+          sender: isFromDoctor ? 'doctor' : 'patient',
+          timestamp: new Date().toISOString(),
+          senderName: isFromDoctor ? 'Bác sĩ' : 'Bệnh nhân'
+        };
+        
+        setMessages(prev => [...prev, newMsg]);
+        if (!isChatOpen) {
+          setUnreadCount(prev => prev + 1);
+        }
+      });
+      
+      // Member events cho RTM v1
+      rtmChannel.current.on('MemberJoined', (memberId) => {
+        console.log('👋 Member joined RTM channel:', memberId);
+        const isDoctor = memberId.includes('doctor');
+        const userName = isDoctor ? 'Bác sĩ' : 'Bệnh nhân';
+        sendSystemMessage(`${userName} đã tham gia cuộc trò chuyện`);
+      });
+      
+      rtmChannel.current.on('MemberLeft', (memberId) => {
+        console.log('👋 Member left RTM channel:', memberId);
+        const isDoctor = memberId.includes('doctor');
+        const userName = isDoctor ? 'Bác sĩ' : 'Bệnh nhân';
+        sendSystemMessage(`${userName} đã rời khỏi cuộc trò chuyện`);
+      });
+      
+      setChatConnected(true);
+      console.log('🎉 RTM chat connection established!');
+      sendSystemMessage('🟢 Chat RTM v1 đã kết nối thành công!');
+      
+    } catch (error) {
+      console.error('❌ RTM v1 initialization failed:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      setChatConnected(false);
+      
+      // Fallback to demo mode
+      setMessages([
+        {
+          id: '1',
+          text: `❌ RTM v1 thất bại: ${error.message} - Chuyển sang demo mode`,
+          sender: 'system',
+          timestamp: new Date().toISOString(),
+          senderName: 'Hệ thống'
+        }
+      ]);
+      
+      // Initialize demo mode as fallback
+      console.log('🔄 Falling back to demo mode...');
+      initializeDemoMode();
+    }
+  }, [userRole, appointmentId, isChatOpen, sendSystemMessage, initializeDemoMode]);
+
+  const sendMessage = useCallback(async (messageText) => {
+    if (!messageText.trim()) return;
+    
+    console.log(`📤 ${userRole} attempting to send RTM v1 message:`, messageText);
+    console.log('Chat connected status:', chatConnected);
+    console.log('RTM channel:', rtmChannel.current);
+    
+    const message = {
+      id: Date.now().toString(),
+      text: messageText.trim(),
+      sender: userRole,
+      timestamp: new Date().toISOString(),
+      senderName: getUserName()
+    };
+    
+    // Add to local messages immediately for better UX
+    setMessages(prev => {
+      console.log('Adding own message locally:', message);
+      return [...prev, message];
+    });
+    setNewMessage('');
+    
+    try {
+      // Send via RTM v1
+      if (chatConnected && rtmChannel.current) {
+        console.log('🚀 Sending RTM v1 message via channel...');
+        const messageObj = { text: messageText.trim() };
+        console.log('Message object to send:', messageObj);
+        
+        await rtmChannel.current.sendMessage(messageObj);
+        console.log('✅ RTM v1 message sent successfully');
+      } else {
+        console.log('❌ RTM not connected, using localStorage fallback...');
+        console.log('chatConnected:', chatConnected);
+        console.log('rtmChannel.current:', rtmChannel.current);
+        
+        // Save to localStorage for demo sync between tabs
+        const storageKey = `chat_${appointmentId}`;
+        const existingMessages = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const updatedMessages = [...existingMessages, message];
+        localStorage.setItem(storageKey, JSON.stringify(updatedMessages));
+        
+        // Trigger storage event for other tabs
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: storageKey,
+          newValue: JSON.stringify(updatedMessages),
+          oldValue: JSON.stringify(existingMessages)
+        }));
+        
+        console.log('💾 Message saved to localStorage (demo mode)');
+        sendSystemMessage('📝 Tin nhắn đã lưu trong demo mode (localStorage)');
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to send RTM v1 message:', error);
+      console.error('Send error details:', {
+        name: error.name,
+        message: error.message,
+        code: error.code
+      });
+      sendSystemMessage('⚠️ Lỗi gửi tin nhắn - Tin nhắn chỉ hiển thị local');
+    }
+  }, [userRole, getUserName, chatConnected, sendSystemMessage, appointmentId]);
+
+  const toggleChat = () => {
+    setIsChatOpen(prev => !prev);
+    if (!isChatOpen) {
+      setUnreadCount(0); // Reset unread count when opening chat
+    }
   };
 
-  const getUserName = () => {
-    return userRole === 'doctor' ? 'Bác sĩ' : 'Bệnh nhân';
+  const cleanupChat = async () => {
+    try {
+      if (rtmChannel.current) {
+        await rtmChannel.current.leave();
+        rtmChannel.current = null;
+      }
+      if (rtmClient.current) {
+        await rtmClient.current.logout();
+        rtmClient.current = null;
+      }
+      setChatConnected(false);
+      setMessages([]);
+      console.log('RTM v1 chat cleanup completed');
+    } catch (error) {
+      console.error('Failed to cleanup RTM v1 chat:', error);
+    }
   };
 
   // Check camera/microphone permissions
@@ -84,7 +386,7 @@ const VideoCallPage = () => {
 
 
   // Initialize Agora client
-  const initializeAgoraClient = async () => {
+  const initializeAgoraClient = useCallback(async () => {
     try {
       setIsConnecting(true);
       setConnectionStatus('connecting');
@@ -153,6 +455,9 @@ const VideoCallPage = () => {
       setIsConnected(true);
       setConnectionStatus('connected');
       setError(null);
+      
+      // Initialize chat after successful video connection
+      await initializeChatClient();
     } catch (error) {
       console.error('Failed to initialize Agora client:', error);
       handleAgoraError(error);
@@ -166,7 +471,7 @@ const VideoCallPage = () => {
     } finally {
       setIsConnecting(false);
     }
-  };
+  }, [initializeChatClient, getChannelName]);
 
   const handleAgoraError = (error) => {
     console.error('Agora error details:', error);
@@ -401,6 +706,9 @@ const VideoCallPage = () => {
     try {
       console.log('Cleaning up resources...');
       
+      // Cleanup chat first
+      await cleanupChat();
+      
       if (localAudioTrack.current) {
         localAudioTrack.current.close();
         localAudioTrack.current = null;
@@ -579,7 +887,7 @@ const VideoCallPage = () => {
       // Clean up resources but don't close window on component unmount
       cleanupResources();
     };
-  }, [appointmentId, userRole]);
+  }, [appointmentId, userRole, localVideoSize.width, cleanupResources, initializeAgoraClient]);
 
   const getStatusMessage = () => {
     if (permissionDenied) {
@@ -607,8 +915,6 @@ const VideoCallPage = () => {
         return 'Đang thiết lập kết nối...';
     }
   };
-
-  const isPipMode = remoteUsers.length > 0 && remoteUsers[0]?.hasVideo;
 
   return (
     <div className="video-call-page">
@@ -779,6 +1085,17 @@ const VideoCallPage = () => {
         </button>
         
         <button
+          className={`control-button chat-button ${isChatOpen ? 'chat-open' : 'chat-closed'}`}
+          onClick={toggleChat}
+          title={isChatOpen ? "Đóng chat" : "Mở chat"}
+        >
+          <FontAwesomeIcon icon={isChatOpen ? faTimes : faComment} />
+          {unreadCount > 0 && !isChatOpen && (
+            <span className="chat-notification-badge">{unreadCount}</span>
+          )}
+        </button>
+        
+        <button
           className="control-button utility"
           onClick={toggleFullscreen}
           title="Fullscreen"
@@ -794,6 +1111,108 @@ const VideoCallPage = () => {
           <FontAwesomeIcon icon={faPhone} />
         </button>
       </div>
+
+      {/* Chat Panel */}
+      {isChatOpen && (
+        <div className="chat-panel">
+          <div className="chat-header">
+            <h6 className="chat-title">
+              <FontAwesomeIcon icon={faComment} className="me-2" />
+              Chat với {userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'}
+            </h6>
+            <div className="chat-status">
+              {chatConnected ? (
+                <span className="chat-connected">🟢 RTM Live</span>
+              ) : (
+                <span className="chat-demo">🟡 Demo Mode</span>
+              )}
+            </div>
+            <button className="chat-close-btn" onClick={toggleChat}>
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+          </div>
+          
+          <div className="chat-messages">
+            {messages.length === 0 ? (
+              <div className="no-messages">
+                <FontAwesomeIcon icon={faComment} className="no-messages-icon" />
+                <p>
+                  Hãy bắt đầu cuộc trò chuyện!
+                </p>
+                <small>
+                  {chatConnected 
+                    ? 'Tin nhắn sẽ được gửi real-time qua Agora RTM' 
+                    : 'Demo mode - tin nhắn lưu trong localStorage'}
+                </small>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`message ${
+                    message.sender === userRole
+                      ? 'message-own'
+                      : message.sender === 'system'
+                      ? 'message-system'
+                      : 'message-other'
+                  }`}
+                >
+                  <div className="message-content">
+                    <div className="message-text">{message.text}</div>
+                    <div className="message-info">
+                      <span className="message-sender">{message.senderName}</span>
+                      <span className="message-time">
+                        {new Date(message.timestamp).toLocaleTimeString('vi-VN', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      {/* Hiển thị trạng thái gửi */}
+                      {message.sender === userRole && (
+                        <span className="message-status">
+                          {chatConnected ? '✓✓' : '💾'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="chat-input">
+            <div className="chat-input-container">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder={`Nhắn tin với ${userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'}...`}
+                className="chat-input-field"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage(newMessage);
+                  }
+                }}
+                maxLength={500}
+              />
+              <button
+                className="chat-send-btn"
+                onClick={() => sendMessage(newMessage)}
+                disabled={!newMessage.trim()}
+                title="Gửi tin nhắn"
+              >
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </button>
+            </div>
+            <small className="chat-privacy-note">
+              🔒 {chatConnected 
+                ? 'Tin nhắn real-time qua Agora RTM' 
+                : 'Demo mode - localStorage sync'}
+            </small>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
