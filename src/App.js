@@ -23,7 +23,6 @@ import Doctors from './components/Doctors/Doctors';
 import Login from './components/Auth/Login';
 import DoctorLogin from './components/Auth/DoctorLogin'; // From HEAD
 import Signup from './components/Auth/Signup';
-import QnA from './components/QA/QnA';
 
 // Doctor Components
 import DoctorDashboard from './components/Doctor/DoctorDashboard';
@@ -65,10 +64,8 @@ function App() {
                     {/* Public Routes */}
                     <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />                    <Route path="/contact" element={<Contact />} />
                     <Route path="/doctors" element={<Doctors />} />
-                    <Route path="/qa" element={<QnA />} />
                     
                     {/* Auth Routes */}
                     <Route path="/login" element={<Login />} />

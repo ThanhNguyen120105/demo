@@ -2,16 +2,35 @@ import React from 'react';
 import { Card, Row, Col, ListGroup, Badge } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faGraduationCap, 
-  faBriefcase, 
   faAward,
-  faUserMd,
-  faStethoscope,
-  faBookMedical
+  faBookMedical,
+  faEnvelope,
+  faPhone,
+  faBirthdayCake,
+  faVenusMars,
+  faHospital,
+  faUserMd
 } from '@fortawesome/free-solid-svg-icons';
 
 const DoctorDetail = ({ doctor }) => {
   if (!doctor) return null;
+
+  // Format ngày sinh
+  const formatBirthdate = (birthdate) => {
+    if (!birthdate) return 'Chưa có thông tin';
+    try {
+      const date = new Date(birthdate);
+      return date.toLocaleDateString('vi-VN');
+    } catch {
+      return birthdate;
+    }
+  };
+
+  // Format giới tính
+  const formatGender = (gender) => {
+    if (!gender) return 'Chưa có thông tin';
+    return gender === 'MALE' ? 'Nam' : gender === 'FEMALE' ? 'Nữ' : gender;
+  };
 
   return (
     <div className="doctor-detail">
@@ -22,37 +41,58 @@ const DoctorDetail = ({ doctor }) => {
             <Card.Body>
               <div className="text-center mb-4">
                 <img 
-                  src={doctor.avatar} 
-                  alt={doctor.fullName}
+                  src={doctor.image} 
+                  alt={doctor.name}
                   className="rounded-circle mb-3"
                   style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/150x150?text=Doctor';
+                  }}
                 />
-                <h3>{doctor.title} {doctor.fullName}</h3>
-                <p className="text-muted">{doctor.specialization}</p>
+                <h3>{doctor.name}</h3>
+                <p className="text-muted">{doctor.position}</p>
+                {doctor.hospital && (
+                  <p className="text-info">
+                    <FontAwesomeIcon icon={faHospital} className="me-2" />
+                    {doctor.hospital}
+                  </p>
+                )}
               </div>
 
               <ListGroup variant="flush">
+                {doctor.email && (
+                  <ListGroup.Item>
+                    <FontAwesomeIcon icon={faEnvelope} className="me-2" />
+                    <strong>Email:</strong> {doctor.email}
+                  </ListGroup.Item>
+                )}
+
+                {doctor.phoneNumber && (
+                  <ListGroup.Item>
+                    <FontAwesomeIcon icon={faPhone} className="me-2" />
+                    <strong>Số điện thoại:</strong> {doctor.phoneNumber}
+                  </ListGroup.Item>
+                )}
+
                 <ListGroup.Item>
-                  <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                  <strong>Chuyên môn:</strong>
-                  <div className="mt-2">
-                    {doctor.expertise.map((item, index) => (
-                      <Badge bg="primary" className="me-2 mb-2" key={index}>
-                        {item}
-                      </Badge>
-                    ))}
-                  </div>
+                  <FontAwesomeIcon icon={faBirthdayCake} className="me-2" />
+                  <strong>Ngày sinh:</strong> {formatBirthdate(doctor.birthdate)}
                 </ListGroup.Item>
 
                 <ListGroup.Item>
-                  <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                  <strong>Dịch vụ:</strong>
-                  <ul className="mt-2">
-                    {doctor.services.map((service, index) => (
-                      <li key={index}>{service}</li>
-                    ))}
-                  </ul>
+                  <FontAwesomeIcon icon={faVenusMars} className="me-2" />
+                  <strong>Giới tính:</strong> {formatGender(doctor.gender)}
                 </ListGroup.Item>
+
+                {doctor.specialization && (
+                  <ListGroup.Item>
+                    <FontAwesomeIcon icon={faUserMd} className="me-2" />
+                    <strong>Chuyên khoa:</strong>
+                    <div className="mt-2">
+                      <Badge bg="primary">{doctor.specialization}</Badge>
+                    </div>
+                  </ListGroup.Item>
+                )}
               </ListGroup>
             </Card.Body>
           </Card>
@@ -60,59 +100,31 @@ const DoctorDetail = ({ doctor }) => {
 
         {/* Bên phải - Thông tin chi tiết */}
         <Col md={6}>
-          {/* Quá trình đào tạo */}
-          <Card className="mb-4">
-            <Card.Header className="bg-primary text-white">
-              <FontAwesomeIcon icon={faGraduationCap} className="me-2" />
-              Quá trình đào tạo
-            </Card.Header>
-            <ListGroup variant="flush">
-              {doctor.education.map((edu, index) => (
-                <ListGroup.Item key={index}>
-                  <div className="d-flex justify-content-between">
-                    <strong>{edu.degree}</strong>
-                    <span className="text-muted">{edu.year}</span>
-                  </div>
-                  <div>{edu.school}</div>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Card>
+          {/* Mô tả */}
+          {doctor.description && (
+            <Card className="mb-4">
+              <Card.Header className="bg-info text-white">
+                <FontAwesomeIcon icon={faBookMedical} className="me-2" />
+                Mô tả
+              </Card.Header>
+              <Card.Body>
+                <p className="mb-0">{doctor.description}</p>
+              </Card.Body>
+            </Card>
+          )}
 
-          {/* Kinh nghiệm làm việc */}
-          <Card className="mb-4">
-            <Card.Header className="bg-success text-white">
-              <FontAwesomeIcon icon={faBriefcase} className="me-2" />
-              Kinh nghiệm làm việc
-            </Card.Header>
-            <ListGroup variant="flush">
-              {doctor.experience.map((exp, index) => (
-                <ListGroup.Item key={index}>
-                  <div className="d-flex justify-content-between">
-                    <strong>{exp.position}</strong>
-                    <span className="text-muted">{exp.year}</span>
-                  </div>
-                  <div>{exp.hospital}</div>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Card>
-
-          {/* Thành tựu */}
-          <Card className="mb-4">
-            <Card.Header className="bg-warning text-dark">
-              <FontAwesomeIcon icon={faAward} className="me-2" />
-              Thành tựu
-            </Card.Header>
-            <ListGroup variant="flush">
-              {doctor.achievements.map((achievement, index) => (
-                <ListGroup.Item key={index}>
-                  <FontAwesomeIcon icon={faBookMedical} className="me-2 text-muted" />
-                  {achievement}
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Card>
+          {/* Thành tựu và Giải thưởng */}
+          {doctor.awards && doctor.awards.trim() && (
+            <Card className="mb-4">
+              <Card.Header className="bg-warning text-dark">
+                <FontAwesomeIcon icon={faAward} className="me-2" />
+                Thành tựu & Giải thưởng
+              </Card.Header>
+              <Card.Body>
+                <p className="mb-0">{doctor.awards}</p>
+              </Card.Body>
+            </Card>
+          )}
         </Col>
       </Row>
     </div>

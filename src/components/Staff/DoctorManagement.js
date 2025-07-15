@@ -33,6 +33,11 @@ const DoctorManagement = () => {
     awards: ''
   });
   const [updateLoading, setUpdateLoading] = useState(false);
+  
+  // File upload states
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchDoctors();
@@ -95,6 +100,9 @@ const DoctorManagement = () => {
           description: result.data.description || '',
           awards: result.data.awards || ''
         });
+        // Reset file upload states
+        setSelectedFile(null);
+        setPreviewImage(result.data.avatarURL || null);
         setShowUpdateModal(true);
       } else {
         setMessage({ type: 'danger', content: result.message });
@@ -104,6 +112,58 @@ const DoctorManagement = () => {
       setMessage({ type: 'danger', content: 'Không thể tải thông tin bác sĩ' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setMessage({ type: 'danger', content: 'Vui lòng chọn file hình ảnh' });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: 'danger', content: 'Kích thước file không được vượt quá 5MB' });
+        return;
+      }
+      
+      setSelectedFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    try {
+      setUploadingImage(true);
+      // TODO: Replace with your actual upload API endpoint
+      const response = await fetch('/api/upload/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        return result.avatarURL; // Assuming API returns { avatarURL: "uploaded_url" }
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -125,11 +185,27 @@ const DoctorManagement = () => {
     setUpdateLoading(true);
 
     try {
-      const result = await doctorAPI.updateDoctor(selectedDoctor.id, updateFormData);
+      let finalFormData = { ...updateFormData };
+      
+      // Upload image if a new file is selected
+      if (selectedFile) {
+        try {
+          const uploadedImageURL = await uploadImage(selectedFile);
+          finalFormData.avatarURL = uploadedImageURL;
+        } catch (uploadError) {
+          setMessage({ type: 'danger', content: 'Không thể upload ảnh. Vui lòng thử lại.' });
+          return;
+        }
+      }
+      
+      const result = await doctorAPI.updateDoctor(selectedDoctor.id, finalFormData);
       
       if (result.success) {
         setMessage({ type: 'success', content: 'Cập nhật thông tin bác sĩ thành công' });
         setShowUpdateModal(false);
+        // Reset states
+        setSelectedFile(null);
+        setPreviewImage(null);
         fetchDoctors(); // Refresh list
       } else {
         setMessage({ type: 'danger', content: result.message });
@@ -167,6 +243,9 @@ const DoctorManagement = () => {
     setShowUpdateModal(false);
     setShowDeleteModal(false);
     setSelectedDoctor(null);
+    // Reset file upload states
+    setSelectedFile(null);
+    setPreviewImage(null);
   };
 
   return (
@@ -445,15 +524,34 @@ const DoctorManagement = () => {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>URL Avatar</Form.Label>
+                  <Form.Label>Ảnh đại diện</Form.Label>
                   <Form.Control
-                    type="url"
-                    name="avatarURL"
-                    value={updateFormData.avatarURL}
-                    onChange={handleUpdateInputChange}
-                    disabled={updateLoading}
-                    placeholder="https://example.com/avatar.jpg"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    disabled={updateLoading || uploadingImage}
                   />
+                  <Form.Text className="text-muted">
+                    Chọn file hình ảnh (tối đa 5MB)
+                  </Form.Text>
+                  
+                  {/* Image Preview */}
+                  {previewImage && (
+                    <div className="mt-3 text-center">
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="img-thumbnail"
+                        style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                      />
+                      {uploadingImage && (
+                        <div className="mt-2">
+                          <Spinner animation="border" size="sm" className="me-2" />
+                          <small>Đang upload...</small>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </Form.Group>
               </Col>
             </Row>

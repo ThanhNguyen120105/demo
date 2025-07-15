@@ -59,11 +59,7 @@ const AppointmentPage = () => {
                 <Card.Text className="mb-4">
                   Chỉ có bệnh nhân mới có thể sử dụng chức năng đặt lịch hẹn này. 
                   Tài khoản của bạn không có quyền truy cập.
-                </Card.Text>                <p className="text-muted small">
-                  Role hiện tại: {getRoleName(user)} (ID: {getRoleId(user)})
-                  <br/>
-                  Debug - user.role: {user?.role}, user.role_id: {user?.role_id}
-                </p>
+                </Card.Text>
               </Card.Body>
             </Card>
           </Col>

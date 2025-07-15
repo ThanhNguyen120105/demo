@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Button, Card, Alert, Modal } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDisplayName } from '../../utils/userUtils';
+import { isCustomer, canBookAppointment } from '../../constants/userRoles';
 import { 
   faStethoscope, faUsers, faHeartbeat, faBriefcaseMedical, 
   faMicroscope, faHandHoldingMedical, faCalendarCheck, faUserMd,
@@ -82,7 +83,9 @@ const featuredQnA = [
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [expandedQnA, setExpandedQnA] = useState([]);
+  const [showAccessModal, setShowAccessModal] = useState(false);
 
   const toggleQnAExpand = (id) => {
     if (expandedQnA.includes(id)) {
@@ -92,10 +95,49 @@ const Home = () => {
     }
   };
 
+  // Debug user object khi thay đổi
+  useEffect(() => {
+    console.log('🔍 User object changed:', {
+      isAuthenticated,
+      user,
+      userRole: user?.role,
+      userRoleId: user?.role_id
+    });
+  }, [user, isAuthenticated]);
+
+  // Hàm xử lý khi click button đặt lịch hẹn
+  const handleAppointmentClick = (e) => {
+    e.preventDefault(); // Ngăn chặn navigation mặc định
+    
+    console.log('=== DEBUG START ===');
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('user:', user);
+    
+    // Nếu chưa đăng nhập, redirect đến login
+    if (!isAuthenticated || !user) {
+      console.log('User not authenticated, navigating to login');
+      navigate('/login');
+      return;
+    }
+    
+    // Sử dụng helper function từ userRoles.js
+    const userCanBook = canBookAppointment(user);
+    console.log('canBookAppointment:', userCanBook);
+    console.log('=== DEBUG END ===');
+    
+    if (userCanBook) {
+      // Chỉ CUSTOMER mới được navigate đến appointment
+      navigate('/appointment');
+    } else {
+      // Tất cả role khác sẽ hiện modal
+      setShowAccessModal(true);
+    }
+  };
+
   return (
     <main>
       {/* Welcome Message for Logged In Customers Only */}
-      {isAuthenticated && user && user.role === 'CUSTOMER' && (
+      {isAuthenticated && user && isCustomer(user) && (
         <section className="welcome-section">
           <Container>
             <Alert variant="info" className="welcome-alert">
@@ -129,7 +171,7 @@ const Home = () => {
                 </p>
                 <div className="hero-buttons">
                   <Button variant="primary" className="me-3">Dịch Vụ Của Chúng Tôi</Button>
-                  <Button variant="outline-primary" as={Link} to="/appointment">Đặt Lịch Hẹn</Button>
+                  <Button variant="outline-primary" onClick={handleAppointmentClick}>Đặt Lịch Hẹn</Button>
                 </div>
               </motion.div>
             </Col>
@@ -651,7 +693,7 @@ const Home = () => {
                   Đặt lịch hẹn trực tuyến hoặc gọi trực tiếp cho chúng tôi.
                 </motion.p>
                 <motion.div className="appointment-buttons" variants={fadeIn}>
-                  <Button variant="light" className="me-3" as={Link} to="/appointment">Đặt Lịch Trực Tuyến</Button>
+                  <Button variant="light" className="me-3" onClick={handleAppointmentClick}>Đặt Lịch Trực Tuyến</Button>
                   <div className="appointment-phone">
                     <FontAwesomeIcon icon={faPhone} className="phone-icon" />
                     <div>
@@ -682,8 +724,35 @@ const Home = () => {
           </Row>
         </Container>
       </AnimatedSection>
+
+      {/* Modal thông báo không có quyền truy cập */}
+      <Modal 
+        show={showAccessModal} 
+        onHide={() => setShowAccessModal(false)}
+        centered
+        size="md"
+        backdrop="static"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>🚫 Không có quyền truy cập</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center py-4">
+          <div className="mb-3">
+            <FontAwesomeIcon icon={faCalendarCheck} size="3x" className="text-warning mb-3" />
+          </div>
+          <h5>Chỉ có bệnh nhân mới có thể đặt lịch hẹn</h5>
+          <p className="text-muted">
+            Để đặt lịch hẹn, bạn cần đăng nhập với tài khoản bệnh nhân.
+          </p>
+        </Modal.Body>
+        <Modal.Footer className="justify-content-center">
+          <Button variant="secondary" onClick={() => setShowAccessModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </main>
   );
 };
 
-export default Home; 
+export default Home;

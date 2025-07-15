@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Badge, Dropdown } from 'react-bootstrap';
+import { Container, Alert, Button, Badge } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBell, faCalendarCheck, faExclamationTriangle, 
@@ -9,11 +9,11 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { appointmentAPI } from '../../services/api';
+import './NotificationSection.css';
 
-const NotificationBell = () => {
+const NotificationSection = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [show, setShow] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,13 +71,13 @@ const NotificationBell = () => {
         if (todayAppointments.length > 0) {
           notifications.push({
             id: 'doctor-today-appointments',
-            title: `${todayAppointments.length} lịch hẹn hôm nay`,
-            message: `Lịch hẹn đầu tiên lúc ${todayAppointments[0].slotStartTime || ''}`,
-            icon: faCalendarCheck,
             type: 'appointment',
-            time: 'Hôm nay',
-            isRead: false,
-            action: () => navigate('/doctor/appointments')
+            icon: faCalendarCheck,
+            variant: 'info',
+            title: `Bạn có ${todayAppointments.length} lịch hẹn hôm nay`,
+            message: `Lịch hẹn đầu tiên lúc ${todayAppointments[0].slotStartTime || ''}`,
+            action: () => navigate('/doctor/appointments'),
+            actionText: 'Xem lịch hẹn'
           });
         }
 
@@ -98,13 +98,13 @@ const NotificationBell = () => {
           
           notifications.push({
             id: 'doctor-upcoming-appointments',
-            title: 'Lịch hẹn sắp tới',
-            message: `Lịch hẹn với ${nextAppointment.alternativeName || 'bệnh nhân'} vào ${appointmentDate.toLocaleDateString('vi-VN')}`,
-            icon: faStethoscope,
             type: 'appointment',
-            time: 'Sắp tới',
-            isRead: false,
-            action: () => navigate('/doctor/appointments')
+            icon: faStethoscope,
+            variant: 'warning',
+            title: 'Lịch hẹn sắp tới',
+            message: `Bạn có lịch hẹn với ${nextAppointment.alternativeName || 'bệnh nhân'} vào ${appointmentDate.toLocaleDateString('vi-VN')}`,
+            action: () => navigate('/doctor/appointments'),
+            actionText: 'Xem chi tiết'
           });
         }
       }
@@ -112,14 +112,14 @@ const NotificationBell = () => {
       // TODO: Thêm thông báo câu hỏi mới khi có module Q&A
       notifications.push({
         id: 'doctor-new-questions',
+        type: 'question',
+        icon: faQuestionCircle,
+        variant: 'secondary',
         title: 'Câu hỏi mới từ bệnh nhân',
         message: 'Có 3 câu hỏi mới cần trả lời',
-        icon: faQuestionCircle,
-        type: 'question',
-        time: '2 giờ trước',
-        isRead: false,
-        disabled: true,
-        action: () => navigate('/doctor/questions')
+        action: () => navigate('/doctor/questions'),
+        actionText: 'Trả lời câu hỏi',
+        disabled: true // Tạm thời disabled vì chưa có module
       });
 
     } catch (error) {
@@ -140,13 +140,13 @@ const NotificationBell = () => {
         if (pendingAppointments.length > 0) {
           notifications.push({
             id: 'staff-pending-appointments',
+            type: 'approval',
+            icon: faCalendarCheck,
+            variant: 'warning',
             title: `${pendingAppointments.length} lịch hẹn cần duyệt`,
             message: 'Có lịch hẹn mới đang chờ phê duyệt',
-            icon: faCalendarCheck,
-            type: 'approval',
-            time: 'Mới',
-            isRead: false,
-            action: () => navigate('/staff/dashboard')
+            action: () => navigate('/staff/dashboard'),
+            actionText: 'Duyệt ngay'
           });
         }
       }
@@ -154,14 +154,14 @@ const NotificationBell = () => {
       // TODO: Thêm thông báo câu hỏi cần duyệt
       notifications.push({
         id: 'staff-pending-questions',
+        type: 'question',
+        icon: faQuestionCircle,
+        variant: 'info',
         title: 'Câu hỏi cần duyệt',
         message: 'Có 5 câu hỏi mới cần duyệt từ bệnh nhân',
-        icon: faQuestionCircle,
-        type: 'question',
-        time: '1 giờ trước',
-        isRead: false,
-        disabled: true,
-        action: () => navigate('/staff/questions')
+        action: () => navigate('/staff/questions'),
+        actionText: 'Duyệt câu hỏi',
+        disabled: true // Tạm thời disabled vì chưa có module
       });
 
     } catch (error) {
@@ -185,13 +185,13 @@ const NotificationBell = () => {
           const latestAccepted = recentlyAccepted[0];
           notifications.push({
             id: 'customer-accepted-appointment',
+            type: 'appointment-accepted',
+            icon: faCheckCircle,
+            variant: 'success',
             title: 'Lịch hẹn đã được duyệt',
             message: `Lịch hẹn ngày ${new Date(latestAccepted.appointmentDate).toLocaleDateString('vi-VN')} đã được phê duyệt`,
-            icon: faCheckCircle,
-            type: 'appointment-accepted',
-            time: '3 giờ trước',
-            isRead: false,
-            action: () => navigate('/appointment-history')
+            action: () => navigate('/appointment-history'),
+            actionText: 'Xem chi tiết'
           });
         }
 
@@ -205,13 +205,13 @@ const NotificationBell = () => {
           const latestDenied = recentlyDenied[0];
           notifications.push({
             id: 'customer-denied-appointment',
+            type: 'appointment-denied',
+            icon: faTimesCircle,
+            variant: 'danger',
             title: 'Lịch hẹn bị từ chối',
             message: `Lịch hẹn ngày ${new Date(latestDenied.appointmentDate).toLocaleDateString('vi-VN')} đã bị từ chối`,
-            icon: faTimesCircle,
-            type: 'appointment-denied',
-            time: '5 giờ trước',
-            isRead: false,
-            action: () => navigate('/appointment-history')
+            action: () => navigate('/appointment-history'),
+            actionText: 'Xem lý do'
           });
         }
 
@@ -225,13 +225,13 @@ const NotificationBell = () => {
           const latestCompleted = recentlyCompleted[0];
           notifications.push({
             id: 'customer-completed-appointment',
+            type: 'appointment-completed',
+            icon: faStethoscope,
+            variant: 'info',
             title: 'Lịch hẹn đã hoàn thành',
             message: `Cuộc hẹn ngày ${new Date(latestCompleted.appointmentDate).toLocaleDateString('vi-VN')} đã hoàn thành`,
-            icon: faStethoscope,
-            type: 'appointment-completed',
-            time: '1 ngày trước',
-            isRead: false,
-            action: () => navigate('/appointment-history')
+            action: () => navigate('/appointment-history'),
+            actionText: 'Xem chi tiết'
           });
         }
 
@@ -244,13 +244,13 @@ const NotificationBell = () => {
           const latestWithResult = appointmentsWithResults[0];
           notifications.push({
             id: 'customer-medical-result',
+            type: 'medical-result',
+            icon: faFileMedical,
+            variant: 'success',
             title: 'Báo cáo y tế mới',
             message: `Bác sĩ đã gửi báo cáo y tế cho cuộc hẹn ngày ${new Date(latestWithResult.appointmentDate).toLocaleDateString('vi-VN')}`,
-            icon: faFileMedical,
-            type: 'medical-result',
-            time: '2 giờ trước',
-            isRead: false,
-            action: () => navigate('/appointment-history')
+            action: () => navigate('/appointment-history'),
+            actionText: 'Xem báo cáo'
           });
         }
       }
@@ -260,112 +260,70 @@ const NotificationBell = () => {
     }
   };
 
-  // Chỉ hiển thị nếu user đã đăng nhập
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  const unreadCount = notifications.filter(n => !n.isRead && !n.disabled).length;
-
   const handleNotificationClick = (notification) => {
     if (notification.action && !notification.disabled) {
       notification.action();
-      setShow(false);
     }
   };
 
-  const getIcon = (notification) => {
-    return notification.icon || faBell;
-  };
+  if (!isAuthenticated || !user || notifications.length === 0) {
+    return null;
+  }
 
   return (
-    <Dropdown show={show} onToggle={setShow} className="notification-bell">
-      <Dropdown.Toggle 
-        as={Button}
-        variant="link" 
-        id="notification-dropdown"
-        className="position-relative p-0"
-      >
-        <FontAwesomeIcon 
-          icon={faBell} 
-          size="lg" 
-          className="text-primary"
-        />
-        {unreadCount > 0 && (
-          <Badge 
-            bg="danger" 
-            pill 
-            className="position-absolute top-0 start-100 translate-middle"
-            style={{ fontSize: '0.6rem' }}
-          >
-            {unreadCount}
-          </Badge>
-        )}
-      </Dropdown.Toggle>
-
-      <Dropdown.Menu align="end" style={{ minWidth: '300px' }}>
-        <Dropdown.Header>
-          <div className="d-flex justify-content-between align-items-center">
-            <span className="fw-bold">Thông báo</span>
-            {unreadCount > 0 && (
-              <Badge bg="primary" pill>{unreadCount} mới</Badge>
-            )}
-          </div>
-        </Dropdown.Header>
+    <section className="notification-section">
+      <Container>
+        <div className="notification-header">
+          <h5>
+            <FontAwesomeIcon icon={faBell} className="me-2" />
+            Thông báo
+            <Badge bg="primary" className="ms-2">{notifications.length}</Badge>
+          </h5>
+        </div>
         
-        {notifications.length > 0 ? (
-          notifications.map((notification) => (
-            <Dropdown.Item
+        <div className="notifications-container">
+          {notifications.map((notification) => (
+            <Alert 
               key={notification.id}
-              className={`py-3 ${!notification.isRead ? 'bg-light' : ''} ${notification.disabled ? 'text-muted' : ''}`}
+              variant={notification.variant}
+              className={`notification-item ${notification.disabled ? 'disabled' : 'clickable'}`}
               onClick={() => handleNotificationClick(notification)}
-              style={{ cursor: notification.disabled ? 'not-allowed' : 'pointer' }}
             >
-              <div className="d-flex">
-                <div className="me-3">
+              <div className="d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
                   <FontAwesomeIcon 
-                    icon={getIcon(notification)} 
-                    className={notification.disabled ? 'text-muted' : 'text-primary'}
+                    icon={notification.icon} 
+                    className="notification-icon me-3" 
                   />
-                </div>
-                <div className="flex-grow-1">
-                  <div className="fw-bold small d-flex justify-content-between">
-                    <span>{notification.title}</span>
-                    {notification.disabled && (
-                      <Badge bg="secondary" className="ms-2" style={{ fontSize: '0.6rem' }}>
-                        Sắp có
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-muted small mb-1">{notification.message}</div>
-                  <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                    {notification.time}
+                  <div>
+                    <h6 className="mb-1">{notification.title}</h6>
+                    <p className="mb-0">{notification.message}</p>
                   </div>
                 </div>
-                {!notification.isRead && !notification.disabled && (
-                  <div className="ms-2">
-                    <span className="badge bg-primary rounded-pill" style={{ width: '8px', height: '8px' }}></span>
-                  </div>
+                
+                {notification.actionText && !notification.disabled && (
+                  <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNotificationClick(notification);
+                    }}
+                  >
+                    {notification.actionText}
+                  </Button>
+                )}
+                
+                {notification.disabled && (
+                  <Badge bg="secondary">Sắp có</Badge>
                 )}
               </div>
-            </Dropdown.Item>
-          ))
-        ) : (
-          <Dropdown.Item disabled>
-            <div className="text-center text-muted py-3">
-              <FontAwesomeIcon icon={faBell} size="2x" className="mb-2" />
-              <div>Không có thông báo mới</div>
-            </div>
-          </Dropdown.Item>
-        )}
-        
-        <Dropdown.Divider />
-        <Dropdown.Item className="text-center text-primary">
-          <small>Xem tất cả thông báo</small>
-        </Dropdown.Item>
-      </Dropdown.Menu>
-    </Dropdown>
+            </Alert>
+          ))}
+        </div>
+      </Container>
+    </section>
   );
 };
 
-export default NotificationBell; 
+export default NotificationSection;

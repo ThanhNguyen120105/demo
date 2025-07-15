@@ -7,6 +7,7 @@ import {
   faTasks, faUserMd, faList
 } from '@fortawesome/free-solid-svg-icons';
 
+
 const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendingQuestions = 0 }) => {
   // Get user data from localStorage
   const user = JSON.parse(localStorage.getItem('user') || '{}');

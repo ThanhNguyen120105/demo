@@ -27,6 +27,19 @@ const AppointmentDetailModal = ({
   getStatusBadge
 }) => {
   
+  // Helper function to format gender
+  const formatGender = (gender) => {
+    if (!gender) return 'Trống';
+    switch (gender.toUpperCase()) {
+      case 'MALE':
+        return 'Nam';
+      case 'FEMALE':
+        return 'Nữ';
+      default:
+        return 'Trống';
+    }
+  };
+  
   // Hàm mapping service ID thành tên dịch vụ
   const getServiceDisplay = (appointment) => {
     // Tìm serviceId từ nhiều trường khác nhau có thể có trong appointment
@@ -98,7 +111,7 @@ const AppointmentDetailModal = ({
           <div>
             {/* Thông tin cơ bản */}
             <div className="row mb-3">
-              <div className="col-md-6">
+              <div className="col-md-12">
                 <h6 className="text-primary mb-2">
                   <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
                   Thông tin lịch hẹn
@@ -131,10 +144,10 @@ const AppointmentDetailModal = ({
                   <p className="mb-2">
                     <strong>Hình thức khám:</strong> 
                     <Badge 
-                      bg={appointmentDetail.isAnonymous === true ? 'warning' : 'primary'} 
+                      bg={appointmentDetail.isAnonymous === true ? 'success' : 'primary'} 
                       className="ms-2 small-badge"
                     >
-                      {appointmentDetail.isAnonymous === true ? 'Khám ẩn danh' : 'Khám trực tiếp'}
+                      {appointmentDetail.isAnonymous === true ? 'Khám trực tuyến' : 'Khám trực tiếp'}
                     </Badge>
                   </p>
                   <p className="mb-0">
@@ -143,62 +156,37 @@ const AppointmentDetailModal = ({
                   </p>
                 </div>
               </div>
-              
-              <div className="col-md-6">
-                <h6 className="text-success mb-2">
-                  <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                  Thông tin bác sĩ
-                </h6>
-                <div className="bg-light p-3 rounded">
-                  <p className="mb-2">
-                    <strong>Tên bác sĩ:</strong> 
-                    <span className="ms-2">{appointmentDetail.doctorName}</span>
-                  </p>
-                  {appointmentDetail.doctorSpecialty && (
-                    <p className="mb-2">
-                      <strong>Chuyên khoa:</strong> 
-                      <span className="ms-2">{appointmentDetail.doctorSpecialty}</span>
-                    </p>
-                  )}
-                  {appointmentDetail.doctorPhone && (
-                    <p className="mb-0">
-                      <strong>Điện thoại:</strong> 
-                      <span className="ms-2">{appointmentDetail.doctorPhone}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
             </div>
 
             {/* Thông tin bệnh nhân */}
-            {(appointmentDetail.alternativeName || appointmentDetail.alternativePhoneNumber || appointmentDetail.reason) && (
-              <div className="mb-3">
-                <h6 className="text-warning mb-2">
-                  <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                  Thông tin khám bệnh
-                </h6>
-                <div className="bg-light p-3 rounded">
-                  {appointmentDetail.alternativeName && (
-                    <p className="mb-2">
-                      <strong>Tên người khám:</strong> 
-                      <span className="ms-2">{appointmentDetail.alternativeName}</span>
-                    </p>
-                  )}
-                  {appointmentDetail.alternativePhoneNumber && (
-                    <p className="mb-2">
-                      <strong>Số điện thoại:</strong> 
-                      <span className="ms-2">{appointmentDetail.alternativePhoneNumber}</span>
-                    </p>
-                  )}
-                  {appointmentDetail.reason && (
-                    <p className="mb-0">
-                      <strong>Lý do khám:</strong> 
-                      <span className="ms-2">{appointmentDetail.reason}</span>
-                    </p>
-                  )}
-                </div>
+            <div className="mb-3">
+              <h6 className="text-warning mb-2">
+                <FontAwesomeIcon icon={faStethoscope} className="me-2" />
+                Thông tin khám bệnh
+              </h6>
+              <div className="bg-light p-3 rounded">
+                <p className="mb-2">
+                  <strong>Tên người khám:</strong> 
+                  <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'}</span>
+                </p>
+                <p className="mb-2">
+                  <strong>Ngày sinh:</strong>
+                  <span className="ms-2">{appointmentDetail.birthdate ? formatDate(appointmentDetail.birthdate) : 'Trống'}</span>
+                </p>
+                <p className="mb-2">
+                  <strong>Giới tính:</strong>
+                  <span className="ms-2">{formatGender(appointmentDetail.gender)}</span>
+                </p>
+                <p className="mb-2">
+                  <strong>Số điện thoại:</strong> 
+                  <span className="ms-2">{appointmentDetail.alternativePhoneNumber || 'Trống'}</span>
+                </p>
+                <p className="mb-0">
+                  <strong>Lý do khám:</strong> 
+                  <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
+                </p>
               </div>
-            )}
+            </div>
 
             {/* Ghi chú bổ sung */}
             {appointmentDetail.notes && (

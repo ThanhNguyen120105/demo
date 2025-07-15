@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faVideo, faVideoSlash, faMicrophone, faMicrophoneSlash, 
+  faVideo, faVideoSlash, faMicrophone, faMicrophoneSlash, faExclamationTriangle,
   faPhone, faExpand, faCompress, faCog,
-  faArrowLeft, faComment, faPaperPlane, faTimes
+  faArrowLeft, faComment, faPaperPlane, faTimes, faUsers, faLock
 } from '@fortawesome/free-solid-svg-icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import AgoraRTC from 'agora-rtc-sdk-ng';
@@ -13,8 +13,8 @@ import './VideoCallPage.css';
 
 // Sử dụng cùng App ID cho cả RTC và RTM để tránh conflict
 const APP_ID = 'aab8b8f5a8cd4469a63042fcfafe7063'; // Test App ID không cần token
-const TOKEN = '007eJxTYLiSEjndlEE74EjJCdZvNWrKXD/D8n+sOvPp8mW7CTYBZ8UUGIxMTE3SElOMzMwM0kxSjAwsDRNT0ywtUo0tDdIMjVKSHZ7lZjQEMjL4HvBiYWSAQBCfmSExKZmBAQAZ+x7L'; // Token mới cho channel 'abc'
-
+// const TOKEN = '007eJxTYLiSEjndlEE74EjJCdZvNWrKXD/D8n+sOvPp8mW7CTYBZ8UUGIxMTE3SElOMzMwM0kxSjAwsDRNT0ywtUo0tDdIMjVKSHZ7lZjQEMjL4HvBiYWSAQBCfmSExKZmBAQAZ+x7L'; // Token mới cho channel 'abc'
+const TOKEN = null;
 const VideoCallPage = () => {
   const { appointmentId, userRole } = useParams();
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ const VideoCallPage = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState([]);
   const [isToggling, setIsToggling] = useState(false);
+  const [isCallLocked, setIsCallLocked] = useState(false);
   const [localVideoPosition, setLocalVideoPosition] = useState({ x: 0, y: 20 });
   const [localVideoSize, setLocalVideoSize] = useState({ width: 150, height: 200 });
   const [isDragging, setIsDragging] = useState(false);
@@ -56,7 +57,7 @@ const VideoCallPage = () => {
   const [isDemoMode] = useState(false); // Set to false for real RTM chat
 
   const getChannelName = useCallback(() => {
-    return 'abc'; // Channel name cố định để test token
+    return `appointment_${appointmentId}`;
   }, []);
 
   const getUserName = useCallback(() => {
@@ -432,14 +433,16 @@ const VideoCallPage = () => {
       client.current.on('user-left', handleUserLeft);
       client.current.on('connection-state-changed', handleConnectionStateChanged);
 
-      // Join channel
+      // Join channel with dynamic token
       let retries = 2;
       let uid = null;
+      const channelName = getChannelName();
+
       
       while (retries > 0 && !uid) {
         try {
-          console.log(`Attempting to join channel... (${3 - retries}/2)`);
-          uid = await client.current.join(APP_ID, getChannelName(), TOKEN, null);
+          console.log(`Attempting to join channel ${channelName}... (${3 - retries}/2)`);
+          uid = await client.current.join(APP_ID, channelName, TOKEN, null);
           console.log('Joined channel successfully with UID:', uid);
           break;
         } catch (joinError) {
@@ -708,6 +711,10 @@ const VideoCallPage = () => {
 
   // Clean up resources without closing window
   const cleanupResources = useCallback(async () => {
+    // Luôn gỡ bỏ khóa khi dọn dẹp
+    const lockKey = `video_call_lock_${appointmentId}_${userRole}`;
+    localStorage.removeItem(lockKey);
+
     try {
       console.log('Cleaning up resources...');
       
@@ -742,7 +749,7 @@ const VideoCallPage = () => {
     } catch (error) {
       console.error('Failed to cleanup resources:', error);
     }
-  }, []);
+  }, [appointmentId, userRole]);
 
   const leaveCall = async () => {
     try {
@@ -872,6 +879,19 @@ const VideoCallPage = () => {
     console.log('Appointment ID:', appointmentId);
     console.log('User Role:', userRole);
     
+    // --- Session Locking ---
+    const lockKey = `video_call_lock_${appointmentId}_${userRole}`;
+    if (localStorage.getItem(lockKey)) {
+      setError(
+        "Cuộc gọi cho lịch hẹn này đang được thực hiện ở một cửa sổ hoặc thiết bị khác. Vui lòng đóng cửa sổ này."
+      );
+      setIsCallLocked(true);
+      return; // Dừng mọi hành động khác
+    }
+    // Đặt khóa nếu chưa tồn tại
+    localStorage.setItem(lockKey, 'true');
+    // --- End Session Locking ---
+
     // Set initial position to top right corner
     const initialX = window.innerWidth - localVideoSize.width - 20;
     setLocalVideoPosition({ x: initialX, y: 20 });
@@ -889,7 +909,6 @@ const VideoCallPage = () => {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Clean up resources but don't close window on component unmount
       cleanupResources();
     };
   }, [appointmentId, userRole, localVideoSize.width, cleanupResources, initializeAgoraClient]);
@@ -948,19 +967,25 @@ const VideoCallPage = () => {
         </div>
       </div>
 
-      {/* Connection Status */}
-      {error && (
+      {/* Connection Status / Error Alert */}
+      {error && !isConnecting && (
         <div className="error-alert">
-          <Alert variant={permissionDenied ? "danger" : "warning"}>
+          <Alert variant={isCallLocked || permissionDenied ? "danger" : "warning"}>
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <strong>
-                  {permissionDenied ? "Cần quyền truy cập:" : "Trạng thái:"}
+                  {isCallLocked && <><FontAwesomeIcon icon={faLock} className="me-2" />Cuộc gọi đã được mở</>}
+                  {permissionDenied && "Cần quyền truy cập:"}
+                  {!isCallLocked && !permissionDenied && "Trạng thái:"}
                 </strong>
                 <div>{error}</div>
               </div>
               <div>
-                {permissionDenied ? (
+                {isCallLocked ? (
+                  <Button variant="outline-danger" size="sm" onClick={() => window.close()}>
+                    Đóng
+                  </Button>
+                ) : permissionDenied ? (
                   <Button variant="outline-primary" size="sm" onClick={requestPermissions}>
                     Cho phép quyền
                   </Button>
@@ -975,99 +1000,106 @@ const VideoCallPage = () => {
         </div>
       )}
 
-      {/* Main Video Area */}
-      <div className="video-main-container">
-        {/* Remote Video (Main) */}
-        <div className="remote-video-container">
-          {/* Remote video stream */}
-          <div 
-            ref={remoteContainer}
-            className={`remote-video ${(remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'has-user' : 'no-user'}`}
-            style={{ display: (remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'block' : 'none' }}
-          />
-          
-          {/* Waiting/Camera off message overlay */}
-          {(remoteUsers.length === 0 || (remoteUsers.length > 0 && !remoteUsers[0]?.hasVideo)) && (
-            <div className="waiting-message">
-              <FontAwesomeIcon 
-                icon={remoteUsers.length > 0 ? faVideoSlash : faVideo} 
-                size="4x" 
-                className="waiting-icon" 
+      {/* Main Video Area - Bị ẩn đi nếu cuộc gọi bị khóa */}
+      {!isCallLocked && (
+        <>
+          <div className="video-main-container">
+            {/* Remote Video (Main) */}
+            <div className="remote-video-container">
+              {/* Remote video stream */}
+              <div 
+                ref={remoteContainer}
+                className={`remote-video ${(remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'has-user' : 'no-user'}`}
+                style={{ display: (remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'block' : 'none' }}
               />
-                              <h3>
-                  {remoteUsers.length > 0
-                    ? `${userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt camera`
-                    : `Đang chờ ${userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'} tham gia...`
-                  }
-                </h3>
-              <p className="room-info">Room: {getChannelName()}</p>
               
-              {permissionDenied && (
-                <Button variant="outline-light" onClick={requestPermissions}>
-                  <FontAwesomeIcon icon={faCog} className="me-2" />
-                  Cho phép quyền truy cập
-                </Button>
+              {/* Waiting/Camera off message overlay */}
+              {(remoteUsers.length === 0 || (remoteUsers.length > 0 && !remoteUsers[0]?.hasVideo)) && (
+                <div className="waiting-message">
+                  <FontAwesomeIcon 
+                    icon={remoteUsers.length > 0 ? faVideoSlash : faVideo} 
+                    size="4x" 
+                    className="waiting-icon" 
+                  />
+                              <h3>
+                    {remoteUsers.length > 0
+                      ? `${userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt camera`
+                      : `Đang chờ ${userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'} tham gia...`
+                    }
+                  </h3>
+                  <p className="room-info">Room: {getChannelName()}</p>
+                  
+                  {permissionDenied && (
+                    <Button variant="outline-light" onClick={requestPermissions}>
+                      <FontAwesomeIcon icon={faCog} className="me-2" />
+                      Cho phép quyền truy cập
+                    </Button>
+                  )}
+                </div>
               )}
-            </div>
-          )}
-          
-          {/* Remote user mic status indicator - hiển thị khi có remote user nhưng tắt mic */}
-          {remoteUsers.length > 0 && !remoteUsers[0]?.hasAudio && (
-            <div className="remote-mic-status">
-              <FontAwesomeIcon icon={faMicrophoneSlash} className="mic-off-icon" />
-              <span className="mic-status-text">
-                {userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt mic
-              </span>
-            </div>
-          )}
-          
+              
+              {/* Remote user mic status indicator - hiển thị khi có remote user nhưng tắt mic */}
+              {remoteUsers.length > 0 && !remoteUsers[0]?.hasAudio && (
+                <div className="remote-mic-status">
+                  <FontAwesomeIcon icon={faMicrophoneSlash} className="mic-off-icon" />
+                  <span className="mic-status-text">
+                    {userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt mic
+                  </span>
+                </div>
+              )}
+              
 
-        </div>
+            </div>
 
-        {/* Local Video (Side / Center) */}
-        <div 
-          className={`local-video-container ${isDragging ? 'dragging' : ''}`}
-          style={{
-            width: `${localVideoSize.width}px`,
-            height: `${localVideoSize.height}px`,
-            left: `${localVideoPosition.x}px`,
-            top: `${localVideoPosition.y}px`,
-          }}
-          onMouseDown={handleMouseDown}
-        >
-          {/* Video rendering target */}
-          <div 
-            ref={localContainer}
-            className={`local-video ${!videoEnabled ? 'camera-off' : ''}`}
-            style={{ display: videoEnabled ? 'block' : 'none' }}
-          />
-          
-          {/* Camera off message overlay */}
-          {!videoEnabled && (
-            <div className={`local-video camera-off`}>
-              <div className="camera-off-message">
-                <FontAwesomeIcon icon={faVideoSlash} size="2x" className="mb-2" />
-                <p className="mb-0">Đã tắt camera</p>
+            {/* Local Video (Side / Center) */}
+            <div 
+              className={`local-video-container ${isDragging ? 'dragging' : ''}`}
+              style={{
+                width: `${localVideoSize.width}px`,
+                height: `${localVideoSize.height}px`,
+                left: `${localVideoPosition.x}px`,
+                top: `${localVideoPosition.y}px`,
+              }}
+              onMouseDown={handleMouseDown}
+            >
+              {/* Video rendering target */}
+              <div 
+                ref={localContainer}
+                className={`local-video ${!videoEnabled ? 'camera-off' : ''}`}
+                style={{ display: videoEnabled ? 'block' : 'none' }}
+              />
+              
+              {/* Camera off message overlay */}
+              {!videoEnabled && (
+                <div className={`local-video camera-off`}>
+                  <div className="camera-off-message">
+                    <FontAwesomeIcon icon={faVideoSlash} size="2x" className="mb-2" />
+                    <p className="mb-0">Đã tắt camera</p>
+                  </div>
+                </div>
+              )}
+
+              {/* User label - always visible */}
+              <div className="user-label">
+                {getUserName()} (Bạn)
               </div>
-            </div>
-          )}
+              
+              {/* Local mic status - always visible when mic is off */}
+              {!audioEnabled && (
+                <div className="local-mic-status">
+                  <FontAwesomeIcon icon={faMicrophoneSlash} className="local-mic-off-icon" />
+                </div>
+              )}
 
-          {/* User label - always visible */}
-          <div className="user-label">
-            {getUserName()} (Bạn)
-          </div>
-          
-          {/* Local mic status - always visible when mic is off */}
-          {!audioEnabled && (
-            <div className="local-mic-status">
-              <FontAwesomeIcon icon={faMicrophoneSlash} className="local-mic-off-icon" />
+              {/* Resize Handle */}
+              <div className="resize-handle" onMouseDown={handleResizeMouseDown}></div>
             </div>
-          )}
+          </div>
 
           {/* Resize Handle */}
           <div className="resize-handle" onMouseDown={handleResizeMouseDown}></div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Controls */}
       <div className="video-controls">
@@ -1193,8 +1225,8 @@ const VideoCallPage = () => {
           </div>
         </div>
       )}
-    </div>
-  );
+     </div>
+  ); 
 };
 
 export default VideoCallPage; 
