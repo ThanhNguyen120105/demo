@@ -10,6 +10,7 @@ import {
   faFileMedical,
   faFlask
 } from '@fortawesome/free-solid-svg-icons';
+import { useServiceData } from '../../hooks/useServiceData';
 
 /**
  * Modal chung để hiển thị chi tiết lịch hẹn
@@ -26,6 +27,7 @@ const AppointmentDetailModal = ({
   getAppointmentTypeLabel,
   getStatusBadge
 }) => {
+  const { getServiceNameById } = useServiceData();
   
   // Helper function to format gender
   const formatGender = (gender) => {
@@ -40,51 +42,36 @@ const AppointmentDetailModal = ({
     }
   };
   
-  // Hàm mapping service ID thành tên dịch vụ
+  // Hàm hiển thị service name từ appointmentService hoặc fallback
   const getServiceDisplay = (appointment) => {
+    // Ưu tiên tên service có sẵn từ API chi tiết
+    if (appointment?.appointmentService) {
+      return appointment.appointmentService;
+    }
+
     // Tìm serviceId từ nhiều trường khác nhau có thể có trong appointment
     let serviceId = appointment?.serviceId || 
                     appointment?.service?.id || 
                     appointment?.service?.serviceId;
     
-    // Nếu không có serviceId, tạo từ appointmentType
-    if (!serviceId && appointment?.appointmentType) {
+    // Sử dụng API data nếu có serviceId
+    if (serviceId && getServiceNameById) {
+      return getServiceNameById(serviceId);
+    }
+    
+    // Fallback: hiển thị appointment type được format đẹp
+    if (appointment?.appointmentType) {
       switch (appointment.appointmentType.toUpperCase()) {
         case 'INITIAL':
-          serviceId = 1;
-          break;
+          return 'Khám lần đầu';
         case 'FOLLOW_UP':
-          serviceId = 2;
-          break;
+          return 'Tái khám';
         default:
-          serviceId = 1;
-          break;
+          return appointment.appointmentType;
       }
     }
     
-    // Hardcode mapping - không gọi API
-    switch (serviceId) {
-      case 1:
-      case '1':
-        return 'Khám và xét nghiệm HIV';
-      case 2:
-      case '2':
-        return 'Theo dõi tải lượng virus';
-      default:
-        // Fallback dựa trên appointmentType nếu vẫn không có serviceId
-        if (appointment?.appointmentType) {
-          switch (appointment.appointmentType.toLowerCase()) {
-            case 'initial':
-              return 'Khám và xét nghiệm HIV';
-            case 'follow_up':
-            case 'followup':
-              return 'Theo dõi tải lượng virus';
-            default:
-              return appointment.appointmentType;
-          }
-        }
-        return 'Dịch vụ khám bệnh';
-    }
+    return 'Dịch vụ không xác định';
   };
   return (
     <Modal 

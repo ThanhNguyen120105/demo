@@ -5,6 +5,7 @@
 export const USER_ROLES = {
   CUSTOMER: 1,  // Bệnh nhân/khách hàng - có thể đặt lịch hẹn
   STAFF: 3,     // Nhân viên - duyệt lịch hẹn, quản lý hệ thống
+  MANAGER: 4,   // Quản lý - quản lý staff, doctor, thống kê
   DOCTOR: 'DOCTOR' // Bác sĩ - có bảng riêng, role string
 };
 
@@ -12,6 +13,7 @@ export const USER_ROLES = {
 export const ROLE_NAMES = {
   [USER_ROLES.CUSTOMER]: 'CUSTOMER',
   [USER_ROLES.STAFF]: 'STAFF',
+  [USER_ROLES.MANAGER]: 'MANAGER',
   [USER_ROLES.DOCTOR]: 'DOCTOR'
 };
 
@@ -28,6 +30,12 @@ export const isStaff = (user) => {
          user?.role_id === USER_ROLES.STAFF;
 };
 
+export const isManager = (user) => {
+  return user?.role === USER_ROLES.MANAGER || 
+         user?.role === 'MANAGER' || 
+         user?.role_id === USER_ROLES.MANAGER;
+};
+
 export const isDoctor = (user) => {
   return user?.role === USER_ROLES.DOCTOR || 
          user?.role === 'DOCTOR';
@@ -37,6 +45,8 @@ export const isDoctor = (user) => {
 export const canBookAppointment = (user) => isCustomer(user);
 export const canApproveAppointment = (user) => isStaff(user);
 export const canViewMedicalRecords = (user) => isDoctor(user);
+export const canManageStaff = (user) => isManager(user);
+export const canManageDoctor = (user) => isManager(user) || isStaff(user);
 
 // Helper function để convert role name về role_id
 export const getRoleId = (user) => {
@@ -45,6 +55,7 @@ export const getRoleId = (user) => {
   switch(user?.role) {
     case 'CUSTOMER': return USER_ROLES.CUSTOMER;
     case 'STAFF': return USER_ROLES.STAFF;
+    case 'MANAGER': return USER_ROLES.MANAGER;
     case 'DOCTOR': return USER_ROLES.DOCTOR;
     default: return user?.role || null;
   }
@@ -62,6 +73,8 @@ export const getDashboardRoute = (user) => {
     return '/'; // CUSTOMER chuyển về trang chủ thay vì dashboard
   } else if (isStaff(user)) {
     return '/staff/dashboard';
+  } else if (isManager(user)) {
+    return '/manager/dashboard';
   } else if (isDoctor(user)) {
     return '/doctor/dashboard';
   } else {

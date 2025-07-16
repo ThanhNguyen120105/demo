@@ -18,6 +18,7 @@ import ARVSelectionTool from './ARVSelectionTool';
 import MedicineSelector from './MedicineSelector';
 import MedicalReportModal from './MedicalReportModal';
 import AppointmentDetailModal from '../common/AppointmentDetailModal';
+import { useServiceData } from '../../hooks/useServiceData';
 // import VideoCall from '../VideoCall/videoCall'; // No longer needed
 import { appointmentAPI, userAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -119,51 +120,25 @@ const generateCalendarDays = (year, month, appointments) => {
   return days;
 };
 
-// Hàm mapping service ID thành tên dịch vụ (hardcode, không dùng API)
-const getServiceDisplay = (appointment) => {
+// Hàm mapping service ID thành tên dịch vụ (được thay thế bằng API)
+const getServiceDisplay = (appointment, getServiceNameById) => {
+  // Ưu tiên tên service có sẵn
+  if (appointment?.appointmentService) {
+    return appointment.appointmentService;
+  }
+
   // Tìm serviceId từ nhiều trường khác nhau có thể có trong appointment
   let serviceId = appointment?.serviceId || 
                   appointment?.service?.id || 
                   appointment?.service?.serviceId;
   
-  // Nếu không có serviceId, tạo từ appointmentType
-  if (!serviceId && appointment?.appointmentType) {
-    switch (appointment.appointmentType.toUpperCase()) {
-      case 'INITIAL':
-        serviceId = 1;
-        break;
-      case 'FOLLOW_UP':
-        serviceId = 2;
-        break;
-      default:
-        serviceId = 1;
-        break;
-    }
+  // Sử dụng API data thay vì hardcode
+  if (serviceId && getServiceNameById) {
+    return getServiceNameById(serviceId);
   }
   
-  // Hardcode mapping - không gọi API
-  switch (serviceId) {
-    case 1:
-    case '1':
-      return 'Khám và xét nghiệm HIV';
-    case 2:
-    case '2':
-      return 'Theo dõi tải lượng virus';
-    default:
-      // Fallback dựa trên appointmentType nếu vẫn không có serviceId
-      if (appointment?.appointmentType) {
-        switch (appointment.appointmentType.toLowerCase()) {
-          case 'initial':
-            return 'Khám và xét nghiệm HIV';
-          case 'follow_up':
-          case 'followup':
-            return 'Theo dõi tải lượng virus';
-          default:
-            return appointment.appointmentType;
-        }
-      }
-      return 'Dịch vụ khám bệnh';
-  }
+  // Fallback cuối cùng
+  return appointment?.appointmentType || 'Dịch vụ không xác định';
 };
 
 // Hàm mapping appointment type thành tiếng Việt
@@ -180,6 +155,7 @@ const getAppointmentTypeDisplay = (type) => {
 
 const DoctorAppointments = () => {
   const { user } = useAuth();
+  const { getServiceNameById, loading: servicesLoading } = useServiceData();
   const [activeTab, setActiveTab] = useState('appointments');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -241,25 +217,12 @@ const DoctorAppointments = () => {
               
               // Mapping serviceId từ appointmentType nếu không có serviceId
               let serviceId = detailedAppt?.serviceId || appointment?.serviceId;
-              if (!serviceId && detailedAppt?.appointmentType) {
-                switch (detailedAppt.appointmentType.toUpperCase()) {
-                  case 'INITIAL':
-                    serviceId = 1; // Khám và xét nghiệm HIV
-                    break;
-                  case 'FOLLOW_UP':
-                    serviceId = 2; // Theo dõi tải lượng virus
-                    break;
-                  default:
-                    serviceId = 1; // Default to service 1
-                    break;
-                }
-              }
               
               // Tên bệnh nhân từ alternativeName (ưu tiên từ chi tiết), fallback về ID
               const patientName = detailedAppt.alternativeName || appointment.alternativeName || `Bệnh nhân #${detailedAppt.userId || appointment.userId || appointment.id}`;
               
               // Tên dịch vụ từ appointmentService (ưu tiên từ chi tiết)
-              const serviceName = detailedAppt.appointmentService || getServiceDisplay({ serviceId, appointmentType: detailedAppt.appointmentType });
+              const serviceName = detailedAppt.appointmentService || getServiceDisplay({ serviceId, appointmentType: detailedAppt.appointmentType }, getServiceNameById);
               
               // Debug các trường quan trọng - chỉ trong dev mode
               if (process.env.NODE_ENV === 'development') {
@@ -307,22 +270,9 @@ const DoctorAppointments = () => {
               
               // Mapping serviceId từ appointmentType
               let serviceId = appointment?.serviceId;
-              if (!serviceId && appointment?.appointmentType) {
-                switch (appointment.appointmentType.toUpperCase()) {
-                  case 'INITIAL':
-                    serviceId = 1;
-                    break;
-                  case 'FOLLOW_UP':
-                    serviceId = 2;
-                    break;
-                  default:
-                    serviceId = 1;
-                    break;
-                }
-              }
               
               const patientName = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
-              const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType });
+              const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType }, getServiceNameById);
               
               detailedAppointments.push({
                 ...appointment,
@@ -349,8 +299,8 @@ const DoctorAppointments = () => {
             console.error('Error getting appointment details:', detailError);
             // Nếu lỗi, vẫn thêm appointment với dữ liệu cơ bản
             const patientName = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
-            let serviceId = appointment?.serviceId || 1;
-            const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType });
+            let serviceId = appointment?.serviceId;
+            const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType }, getServiceNameById);
             
             detailedAppointments.push({
               ...appointment,
@@ -1314,7 +1264,7 @@ const DoctorAppointments = () => {
               appointmentInfo: {
                 time: `${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`,
                 type: getAppointmentTypeDisplay(appointment.appointmentType || appointment.type),
-                service: appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment),
+                service: appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment, getServiceNameById),
                 symptoms: appointment.reason || appointment.symptoms || 'Không có triệu chứng',
                 notes: appointment.notes || appointment.note || 'Chưa có ghi chú'
               },
@@ -1788,7 +1738,7 @@ const DoctorAppointments = () => {
                                 <strong>Ghi chú:</strong> {appointment.notes || appointment.note || 'Chưa có ghi chú'}
                               </div>
                               <div className="appointment-info-line">
-                                <strong>Dịch vụ:</strong> {appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment)}
+                                <strong>Dịch vụ:</strong> {appointment.serviceName || appointment.appointmentService || getServiceDisplay(appointment, getServiceNameById)}
                               </div>
                             </div>
                             <div className="appointment-status">

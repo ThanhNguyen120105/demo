@@ -134,7 +134,7 @@ const CreateDoctorAccount = () => {
   return (
     <Container fluid>
       <Row className="justify-content-center">
-        <Col lg={8} xl={6}>
+        <Col lg={10} xl={8}>
           <Card className="shadow-lg border-0">
             <Card.Header className="bg-primary text-white text-center py-4">
               <FontAwesomeIcon icon={faUserMd} size="2x" className="mb-2" />
@@ -186,6 +186,7 @@ const CreateDoctorAccount = () => {
                         placeholder="doctor@example.com"
                         required
                         disabled={loading}
+                        autoComplete="off"
                       />
                       <Form.Control.Feedback type="invalid">
                         Vui lòng nhập email hợp lệ
@@ -231,6 +232,7 @@ const CreateDoctorAccount = () => {
                         required
                         disabled={loading}
                         minLength={6}
+                        autoComplete="new-password"
                       />
                       <Form.Control.Feedback type="invalid">
                         Mật khẩu phải có ít nhất 6 ký tự
@@ -317,7 +319,7 @@ const CreateDoctorAccount = () => {
                     <Form.Group className="mb-3">
                       <Form.Label>
                         <FontAwesomeIcon icon={faImage} className="me-2" />
-                        URL Avatar
+                        Ảnh đại diện
                       </Form.Label>
                       <Form.Control
                         type="url"

@@ -1896,4 +1896,132 @@ export const medicineAPI = {
   }
 };
 
+// Service Entity APIs
+export const serviceAPI = {
+  // Lấy tất cả service entities
+  getAllServiceEntity: async () => {
+    try {
+      console.log('=== DEBUG getAllServiceEntity API ===');
+      
+      const response = await api.get('/service-entity/getAllServiceEntity');
+      
+      console.log('=== DEBUG getAllServiceEntity Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        message: response.data.message || 'Lấy danh sách dịch vụ thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getAllServiceEntity Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy danh sách dịch vụ',
+        error: error.response?.data,
+        data: []
+      };
+    }
+  }
+};
+
+// Manager API functions
+export const managerAPI = {
+  // Create Staff Account
+  createStaffAccount: async (staffData) => {
+    try {
+      console.log('Creating staff account with data:', staffData);
+      
+      const response = await api.post('/auth/registerAsStaff', staffData);
+      
+      console.log('Staff account creation response:', response);
+      
+      return {
+        success: true,
+        message: 'Tạo tài khoản Staff thành công',
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error creating staff account:', error);
+      console.error('Error response:', error.response?.data);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tạo tài khoản Staff',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Get all appointments
+  getAllAppointments: async () => {
+    try {
+      console.log('Fetching all appointments...');
+      
+      const response = await api.get('/appointment/getAllAppointments');
+      
+      console.log('All appointments response:', response);
+      
+      return {
+        success: true,
+        data: response.data?.data || [],
+        message: 'Appointments loaded successfully'
+      };
+    } catch (error) {
+      console.error('Error fetching all appointments:', error);
+      console.error('Error response:', error.response?.data);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tải danh sách lịch hẹn',
+        error: error.response?.data,
+        data: []
+      };
+    }
+  },
+
+  // Get manager dashboard statistics
+  getDashboardStats: async () => {
+    try {
+      console.log('Fetching manager dashboard stats from API...');
+      
+      const response = await api.get('/dashboard/getDashboardData');
+      
+      if (response.data && response.data.status && response.data.status.code === 200) {
+        const stats = {
+          totalAppointments: response.data.data.totalAppointments,
+          todayCompletedAppointments: response.data.data.completedAppointmentsToday,
+          totalPatients: response.data.data.totalPatients,
+          totalStaff: response.data.data.totalStaff,
+          totalDoctors: response.data.data.totalDoctors
+        };
+
+        console.log('Dashboard stats from API:', stats);
+        
+        return {
+          success: true,
+          data: stats,
+          message: 'Statistics loaded successfully'
+        };
+      } else {
+        throw new Error(response.data.message || 'API returned error status');
+      }
+
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể tải thống kê dashboard',
+        error: error.message || error.response?.data
+      };
+    }
+  }
+};
+
 export default api;

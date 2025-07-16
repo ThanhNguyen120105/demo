@@ -18,7 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDisplayName } from '../../utils/userUtils';
-import { getDashboardRoute, isDoctor, isCustomer, isStaff } from '../../constants/userRoles';
+import { getDashboardRoute, isDoctor, isCustomer, isStaff, isManager } from '../../constants/userRoles';
 import { getUserInfoFromToken } from '../../utils/jwtUtils';
 import './Header.css';
 import logo from '../../assets/images/logo.png';

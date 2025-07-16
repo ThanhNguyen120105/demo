@@ -7,6 +7,7 @@ import {
   faUserMd, faEye, faEdit, faTrash, faPlus, faTimes, faCheck, faList
 } from '@fortawesome/free-solid-svg-icons';
 import { doctorAPI } from '../../services/api';
+import './DoctorManagement.css';
 
 const DoctorManagement = () => {
   const [doctors, setDoctors] = useState([]);
@@ -34,10 +35,8 @@ const DoctorManagement = () => {
   });
   const [updateLoading, setUpdateLoading] = useState(false);
   
-  // File upload states
-  const [selectedFile, setSelectedFile] = useState(null);
+  // File upload states (kept for preview functionality)
   const [previewImage, setPreviewImage] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchDoctors();
@@ -100,8 +99,7 @@ const DoctorManagement = () => {
           description: result.data.description || '',
           awards: result.data.awards || ''
         });
-        // Reset file upload states
-        setSelectedFile(null);
+        // Reset preview state
         setPreviewImage(result.data.avatarURL || null);
         setShowUpdateModal(true);
       } else {
@@ -115,57 +113,7 @@ const DoctorManagement = () => {
     }
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setMessage({ type: 'danger', content: 'Vui lòng chọn file hình ảnh' });
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setMessage({ type: 'danger', content: 'Kích thước file không được vượt quá 5MB' });
-        return;
-      }
-      
-      setSelectedFile(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const uploadImage = async (file) => {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    
-    try {
-      setUploadingImage(true);
-      // TODO: Replace with your actual upload API endpoint
-      const response = await fetch('/api/upload/avatar', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        return result.avatarURL; // Assuming API returns { avatarURL: "uploaded_url" }
-      } else {
-        throw new Error('Upload failed');
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
-    } finally {
-      setUploadingImage(false);
-    }
-  };
 
   const handleShowDelete = (doctor) => {
     setSelectedDoctor(doctor);
@@ -178,6 +126,11 @@ const DoctorManagement = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Update preview when avatarURL changes
+    if (name === 'avatarURL') {
+      setPreviewImage(value);
+    }
   };
 
   const handleUpdateSubmit = async (e) => {
@@ -185,26 +138,11 @@ const DoctorManagement = () => {
     setUpdateLoading(true);
 
     try {
-      let finalFormData = { ...updateFormData };
-      
-      // Upload image if a new file is selected
-      if (selectedFile) {
-        try {
-          const uploadedImageURL = await uploadImage(selectedFile);
-          finalFormData.avatarURL = uploadedImageURL;
-        } catch (uploadError) {
-          setMessage({ type: 'danger', content: 'Không thể upload ảnh. Vui lòng thử lại.' });
-          return;
-        }
-      }
-      
-      const result = await doctorAPI.updateDoctor(selectedDoctor.id, finalFormData);
+      const result = await doctorAPI.updateDoctor(selectedDoctor.id, updateFormData);
       
       if (result.success) {
         setMessage({ type: 'success', content: 'Cập nhật thông tin bác sĩ thành công' });
         setShowUpdateModal(false);
-        // Reset states
-        setSelectedFile(null);
         setPreviewImage(null);
         fetchDoctors(); // Refresh list
       } else {
@@ -243,8 +181,6 @@ const DoctorManagement = () => {
     setShowUpdateModal(false);
     setShowDeleteModal(false);
     setSelectedDoctor(null);
-    // Reset file upload states
-    setSelectedFile(null);
     setPreviewImage(null);
   };
 
@@ -340,8 +276,14 @@ const DoctorManagement = () => {
         </Col>
       </Row>
 
-      {/* Detail Modal */}
-      <Modal show={showDetailModal} onHide={closeModals} size="lg" centered>
+      {/* Detail Modal - Reusing Update Modal Layout */}
+      <Modal 
+        show={showDetailModal} 
+        onHide={closeModals} 
+        size="lg" 
+        centered
+        dialogClassName="custom-modal-dialog"
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faUserMd} className="me-2" />
@@ -350,68 +292,181 @@ const DoctorManagement = () => {
         </Modal.Header>
         <Modal.Body>
           {selectedDoctor && (
-            <Row>
-              <Col md={4} className="text-center mb-3">
-                {selectedDoctor.avatarURL ? (
-                  <img
-                    src={selectedDoctor.avatarURL}
-                    alt="Avatar"
-                    className="img-fluid rounded-circle"
-                    style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div
-                  className="bg-light rounded-circle d-flex align-items-center justify-content-center"
-                  style={{ 
-                    width: '150px', 
-                    height: '150px', 
-                    margin: '0 auto',
-                    display: selectedDoctor.avatarURL ? 'none' : 'flex'
-                  }}
-                >
-                  <FontAwesomeIcon icon={faUserMd} size="3x" className="text-muted" />
-                </div>
-              </Col>
-              <Col md={8}>
-                <h4>{selectedDoctor.fullName}</h4>
-                <p><strong>Email:</strong> {selectedDoctor.email}</p>
-                <p><strong>Số điện thoại:</strong> {selectedDoctor.phoneNumber}</p>
-                <p><strong>Ngày sinh:</strong> {selectedDoctor.birthdate || 'Chưa có'}</p>
-                <p><strong>Giới tính:</strong> {
-                  selectedDoctor.gender === 'MALE' ? 'Nam' : 
-                  selectedDoctor.gender === 'FEMALE' ? 'Nữ' : 'Chưa có'
-                }</p>
-                <p><strong>Chuyên khoa:</strong> {selectedDoctor.specialization || 'Chưa có'}</p>
-                <p><strong>Bệnh viện:</strong> {selectedDoctor.hospital || 'Chưa có'}</p>
-                {selectedDoctor.description && (
-                  <div className="mb-3">
-                    <strong>Mô tả:</strong>
-                    <p className="mt-1">{selectedDoctor.description}</p>
-                  </div>
-                )}
-                {selectedDoctor.awards && (
-                  <div>
-                    <strong>Giải thưởng:</strong>
-                    <p className="mt-1">{selectedDoctor.awards}</p>
-                  </div>
-                )}
-              </Col>
-            </Row>
+            <>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Họ và tên</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={selectedDoctor.fullName || ''}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      value={selectedDoctor.email || ''}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Số điện thoại</Form.Label>
+                    <Form.Control
+                      type="tel"
+                      value={selectedDoctor.phoneNumber || ''}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Ngày sinh</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={selectedDoctor.birthdate || 'Chưa có'}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={4}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Giới tính</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={
+                        selectedDoctor.gender === 'MALE' ? 'Nam' : 
+                        selectedDoctor.gender === 'FEMALE' ? 'Nữ' : 'Chưa có'
+                      }
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={8}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Chuyên khoa</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={selectedDoctor.specialization || 'Chưa có'}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Bệnh viện</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={selectedDoctor.hospital || 'Chưa có'}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Ảnh đại diện</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={selectedDoctor.avatarURL || 'Chưa có'}
+                      readOnly
+                      className="bg-light"
+                    />
+                    
+                    {/* Image Preview */}
+                    {selectedDoctor.avatarURL && (
+                      <div className="mt-3 text-center">
+                        <img
+                          src={selectedDoctor.avatarURL}
+                          alt="Avatar"
+                          className="img-thumbnail"
+                          style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                        <div style={{ display: 'none' }} className="text-muted">
+                          <small>Không thể tải ảnh từ URL này</small>
+                        </div>
+                      </div>
+                    )}
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={12}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Mô tả</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={selectedDoctor.description || 'Chưa có'}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={12}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Giải thưởng</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      value={selectedDoctor.awards || 'Chưa có'}
+                      readOnly
+                      className="bg-light"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeModals}>
+        <div className="modal-footer-custom">
+          <Button 
+            variant="secondary" 
+            onClick={closeModals}
+            className="button-uniform"
+          >
+            <FontAwesomeIcon icon={faTimes} className="me-1" />
             Đóng
           </Button>
-        </Modal.Footer>
+        </div>
       </Modal>
 
       {/* Update Modal */}
-      <Modal show={showUpdateModal} onHide={closeModals} size="lg" centered>
+      <Modal 
+        show={showUpdateModal} 
+        onHide={closeModals} 
+        size="lg" 
+        centered
+        dialogClassName="custom-modal-dialog"
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             <FontAwesomeIcon icon={faEdit} className="me-2" />
@@ -526,14 +581,13 @@ const DoctorManagement = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Ảnh đại diện</Form.Label>
                   <Form.Control
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    disabled={updateLoading || uploadingImage}
+                    type="url"
+                    name="avatarURL"
+                    value={updateFormData.avatarURL}
+                    onChange={handleUpdateInputChange}
+                    disabled={updateLoading}
+                    placeholder="https://example.com/avatar.jpg"
                   />
-                  <Form.Text className="text-muted">
-                    Chọn file hình ảnh (tối đa 5MB)
-                  </Form.Text>
                   
                   {/* Image Preview */}
                   {previewImage && (
@@ -543,18 +597,21 @@ const DoctorManagement = () => {
                         alt="Preview"
                         className="img-thumbnail"
                         style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
                       />
-                      {uploadingImage && (
-                        <div className="mt-2">
-                          <Spinner animation="border" size="sm" className="me-2" />
-                          <small>Đang upload...</small>
-                        </div>
-                      )}
+                      <div style={{ display: 'none' }} className="text-muted">
+                        <small>Không thể tải ảnh từ URL này</small>
+                      </div>
                     </div>
                   )}
                 </Form.Group>
               </Col>
             </Row>
+
+
 
             <Row>
               <Col md={12}>
@@ -590,12 +647,22 @@ const DoctorManagement = () => {
               </Col>
             </Row>
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={closeModals} disabled={updateLoading}>
+          <div className="modal-footer-custom">
+            <Button 
+              variant="secondary" 
+              onClick={closeModals} 
+              disabled={updateLoading}
+              className="button-uniform"
+            >
               <FontAwesomeIcon icon={faTimes} className="me-1" />
               Hủy
             </Button>
-            <Button type="submit" variant="primary" disabled={updateLoading}>
+            <Button 
+              type="submit" 
+              variant="primary" 
+              disabled={updateLoading}
+              className="button-uniform"
+            >
               {updateLoading ? (
                 <Spinner animation="border" size="sm" className="me-1" />
               ) : (
@@ -603,7 +670,7 @@ const DoctorManagement = () => {
               )}
               Cập nhật
             </Button>
-          </Modal.Footer>
+          </div>
         </Form>
       </Modal>
 

@@ -37,10 +37,14 @@ import StaffTestLogin from './components/Demo/StaffTestLogin'; // From HEAD
 import StaffDashboard from './components/Staff/StaffDashboard'; // From HEAD
 import AppointmentApproval from './components/Staff/AppointmentApproval';
 
+// Manager Components
+import ManagerDashboard from './components/Manager/ManagerDashboard';
+
 // Auth Components
 import ProtectedRoute from './components/common/ProtectedRoute';
 import DoctorRoute from './components/common/DoctorRoute';
 import StaffRoute from './components/common/StaffRoute';
+import ManagerRoute from './components/common/ManagerRoute';
 
 // Video Call
 import VideoCallPage from './components/VideoCall/VideoCallPage';
@@ -89,6 +93,10 @@ function App() {
               <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/appointment-approval" element={<StaffRoute><AppointmentApproval /></StaffRoute>} />
+            
+              {/* Manager Routes - Using ManagerRoute */}
+              <Route path="/manager" element={<ManagerRoute><ManagerDashboard /></ManagerRoute>} />
+              <Route path="/manager/dashboard" element={<ManagerRoute><ManagerDashboard /></ManagerRoute>} />
             
               {/* Doctor Routes - Using DoctorRoute from HEAD */}
               <Route path="/doctor" element={<DoctorRoute><DoctorDashboard /></DoctorRoute>} />
