@@ -48,17 +48,19 @@ const VideoCallPage = () => {
   const [isResizing, setIsResizing] = useState(false);
   const dragInfo = useRef({});
 
-  // Chat states
+  // Chat states - sử dụng useRef để tránh dependency cycle
+  const isChatOpenRef = useRef(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatConnected, setChatConnected] = useState(false);
+  const [chatInitialized, setChatInitialized] = useState(false);
   const [isDemoMode] = useState(false); // Set to false for real RTM chat
 
   const getChannelName = useCallback(() => {
     return `appointment_${appointmentId}`;
-  }, []);
+  }, [appointmentId]);
 
   const getUserName = useCallback(() => {
     return userRole === 'doctor' ? 'Bác sĩ' : 'Bệnh nhân';
@@ -219,7 +221,7 @@ const VideoCallPage = () => {
         };
         
         setMessages(prev => [...prev, newMsg]);
-        if (!isChatOpen) {
+        if (!isChatOpenRef.current) {
           setUnreadCount(prev => prev + 1);
         }
       });
@@ -268,7 +270,7 @@ const VideoCallPage = () => {
       console.log('🔄 Falling back to demo mode...');
       initializeDemoMode();
     }
-  }, [userRole, appointmentId, isChatOpen, sendSystemMessage, initializeDemoMode]);
+  }, [userRole, appointmentId, sendSystemMessage, initializeDemoMode]);
 
   const sendMessage = useCallback(async (messageText) => {
     if (!messageText.trim()) return;
@@ -335,8 +337,11 @@ const VideoCallPage = () => {
   }, [userRole, getUserName, chatConnected, sendSystemMessage, appointmentId]);
 
   const toggleChat = () => {
-    setIsChatOpen(prev => !prev);
-    if (!isChatOpen) {
+    const newState = !isChatOpen;
+    setIsChatOpen(newState);
+    isChatOpenRef.current = newState; // Cập nhật ref
+    
+    if (newState) {
       setUnreadCount(0); // Reset unread count when opening chat
     }
   };
@@ -464,8 +469,8 @@ const VideoCallPage = () => {
       setConnectionStatus('connected');
       setError(null);
       
-      // Initialize chat after successful video connection
-      await initializeChatClient();
+      // QUAN TRỌNG: Bỏ dòng này đi - không gọi initializeChatClient ở đây
+      // await initializeChatClient();
     } catch (error) {
       console.error('Failed to initialize Agora client:', error);
       handleAgoraError(error);
@@ -479,7 +484,16 @@ const VideoCallPage = () => {
     } finally {
       setIsConnecting(false);
     }
-  }, [initializeChatClient, getChannelName]);
+  }, [getChannelName]);
+
+  // FIX: Tách chat initialization thành useEffect riêng
+  useEffect(() => {
+    if (isConnected && !chatInitialized) {
+      console.log('Video connected, initializing chat...');
+      initializeChatClient();
+      setChatInitialized(true);
+    }
+  }, [isConnected, chatInitialized, initializeChatClient]);
 
   const handleAgoraError = (error) => {
     console.error('Agora error details:', error);

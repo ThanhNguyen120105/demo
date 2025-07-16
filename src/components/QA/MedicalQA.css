@@ -1,0 +1,509 @@
+.medical-qa-container {
+  background: #ffffff;
+  min-height: 100vh;
+  padding-top: 2rem;
+}
+
+.qa-header {
+  background: linear-gradient(135deg, #2c5aa0 0%, #1e3d72 100%);
+  color: white;
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(44, 90, 160, 0.3);
+}
+
+.qa-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.qa-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+/* Simple Header Style */
+.simple-qa-title {
+  color: #28a745;
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2rem !important;
+  border-bottom: 3px solid #28a745;
+  padding-bottom: 0.5rem;
+  display: block;
+  width: fit-content;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+}
+
+/* Search Section */
+.search-container {
+  position: relative;
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  border-radius: 25px;
+  border: 2px solid #e0e6ed;
+  padding: 12px 20px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #2c5aa0;
+  box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25);
+}
+
+.search-btn {
+  border-radius: 25px;
+  margin-left: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #2c5aa0 0%, #1e3d72 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(44, 90, 160, 0.3);
+}
+
+.ask-question-btn {
+  border-radius: 25px;
+  padding: 12px 25px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.ask-question-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+/* Question Cards */
+.question-card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: white;
+  overflow: hidden;
+}
+
+.question-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.question-card .card-body {
+  padding: 1.5rem;
+}
+
+.question-title {
+  color: #2c5aa0;
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.question-meta {
+  margin-bottom: 1rem;
+}
+
+.question-content {
+  color: #6c757d;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.question-stats {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.question-stats .badge {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+}
+
+/* Detail Modal */
+.question-detail-card {
+  border-radius: 15px;
+}
+
+.question-detail-card .card-header {
+  border-radius: 15px 15px 0 0;
+  padding: 1.5rem;
+}
+
+.answer-card {
+  border-radius: 12px;
+  background: #f8f9ff;
+  transition: all 0.3s ease;
+}
+
+.answer-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-name {
+  color: #2c5aa0;
+  font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Pagination */
+.pagination-container {
+  margin-top: 2rem;
+}
+
+.pagination-container .btn {
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.pagination-container .btn:hover {
+  transform: translateY(-2px);
+}
+
+.page-info {
+  background: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 2px solid #e0e6ed;
+  font-weight: 600;
+  color: #2c5aa0;
+}
+
+/* Loading State */
+.loading-spinner {
+  color: #2c5aa0;
+}
+
+/* Medical Disclaimer */
+.medical-disclaimer .card {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+/* Border Dashed */
+.border-dashed {
+  border-style: dashed !important;
+  border-color: #dee2e6 !important;
+}
+
+/* Modal Positioning */
+.modal-dialog-centered {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  margin: 0 auto !important;
+  padding: 1rem !important;
+}
+
+.modal-xl {
+  max-width: 1200px !important;
+  width: 95vw !important;
+  margin: 0 auto !important;
+}
+
+.modal-lg {
+  max-width: 800px !important;
+  width: 90vw !important;
+  margin: 0 auto !important;
+}
+
+.modal-content {
+  max-height: 95vh !important;
+  overflow: hidden !important;
+  border-radius: 15px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  margin: 0 auto !important;
+}
+
+.modal-body {
+  max-height: 75vh !important;
+  overflow-y: auto !important;
+  padding: 1.5rem !important;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #2c5aa0 0%, #1e3d72 100%) !important;
+  color: white !important;
+  border-radius: 15px 15px 0 0 !important;
+  padding: 1.5rem !important;
+}
+
+.modal-header .btn-close {
+  filter: invert(1) !important;
+}
+
+.modal-header .modal-title {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.modal-footer {
+  border-top: none !important;
+  padding: 1.5rem !important;
+  background: #f8f9fa !important;
+  border-radius: 0 0 15px 15px !important;
+}
+
+/* Question Modal Specific Styles */
+.question-modal .modal-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+  color: white !important;
+  border-radius: 15px 15px 0 0 !important;
+  padding: 1.5rem !important;
+}
+
+.question-modal .modal-header .modal-title {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.question-modal .modal-header .btn-close {
+  filter: invert(1) !important;
+}
+
+/* Question Detail Modal Specific Styles */
+.question-detail-modal .modal-dialog {
+  max-width: 1200px !important;
+  width: 95vw !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+}
+
+.question-detail-modal .modal-content {
+  width: 100% !important;
+  max-height: 95vh !important;
+  margin: 0 auto !important;
+}
+
+.question-detail-modal .modal-header {
+  background: linear-gradient(135deg, #2c5aa0 0%, #1e3d72 100%) !important;
+  color: white !important;
+  border-radius: 15px 15px 0 0 !important;
+  padding: 1.5rem !important;
+}
+
+.question-detail-modal .modal-header .btn-close {
+  filter: invert(1) !important;
+}
+
+.question-detail-modal .modal-header .modal-title {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Form Styling in Modal */
+.modal .form-label {
+  font-weight: 600 !important;
+  color: #2c5aa0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.modal .form-control {
+  border-radius: 10px !important;
+  border: 2px solid #e0e6ed !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.modal .form-control:focus {
+  border-color: #2c5aa0 !important;
+  box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25) !important;
+}
+
+.modal .btn {
+  border-radius: 25px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.modal .btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure modal appears above everything and is perfectly centered */
+.modal {
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.modal-backdrop {
+  z-index: 9998 !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Override Bootstrap's default modal positioning */
+.modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.modal.show .modal-dialog {
+  transform: none !important;
+  margin: 0 auto !important;
+}
+
+/* Force centering for all screen sizes */
+@media (min-width: 576px) {
+  .modal-dialog-centered {
+    min-height: 100vh !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .qa-title {
+    font-size: 2rem;
+  }
+  
+  .qa-subtitle {
+    font-size: 1rem;
+  }
+  
+  .search-container {
+    flex-direction: column;
+  }
+  
+  .search-btn {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  
+  .ask-question-btn {
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .question-card {
+    margin-bottom: 1rem;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .pagination-container .btn {
+    margin: 0.25rem 0;
+    width: 150px;
+  }
+  
+  .page-info {
+    margin: 0.5rem 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .qa-header {
+    padding: 2rem 1rem;
+    margin: 0 -15px 2rem -15px;
+    border-radius: 0;
+  }
+  
+  .modal-xl {
+    margin: 0;
+    max-width: 100%;
+  }
+  
+  .question-card .card-body {
+    padding: 1rem;
+  }
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.question-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.question-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.question-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+/* Force all modals to be perfectly centered */
+.modal-dialog-centered,
+.modal-dialog-centered::before {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+.modal-dialog-centered .modal-content {
+  margin: 0 auto !important;
+  position: relative !important;
+}
+
+/* Override any Bootstrap centering issues */
+.modal.show .modal-dialog-centered {
+  transform: none !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+}
+
+/* Specific fix for horizontal centering */
+.modal-dialog {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
