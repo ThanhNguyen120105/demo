@@ -4,7 +4,7 @@ import './StaffDashboard.css';
 import StaffSidebar from './StaffSidebar';
 import StaffOverview from './StaffOverview';
 import AppointmentApproval from './AppointmentApproval';
-import QuestionApproval from './QuestionApproval';
+import BlogManagement from './BlogManagement';
 import CreateDoctorAccount from './CreateDoctorAccount';
 import DoctorManagement from './DoctorManagement';
 import { appointmentAPI } from '../../services/api'; // Import a relevant API
@@ -36,8 +36,8 @@ const StaffDashboard = () => {
         return <StaffOverview />;
       case 'appointments':
         return <AppointmentApproval />;
-      case 'questions':
-        return <QuestionApproval />;
+      case 'blogManagement':
+        return <BlogManagement />;
       case 'createDoctor':
         return <CreateDoctorAccount />;
       case 'doctorManagement':
@@ -54,7 +54,6 @@ const StaffDashboard = () => {
           activeTab={activeTab} 
           setActiveTab={setActiveTab}
           pendingAppointments={pendingAppointmentsCount}
-          pendingQuestions={8}
         />
         <Col md={9} lg={10} className="main-content">
           {renderContent()}

@@ -923,36 +923,6 @@ export const appointmentAPI = {
     }
   },
 
-  // Lấy chi tiết appointment theo ID
-  getAppointmentById: async (appointmentId) => {
-    try {
-      const response = await api.get(`/appointment/${appointmentId}`);
-      
-      return {
-        success: true,
-        data: response.data?.data || response.data,
-        message: 'Lấy chi tiết lịch hẹn thành công'
-      };
-    } catch (error) {
-      console.error('Get appointment details error:', error);
-      
-      let errorMessage = 'Không thể lấy chi tiết lịch hẹn';
-      
-      if (error.response?.status === 404) {
-        errorMessage = 'Không tìm thấy lịch hẹn';
-      } else if (error.response?.status === 403) {
-        errorMessage = 'Bạn không có quyền xem lịch hẹn này';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-        return {
-        success: false,
-        message: errorMessage,
-        error: error.response?.data || error.message,
-        data: null
-      };
-    }
-  },
   // Cập nhật trạng thái appointment
   updateAppointmentStatus: async (appointmentId, status) => {
     console.log('=== DEBUG: Starting appointment status update ===');
@@ -1896,7 +1866,6 @@ export const medicineAPI = {
   }
 };
 
-<<<<<<< HEAD
 // Blog Posts API
 export const blogAPI = {
   getAllPosts: async () => {
@@ -1906,10 +1875,63 @@ export const blogAPI = {
       const response = await api.get('/posts/public/simple');
       
       console.log('=== DEBUG getAllPosts Success ===');
-=======
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        message: response.data.message || 'Lấy danh sách bài viết thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getAllPosts Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy danh sách bài viết',
+        error: error.response?.data,
+        data: []
+      };
+    }
+  },
+
+  createPost: async (postData) => {
+    try {
+      console.log('=== DEBUG createPost API ===');
+      console.log('Post Data:', postData);
+      
+      const response = await api.post('/posts/staff/create', postData);
+      
+      console.log('=== DEBUG createPost Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message || 'Tạo bài viết thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG createPost Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tạo bài viết',
+        error: error.response?.data,
+        data: null
+      };
+    }
+  }
+};
+
 // Service Entity APIs
 export const serviceAPI = {
-  // Lấy tất cả service entities
   getAllServiceEntity: async () => {
     try {
       console.log('=== DEBUG getAllServiceEntity API ===');
@@ -1917,35 +1939,23 @@ export const serviceAPI = {
       const response = await api.get('/service-entity/getAllServiceEntity');
       
       console.log('=== DEBUG getAllServiceEntity Success ===');
->>>>>>> 3754b4fb209ebf817816d6ca775439641c43670d
       console.log('Response status:', response.status);
       console.log('Response data:', response.data);
       
       return {
         success: true,
         data: response.data.data || [],
-<<<<<<< HEAD
-        message: response.data.message || 'Lấy danh sách bài viết thành công'
-      };
-    } catch (error) {
-      console.error('=== DEBUG getAllPosts Error ===');
-=======
         message: response.data.message || 'Lấy danh sách dịch vụ thành công'
       };
     } catch (error) {
       console.error('=== DEBUG getAllServiceEntity Error ===');
->>>>>>> 3754b4fb209ebf817816d6ca775439641c43670d
       console.error('Error status:', error.response?.status);
       console.error('Error data:', error.response?.data);
       console.error('Error message:', error.message);
       
       return {
         success: false,
-<<<<<<< HEAD
-        message: error.response?.data?.message || 'Không thể lấy danh sách bài viết',
-=======
         message: error.response?.data?.message || 'Không thể lấy danh sách dịch vụ',
->>>>>>> 3754b4fb209ebf817816d6ca775439641c43670d
         error: error.response?.data,
         data: []
       };
@@ -1953,8 +1963,6 @@ export const serviceAPI = {
   }
 };
 
-<<<<<<< HEAD
-=======
 // Manager API functions
 export const managerAPI = {
   // Create Staff Account
@@ -2049,5 +2057,4 @@ export const managerAPI = {
   }
 };
 
->>>>>>> 3754b4fb209ebf817816d6ca775439641c43670d
 export default api;

@@ -1,14 +1,13 @@
 import React from 'react';
-import { ListGroup, Button, Badge, Col } from 'react-bootstrap';
+import { ListGroup, Badge, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faChartLine, faCalendarCheck, faUserTie,
-  faQuestionCircle, faCog, faFileAlt,
-  faTasks, faUserMd, faList
+  faCalendarCheck, faUserTie,
+  faBlog, faUserMd, faList
 } from '@fortawesome/free-solid-svg-icons';
 
 
-const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendingQuestions = 0 }) => {
+const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0 }) => {
   // Get user data from localStorage
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const staffName = user.fullName || 'Nhân viên';
@@ -46,17 +45,14 @@ const StaffSidebar = ({ activeTab, setActiveTab, pendingAppointments = 0, pendin
             <Badge bg="warning" className="ms-auto">{pendingAppointments}</Badge>
           )}
         </ListGroup.Item>
-          <ListGroup.Item 
+        <ListGroup.Item 
           action 
-          active={activeTab === 'questions'} 
-          onClick={() => setActiveTab('questions')}
+          active={activeTab === 'blogManagement'} 
+          onClick={() => setActiveTab('blogManagement')}
           style={{ cursor: 'pointer' }}
         >
-          <FontAwesomeIcon icon={faQuestionCircle} className="menu-icon" />
-          Duyệt câu hỏi
-          {pendingQuestions > 0 && (
-            <Badge bg="danger" className="ms-auto">{pendingQuestions}</Badge>
-          )}
+          <FontAwesomeIcon icon={faBlog} className="menu-icon" />
+          Đăng bài Blog
         </ListGroup.Item>
         
         <ListGroup.Item 
