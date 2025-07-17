@@ -45,6 +45,9 @@ import StaffRoute from './components/common/StaffRoute';
 // Video Call
 import VideoCallPage from './components/VideoCall/VideoCallPage';
 
+// Blog Components
+import { HIVPreventionBlog } from './components/Blog';
+
 function App() {
   return (
     <AuthProvider>
@@ -97,6 +100,10 @@ function App() {
 
               <Route path="/doctor/arv-tool" element={<DoctorRoute><ARVSelectionTool /></DoctorRoute>} />
               <Route path="/doctor/unanswered-questions" element={<DoctorRoute><UnansweredQuestions /></DoctorRoute>} />
+
+              {/* Blog Routes */}
+              <Route path="/blog" element={<HIVPreventionBlog />} />
+              <Route path="/hiv-prevention-blog" element={<HIVPreventionBlog />} />
             </Routes>
             <Footer />
                 </>

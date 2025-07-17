@@ -203,9 +203,9 @@ const Header = () => {
                     <div className={`nav-item ${isActive('/doctors') ? 'active' : ''}`}>
                       <span>Chuyên gia của chúng tôi</span>
                     </div>
-                  </Nav.Link>                  <Nav.Link as={Link} to="/qna" onClick={() => setExpanded(false)}>
-                    <div className={`nav-item ${isActive('/qna') ? 'active' : ''}`}>
-                      <span>Hỏi & Đáp</span>
+                  </Nav.Link>                  <Nav.Link as={Link} to="/blog" onClick={() => setExpanded(false)}>
+                    <div className={`nav-item ${isActive('/blog') ? 'active' : ''}`}>
+                      <span>Blog Chia Sẻ</span>
                     </div>
                   </Nav.Link>
                   

@@ -1896,4 +1896,37 @@ export const medicineAPI = {
   }
 };
 
+// Blog Posts API
+export const blogAPI = {
+  getAllPosts: async () => {
+    try {
+      console.log('=== DEBUG getAllPosts API ===');
+      
+      const response = await api.get('/posts/public/simple');
+      
+      console.log('=== DEBUG getAllPosts Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        message: response.data.message || 'Lấy danh sách bài viết thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getAllPosts Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy danh sách bài viết',
+        error: error.response?.data,
+        data: []
+      };
+    }
+  }
+};
+
 export default api;
