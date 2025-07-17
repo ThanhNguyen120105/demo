@@ -49,12 +49,89 @@
   margin-bottom: 1rem;
 }
 
+/* Custom Modal Styles for Doctor Detail */
+.modal-double-wide {
+  max-width: 45vw !important;
+  width: 45vw !important;
+}
+
+.modal-double-wide .modal-dialog {
+  display: flex !important;
+  align-items: center !important;
+  min-height: calc(100vh - 3.5rem) !important;
+  margin: 1.75rem auto !important;
+}
+
+.modal-double-wide .modal-content {
+  margin: auto !important;
+  width: 100% !important;
+  max-width: 600px !important;
+}
+
+/* Ensure modal is perfectly centered */
+.modal.show .modal-dialog.modal-double-wide {
+  transform: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Responsive modal width */
+@media (max-width: 1400px) {
+  .modal-double-wide {
+    max-width: 50vw !important;
+    width: 50vw !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .modal-double-wide {
+    max-width: 70vw !important;
+    width: 70vw !important;
+  }
+  
+  .modal-double-wide .modal-content {
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-double-wide {
+    max-width: 95vw !important;
+    width: 95vw !important;
+  }
+  
+  .modal-double-wide .modal-dialog {
+    margin: 0.5rem !important;
+  }
+}
+
 .doctor-description {
   font-size: 0.95rem;
   color: #555;
   line-height: 1.5;
   margin-bottom: 1rem;
   text-align: justify;
+}
+
+/* Smart description container */
+.smart-description {
+  display: flex;
+  flex-direction: column;
+}
+
+.description-text {
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+}
+
+.description-text.collapsed {
+  max-height: 6em; /* Khoảng 4-5 dòng */
+  line-height: 1.5;
+}
+
+.description-text.expanded {
+  max-height: none;
 }
 
 .btn-primary {
@@ -110,10 +187,10 @@
   }
 }
 
-/* Custom modal size - gấp đôi size lg */
+/* Custom modal size - vừa phải */
 .modal-double-wide .modal-dialog {
-  max-width: 1600px;
-  width: 95%;
+  max-width: 800px;
+  width: 90%;
 }
 
 .modal-double-wide .modal-content {

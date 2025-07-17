@@ -26,7 +26,7 @@ import './AppointmentForm.css';
 import { useLocation } from 'react-router-dom';
 import BackButton from '../common/BackButton';
 import { useAuth } from '../../contexts/AuthContext';
-import { appointmentAPI, slotAPI, doctorAPI } from '../../services/api';
+import { appointmentAPI, slotAPI, doctorAPI, serviceAPI } from '../../services/api';
 
 const AppointmentForm = () => {
   const location = useLocation();
@@ -58,6 +58,9 @@ const AppointmentForm = () => {
   const [availableTimes, setAvailableTimes] = useState([]);
   // useState hook để lưu trữ array of objects chứa thông tin bác sĩ từ database
   const [availableDoctors, setAvailableDoctors] = useState([]);
+  // useState hook để lưu trữ array of objects chứa thông tin services từ database
+  const [availableServices, setAvailableServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(false);
 
   // useEffect hook để kiểm tra và set doctor từ location state khi component mount
   useEffect(() => {
@@ -207,6 +210,32 @@ const AppointmentForm = () => {
     };
 
     loadDoctors();
+  }, []); // Chỉ chạy một lần khi component mount
+
+  // useEffect để load services từ database
+  useEffect(() => {
+    const loadServices = async () => {
+      setLoadingServices(true);
+      try {
+        console.log('Loading services from database...');
+        const result = await serviceAPI.getAllServiceEntity();
+        
+        if (result.success && result.data) {
+          console.log('Services loaded successfully:', result.data);
+          setAvailableServices(result.data);
+        } else {
+          console.warn('Failed to load services or no data:', result);
+          setAvailableServices([]);
+        }
+      } catch (error) {
+        console.error('Error loading services:', error);
+        setAvailableServices([]);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+
+    loadServices();
   }, []); // Chỉ chạy một lần khi component mount// Event handler để xử lý thay đổi input/select values
   const handleInputChange = (e) => {
     // Destructuring assignment để lấy name và value từ event target
@@ -439,11 +468,12 @@ const AppointmentForm = () => {
   };
 
   const getServiceDetailName = (type, value) => {
-    const serviceDetails = {
-      'hiv-testing': 'Tư vấn và xét nghiệm HIV',
-      'viral-load-monitoring': 'Theo dõi tải lượng virus'
-    };
-    return serviceDetails[value] || value;
+    // Tìm service trong danh sách availableServices theo serviceDetail hoặc serviceId
+    const selectedService = availableServices.find(service => 
+      service.name === formData.serviceDetail || service.id === formData.serviceId
+    );
+    
+    return selectedService ? selectedService.name : value;
   };
 
   // Helper function để tìm và format thông tin slot đã chọn
@@ -539,6 +569,20 @@ const AppointmentForm = () => {
           border-color: #007bff;
           background: #f8f9ff;
           box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+        }
+        
+        .service-price {
+          margin-top: 0.5rem;
+        }
+        
+        .service-price .badge {
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 0.375rem 0.75rem;
+        }
+        
+        .col-span-full {
+          grid-column: 1 / -1;
         }
         
         .time-slots {
@@ -693,21 +737,46 @@ const AppointmentForm = () => {
               <h4 className="text-center mb-4">Bước 1: Chọn dịch vụ HIV</h4>
 
               <div className="service-detail-grid">
-                <div 
-                  className={`service-detail-option ${formData.serviceDetail === 'hiv-testing' ? 'active' : ''}`}
-                  onClick={() => setFormData({...formData, serviceDetail: 'hiv-testing', serviceId: 1})}
-                >                  <div className="mb-2">🧪</div>
-                  <strong>Tư vấn và xét nghiệm HIV</strong>
-                  <small className="d-block text-muted mt-1">Xét nghiệm sàng lọc, xét nghiệm khẳng định</small>
-                </div>
-                
-                <div 
-                  className={`service-detail-option ${formData.serviceDetail === 'viral-load-monitoring' ? 'active' : ''}`}
-                  onClick={() => setFormData({...formData, serviceDetail: 'viral-load-monitoring', serviceId: 2})}
-                >                  <div className="mb-2">📊</div>
-                  <strong>Theo dõi tải lượng virus</strong>
-                  <small className="d-block text-muted mt-1">Xét nghiệm định kỳ, đánh giá hiệu quả điều trị</small>
-                </div>
+                {loadingServices ? (
+                  <div className="text-center py-4 col-span-full">
+                    <Spinner animation="border" size="sm" />
+                    <span className="ms-2">Đang tải danh sách dịch vụ...</span>
+                  </div>
+                ) : availableServices.length > 0 ? (
+                  availableServices.map((service) => (
+                    <div 
+                      key={service.id}
+                      className={`service-detail-option ${formData.serviceId === service.id ? 'active' : ''}`}
+                      onClick={() => setFormData({
+                        ...formData, 
+                        serviceDetail: service.name, 
+                        serviceId: service.id
+                      })}
+                    >
+                      <div className="mb-2">
+                        {service.id === "1" ? "🧪" : service.id === "2" ? "📊" : "🏥"}
+                      </div>
+                      <strong>{service.name}</strong>
+                      <small className="d-block text-muted mt-1">{service.description}</small>
+                      {service.price && (
+                        <div className="service-price mt-2">
+                          <span className="badge bg-primary">
+                            {typeof service.price === 'number' 
+                              ? service.price.toLocaleString('vi-VN') + ' VNĐ'
+                              : service.price
+                            }
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-3 col-span-full">
+                    <div className="alert alert-warning">
+                      Không có dịch vụ nào khả dụng
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">

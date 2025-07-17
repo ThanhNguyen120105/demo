@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Modal, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import DoctorDetail from '../Doctor/DoctorDetail';
@@ -23,6 +23,74 @@ const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Component để hiển thị mô tả với logic cắt từ thông minh
+  const SmartDescription = ({ text }) => {
+    const [displayText, setDisplayText] = useState('');
+    const [showViewMore, setShowViewMore] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const textRef = useRef(null);
+
+    useEffect(() => {
+      if (!text) {
+        setDisplayText('');
+        setShowViewMore(false);
+        return;
+      }
+
+      // Cắt đơn giản theo số ký tự trước, sau đó kiểm tra overflow
+      const maxLength = 300; // Khoảng 4-5 dòng
+      
+      if (text.length <= maxLength) {
+        setDisplayText(text);
+        setShowViewMore(false);
+      } else {
+        // Tìm vị trí cắt thông minh (kết thúc câu hoặc từ)
+        let cutPosition = maxLength;
+        
+        // Tìm dấu chấm gần nhất
+        const lastDot = text.lastIndexOf('.', maxLength);
+        if (lastDot > maxLength * 0.7) {
+          cutPosition = lastDot + 1;
+        } else {
+          // Tìm khoảng trắng gần nhất
+          const lastSpace = text.lastIndexOf(' ', maxLength);
+          if (lastSpace > maxLength * 0.8) {
+            cutPosition = lastSpace;
+          }
+        }
+        
+        const truncatedText = text.substring(0, cutPosition).trim();
+        setDisplayText(truncatedText);
+        setShowViewMore(true);
+      }
+    }, [text]);
+
+    const handleToggleExpand = () => {
+      setIsExpanded(!isExpanded);
+    };
+
+    return (
+      <div>
+        <span ref={textRef} style={{ lineHeight: '1.5' }}>
+          {isExpanded ? text : displayText}
+          {showViewMore && (
+            <>
+              {' '}
+              <button 
+                className="btn btn-link p-0 text-decoration-none"
+                style={{ fontSize: 'inherit', lineHeight: 'inherit', color: '#007bff' }}
+                onClick={handleToggleExpand}
+              >
+                {isExpanded ? 'Thu gọn' : 'Xem thêm'}
+              </button>
+            </>
+          )}
+        </span>
+      </div>
+    );
+  };
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
   // Fetch doctors data from API
   useEffect(() => {
@@ -148,9 +216,9 @@ const Doctors = () => {
                     )}
                     {doctor.description && (
                       <Card.Text className="doctor-description flex-grow-1">
-                        {doctor.description.length > 200 
-                          ? `${doctor.description.substring(0, 200)}...` 
-                          : doctor.description}
+                        <SmartDescription 
+                          text={doctor.description}
+                        />
                       </Card.Text>
                     )}
                     

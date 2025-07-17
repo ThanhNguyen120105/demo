@@ -14,10 +14,12 @@ import AppointmentDetailModal from '../common/AppointmentDetailModal';
 // import VideoCall from '../VideoCall/videoCall'; // No longer needed
 import { appointmentAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useServiceData } from '../../hooks/useServiceData';
 
 const DoctorDashboard = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { getServiceNameById, loading: servicesLoading } = useServiceData();
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // State cho lịch hẹn từ API
@@ -46,15 +48,9 @@ const DoctorDashboard = () => {
         return type || 'Không xác định';
     }
   };
+  // Hàm thay thế hardcode service mapping bằng API data
   const getServiceDisplay = (serviceId) => {
-    switch (serviceId) {
-      case 1:
-        return 'Khám và tư vấn';
-      case 2:
-        return 'Theo dõi tải lượng virus';
-      default:
-        return `Dịch vụ ${serviceId}` || 'Không xác định';
-    }
+    return getServiceNameById(serviceId);
   };
 
 
