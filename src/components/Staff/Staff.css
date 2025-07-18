@@ -702,4 +702,120 @@
   background: white;
   border-top: 1px solid #e9ecef;
   padding: 1.25rem 2rem;
-} 
+}
+
+/* Create Blog Post Modal Styles */
+.create-blog-modal {
+  z-index: 1055;
+}
+
+.create-blog-modal .modal-dialog {
+  max-width: 95vw;
+  width: 95vw;
+  margin: 1.75rem auto;
+}
+
+.create-blog-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.create-blog-modal .modal-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-radius: 15px 15px 0 0;
+  padding: 1.5rem 2rem;
+  border: none;
+}
+
+.create-blog-modal .modal-header .btn-close {
+  background: white;
+  opacity: 0.8;
+  border-radius: 50%;
+  padding: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.create-blog-modal .modal-header .btn-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.create-blog-modal .modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.create-blog-modal .modal-body {
+  padding: 2rem;
+  background: #f8f9fa;
+}
+
+.create-blog-modal .modal-footer {
+  background: white;
+  border-top: 2px solid #e9ecef;
+  border-radius: 0 0 15px 15px;
+  padding: 1.5rem 2rem;
+}
+
+.create-blog-modal .form-label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+}
+
+.create-blog-modal .form-control,
+.create-blog-modal .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.create-blog-modal .form-control:focus,
+.create-blog-modal .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.create-blog-modal .btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.create-blog-modal .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .create-blog-modal .modal-dialog {
+    max-width: 98vw;
+    width: 98vw;
+    margin: 0.5rem auto;
+  }
+  
+  .create-blog-modal .modal-header,
+  .create-blog-modal .modal-body,
+  .create-blog-modal .modal-footer {
+    padding: 1rem;
+  }
+}

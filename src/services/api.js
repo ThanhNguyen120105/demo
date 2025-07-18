@@ -931,6 +931,7 @@ export const appointmentAPI = {
     }
   },
 
+<<<<<<< HEAD
   // Lấy chi tiết appointment theo ID
   getAppointmentById: async (appointmentId) => {
     try {
@@ -963,6 +964,10 @@ export const appointmentAPI = {
   },
   // Cập nhật trạng thái appointment (có thể kèm logURL)
   updateAppointmentStatus: async (appointmentId, status, logURL = null) => {
+=======
+  // Cập nhật trạng thái appointment
+  updateAppointmentStatus: async (appointmentId, status) => {
+>>>>>>> ea74d97576ee67d3c79b9e6546b66855a3ef9fdc
     console.log('=== DEBUG: Starting appointment status update ===');
     console.log('Appointment ID:', appointmentId);
     console.log('New Status:', status);
@@ -1960,9 +1965,72 @@ export const medicineAPI = {
   }
 };
 
+// Blog Posts API
+export const blogAPI = {
+  getAllPosts: async () => {
+    try {
+      console.log('=== DEBUG getAllPosts API ===');
+      
+      const response = await api.get('/posts/public/simple');
+      
+      console.log('=== DEBUG getAllPosts Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || [],
+        message: response.data.message || 'Lấy danh sách bài viết thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG getAllPosts Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lấy danh sách bài viết',
+        error: error.response?.data,
+        data: []
+      };
+    }
+  },
+
+  createPost: async (postData) => {
+    try {
+      console.log('=== DEBUG createPost API ===');
+      console.log('Post Data:', postData);
+      
+      const response = await api.post('/posts/staff/create', postData);
+      
+      console.log('=== DEBUG createPost Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message || 'Tạo bài viết thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG createPost Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tạo bài viết',
+        error: error.response?.data,
+        data: null
+      };
+    }
+  }
+};
+
 // Service Entity APIs
 export const serviceAPI = {
-  // Lấy tất cả service entities
   getAllServiceEntity: async () => {
     try {
       console.log('=== DEBUG getAllServiceEntity API ===');
