@@ -10,7 +10,8 @@ import {
   faChevronLeft, faChevronRight, faSearch, faPlus, faTimes, faCheck, faClock,
   faNotesMedical, faVial, faPrescriptionBottleAlt,
   faStethoscope, faUserFriends, faBaby, faSlidersH, faHeartbeat, 
-  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills, faSave, faInfoCircle, faVideo
+  faUpload, faFilePdf, faEye, faEdit, faTrash, faPills, faSave, faInfoCircle, faVideo,
+  faComments, faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
@@ -180,6 +181,11 @@ const DoctorAppointments = () => {
   // const [showVideoCall, setShowVideoCall] = useState(false);
   // const [videoCallAppointment, setVideoCallAppointment] = useState(null);
   const [loadingAppointmentDetail, setLoadingAppointmentDetail] = useState(false);
+  
+  // Video Call Log states
+  const [showVideoCallLogModal, setShowVideoCallLogModal] = useState(false);
+  const [videoCallLogData, setVideoCallLogData] = useState(null);
+  const [loadingVideoCallLog, setLoadingVideoCallLog] = useState(false);
   
   // State cho modal xác nhận
   const [showCreateReportConfirmModal, setShowCreateReportConfirmModal] = useState(false);
@@ -1430,12 +1436,40 @@ const DoctorAppointments = () => {
         hasmedicalResult: !!pendingActionAppointment.medicalResultId
       });
 
+      // � Get existing video call log URL if already uploaded
+      let videoCallLogURL = null;
+      
+      if (pendingActionAppointment.isAnonymous === true) {
+        console.log('📹 Anonymous appointment - checking for uploaded log URL...');
+        
+        // Check if log was already uploaded via "Tải Log" button
+        const metadataKey = `video_call_log_metadata_${pendingActionAppointment.id}`;
+        const logMetadata = localStorage.getItem(metadataKey);
+        
+        if (logMetadata) {
+          try {
+            const metadata = JSON.parse(logMetadata);
+            videoCallLogURL = metadata.logFileUrl;
+            console.log('✅ Found existing log URL:', videoCallLogURL);
+          } catch (parseError) {
+            console.warn('⚠️ Failed to parse log metadata:', parseError);
+          }
+        } else {
+          console.log('ℹ️ No uploaded log found');
+        }
+      }
+
       console.log('=== DEBUG: Calling API to update appointment status ===');
       console.log('Appointment ID:', pendingActionAppointment.id);
       console.log('Target Status: COMPLETED');
+      console.log('Video Call Log URL:', videoCallLogURL || 'None');
       
-      // Call API to update status to COMPLETED
-      const result = await appointmentAPI.updateAppointmentStatus(pendingActionAppointment.id, 'COMPLETED');
+      // Call API to update status to COMPLETED with optional log URL
+      const result = await appointmentAPI.updateAppointmentStatus(
+        pendingActionAppointment.id, 
+        'COMPLETED',
+        videoCallLogURL // Thêm log URL vào request
+      );
       
       console.log('=== DEBUG: API Response ===', result);
       
@@ -1446,6 +1480,23 @@ const DoctorAppointments = () => {
           console.log('📡 Success endpoint:', result.endpoint);
         }
         
+        if (videoCallLogURL) {
+          console.log('📹 Video call log URL included in completion');
+          
+          alert(
+            `✅ Hoàn thành lịch hẹn thành công!\n\n` +
+            `📹 Log cuộc gọi video đã được đính kèm.\n` +
+            `🔗 URL: ${videoCallLogURL}\n\n` +
+            `Lịch hẹn đã chuyển sang trạng thái COMPLETED.`
+          );
+        } else {
+          // No log URL (either not anonymous or no log uploaded)
+          alert(
+            `✅ Hoàn thành lịch hẹn thành công!\n\n` +
+            `Lịch hẹn đã chuyển sang trạng thái COMPLETED.`
+          );
+        }
+        
         // Reload appointments to update the status in UI
         console.log('🔄 Reloading appointments to update UI...');
         await loadDoctorAppointments();
@@ -1453,9 +1504,12 @@ const DoctorAppointments = () => {
       } else {
         console.error('❌ FAILED: API returned error');
         console.error('Error details:', result);
+        
+        alert('❌ Không thể hoàn thành lịch hẹn: ' + (result.message || 'Lỗi không xác định'));
       }
     } catch (error) {
-      console.error('=== EXCEPTION: Error in handleCompleteAppointment ===', error);
+      console.error('=== EXCEPTION: Error in performCompleteAppointment ===', error);
+      alert('❌ Đã xảy ra lỗi khi hoàn thành lịch hẹn: ' + error.message);
     } finally {
       setShowCompleteAppointmentConfirmModal(false);
       setPendingActionAppointment(null);
@@ -1597,6 +1651,236 @@ const DoctorAppointments = () => {
     // Open video call in new tab
     const videoCallUrl = `/video-call/${appointment.id}/doctor`;
     window.open(videoCallUrl, '_blank', 'width=1200,height=800');
+  };
+
+  // Hàm xử lý xem video call log
+  const handleViewVideoCallLog = async (appointment) => {
+    setLoadingVideoCallLog(true);
+    setShowVideoCallLogModal(true);
+    
+    try {
+      // Kiểm tra xem có log file cho appointment này không
+      console.log('Loading video call log for appointment:', appointment.id);
+      
+      // Thử load từ localStorage trước (fallback)
+      const localStorageLog = localStorage.getItem(`video_call_log_${appointment.id}`);
+      
+      if (localStorageLog) {
+        try {
+          const logData = JSON.parse(localStorageLog);
+          
+          // Format log data để hiển thị - tính thời gian đúng theo yêu cầu
+          const formattedLogData = {
+            appointmentId: appointment.id,
+            patientName: appointment.alternativeName || `Bệnh nhân #${appointment.userId}`,
+            doctorName: 'Bác sĩ khám',
+            startTime: calculateRealStartTime(logData),
+            endTime: calculateRealEndTime(logData),
+            duration: calculateRealDuration(logData),
+            chatMessages: logData.chatMessages || [],
+            connectionEvents: logData.connectionEvents || [],
+            qualityMetrics: logData.qualityMetrics || {},
+            logFileUrl: null // Chưa có URL từ server
+          };
+          
+          setVideoCallLogData(formattedLogData);
+          console.log('✅ Video call log loaded from localStorage');
+          return;
+        } catch (parseError) {
+          console.error('Failed to parse localStorage log:', parseError);
+        }
+      }
+      
+      // Nếu không có log trong localStorage, tạo thông báo
+      setVideoCallLogData(null);
+      console.log('ℹ️ No video call log found for this appointment');
+      
+    } catch (error) {
+      console.error('Failed to load video call log:', error);
+      setVideoCallLogData(null);
+    } finally {
+      setLoadingVideoCallLog(false);
+    }
+  };
+
+  // Helper function để tính thời gian bắt đầu thực tế (khi cả hai cùng tham gia)
+  const calculateRealStartTime = (logData) => {
+    const doctorJoined = logData.participants?.doctor?.joined;
+    const patientJoined = logData.participants?.patient?.joined;
+    
+    if (doctorJoined && patientJoined) {
+      // Thời gian bắt đầu là thời điểm người cuối cùng tham gia
+      const doctorTime = new Date(doctorJoined).getTime();
+      const patientTime = new Date(patientJoined).getTime();
+      return new Date(Math.max(doctorTime, patientTime)).toISOString();
+    }
+    
+    return logData.callStatus?.startTime || 'Không xác định';
+  };
+
+  // Helper function để tính thời gian kết thúc thực tế (người cuối cùng rời đi)
+  const calculateRealEndTime = (logData) => {
+    const doctorLeft = logData.participants?.doctor?.left;
+    const patientLeft = logData.participants?.patient?.left;
+    
+    // Nếu có thông tin về thời gian rời đi
+    if (doctorLeft || patientLeft) {
+      const times = [];
+      if (doctorLeft) times.push(new Date(doctorLeft).getTime());
+      if (patientLeft) times.push(new Date(patientLeft).getTime());
+      
+      // Thời gian kết thúc là thời điểm người cuối cùng rời đi
+      return new Date(Math.max(...times)).toISOString();
+    }
+    
+    return logData.callStatus?.endTime || 'Không xác định';
+  };
+
+  // Helper function để tính thời lượng thực tế
+  const calculateRealDuration = (logData) => {
+    const startTime = calculateRealStartTime(logData);
+    const endTime = calculateRealEndTime(logData);
+    
+    if (startTime === 'Không xác định' || endTime === 'Không xác định') {
+      return 'Không xác định';
+    }
+    
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return 'Không xác định';
+      }
+      
+      const durationMs = end - start;
+      
+      if (durationMs <= 0) return 'Không xác định';
+      
+      const totalSeconds = Math.floor(durationMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      
+      if (minutes > 0) {
+        return `${minutes} phút ${seconds} giây`;
+      } else {
+        return `${seconds} giây`;
+      }
+    } catch (error) {
+      console.error('Error calculating real duration:', error);
+      return 'Không xác định';
+    }
+  };
+
+  // Helper function để tính thời lượng
+  const calculateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return 'Không xác định';
+    
+    const start = new Date(`2000-01-01 ${startTime}`);
+    const end = new Date(`2000-01-01 ${endTime}`);
+    const duration = (end - start) / (1000 * 60); // minutes
+    
+    if (duration >= 60) {
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+      return `${hours} giờ ${minutes} phút`;
+    }
+    return `${duration} phút`;
+  };
+
+  // Hàm upload video call log từ localStorage lên Supabase
+  const handleUploadVideoCallLog = async (appointment) => {
+    try {
+      const logKey = `video_call_log_${appointment.id}`;
+      const localStorageLog = localStorage.getItem(logKey);
+      
+      if (!localStorageLog) {
+        alert('❌ Không tìm thấy log cuộc gọi video trong localStorage.\n\nVui lòng thực hiện cuộc gọi video trước.');
+        return;
+      }
+
+      // Confirm before upload
+      const confirmUpload = window.confirm(
+        `📤 Tải log cuộc gọi video lên Supabase Storage?\n\n` +
+        `📋 Lịch hẹn: ${appointment.alternativeName || appointment.userName}\n` +
+        `📅 Ngày: ${appointment.appointmentDate}\n\n` +
+        `Log sẽ được lưu vĩnh viễn trên server.`
+      );
+
+      if (!confirmUpload) return;
+
+      // Parse log data
+      const logData = JSON.parse(localStorageLog);
+      
+      // Create log file content
+      const logContent = {
+        ...logData,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: user?.id || 'doctor',
+        version: '1.0'
+      };
+
+      // Create blob file
+      const logFileName = `appointment_${appointment.id}_video_call_log.json`;
+      const logBlob = new Blob([JSON.stringify(logContent, null, 2)], {
+        type: 'application/json'
+      });
+
+      // Create FormData for upload
+      const formData = new FormData();
+      formData.append('file', logBlob, logFileName);
+      formData.append('filePath', 'videoCallLog');
+      formData.append('bucketName', 'document');
+
+      // Get auth token
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      console.log('📤 Uploading video call log to Supabase...');
+
+      // Call upload API (sử dụng full URL tới backend)
+      const response = await fetch('http://localhost:8080/upload', {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Video call log uploaded successfully:', result);
+
+        // Save metadata to localStorage
+        const metadataKey = `video_call_log_metadata_${appointment.id}`;
+        const metadata = {
+          appointmentId: appointment.id,
+          uploadedAt: new Date().toISOString(),
+          logFileUrl: result.data || result.url || result.fileUrl, // Thêm result.data để lấy URL từ response
+          fileName: logFileName
+        };
+        localStorage.setItem(metadataKey, JSON.stringify(metadata));
+
+        alert(
+          `✅ Tải log thành công!\n\n` +
+          `📁 File: ${logFileName}\n` +
+          `🔗 URL: ${result.data || result.url || result.fileUrl || 'Đã lưu'}\n\n` + // Thêm result.data
+          `Log đã được lưu vĩnh viễn trong Supabase Storage.`
+        );
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+      }
+
+    } catch (error) {
+      console.error('❌ Failed to upload video call log:', error);
+      alert(
+        `❌ Tải log thất bại!\n\n` +
+        `Lỗi: ${error.message}\n\n` +
+        `Vui lòng thử lại sau hoặc liên hệ admin.`
+      );
+    }
   };
 
   // Hàm kiểm tra xem có thể thực hiện Video Call hay không
@@ -1815,6 +2099,32 @@ const DoctorAppointments = () => {
                                         </small>
                                       )}
                                     </Button>
+                                    
+                                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
+                                    
+                                    <Button
+                                      variant="outline-info" 
+                                      size="sm" 
+                                      className="action-btn flex-grow-1"
+                                      onClick={() => handleViewVideoCallLog(appointment)}
+                                      title="Xem nhật ký cuộc gọi video"
+                                    >
+                                      <FontAwesomeIcon icon={faFileAlt} className="me-1" />
+                                      Nhật ký cuộc gọi
+                                    </Button>
+                                    
+                                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
+                                    
+                                    <Button
+                                      variant="warning" 
+                                      size="sm" 
+                                      className="action-btn flex-grow-1"
+                                      onClick={() => handleUploadVideoCallLog(appointment)}
+                                      title="Tải log lên Supabase Storage"
+                                    >
+                                      <FontAwesomeIcon icon={faUpload} className="me-1" />
+                                      Tải Log
+                                    </Button>
                                   </>
                                 )}
                               </div>
@@ -1868,11 +2178,24 @@ const DoctorAppointments = () => {
                             <Button 
                               variant="outline-warning" 
                               size="sm"
+                              className="me-2"
                               onClick={() => handleShowMedicalReportModal(appointment)}
                             >
                               <FontAwesomeIcon icon={faEdit} className="me-1" />
                               Chỉnh sửa báo cáo y tế
                             </Button>
+                            {/* Hiển thị nút Nhật ký cuộc gọi cho bệnh nhân ẩn danh */}
+                            {appointment.isAnonymous === true && (
+                              <Button 
+                                variant="outline-success" 
+                                size="sm"
+                                onClick={() => handleViewVideoCallLog(appointment)}
+                                title="Xem nhật ký cuộc gọi video"
+                              >
+                                <FontAwesomeIcon icon={faFileAlt} className="me-1" />
+                                Nhật ký cuộc gọi
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -2041,6 +2364,13 @@ const DoctorAppointments = () => {
                   </div>
                 )}
                 
+                {/* Hiển thị thông báo về video call log cho bệnh nhân ẩn danh */}
+                {pendingActionAppointment.isAnonymous === true && (
+                  <div className="alert alert-info mt-3">
+                    <FontAwesomeIcon icon={faVideo} className="me-2" />
+                    <strong>Video Call Log:</strong> Nếu có log cuộc gọi video, hệ thống sẽ tự động tải lên Supabase Storage và đính kèm vào lịch hẹn khi hoàn thành.
+                  </div>
+                )}
 
               </div>
             )}
@@ -2137,6 +2467,128 @@ const DoctorAppointments = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+
+        {/* Video Call Log Modal */}
+        <Modal 
+          show={showVideoCallLogModal} 
+          onHide={() => {
+            setShowVideoCallLogModal(false);
+            setVideoCallLogData(null);
+          }} 
+          size="lg"
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faFileAlt} className="text-info me-2" />
+              Nhật ký cuộc gọi
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {loadingVideoCallLog ? (
+              <div className="text-center p-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Đang tải...</span>
+                </div>
+                <p className="mt-2">Đang tải log cuộc gọi...</p>
+              </div>
+            ) : videoCallLogData ? (
+              <div>
+                {/* Thông tin cuộc gọi */}
+                <div className="call-info-section mb-4">
+                  <h6 className="text-primary mb-3">
+                    <FontAwesomeIcon icon={faVideo} className="me-2" />
+                    Thông tin cuộc gọi
+                  </h6>
+                  <div className="row">
+                    <div className="col-md-6">
+                      <p><strong>Bệnh nhân:</strong> {videoCallLogData.patientName}</p>
+                      <p><strong>Bác sĩ:</strong> {videoCallLogData.doctorName}</p>
+                      <p><strong>Appointment ID:</strong> {videoCallLogData.appointmentId}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <p><strong>Thời gian bắt đầu:</strong> {
+                        videoCallLogData.startTime === 'Không xác định' ? 
+                        'Chưa có dữ liệu' : 
+                        new Date(videoCallLogData.startTime).toLocaleString('vi-VN')
+                      }</p>
+                      <p><strong>Thời gian kết thúc:</strong> {
+                        videoCallLogData.endTime === 'Không xác định' ? 
+                        'Chưa có dữ liệu' : 
+                        new Date(videoCallLogData.endTime).toLocaleString('vi-VN')
+                      }</p>
+                      <p><strong>Thời lượng:</strong> {videoCallLogData.duration}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chat messages */}
+                <div className="chat-log-section">
+                  <h6 className="text-primary mb-3">
+                    <FontAwesomeIcon icon={faComments} className="me-2" />
+                    Nội dung trò chuyện
+                  </h6>
+                  <div className="chat-log-container" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '5px', padding: '15px' }}>
+                    {videoCallLogData.chatMessages && videoCallLogData.chatMessages.length > 0 ? (
+                      videoCallLogData.chatMessages.map((msg, index) => (
+                        <div key={index} className={`chat-message mb-2 ${msg.sender === 'doctor' ? 'text-end' : 'text-start'}`}>
+                          <div className={`chat-bubble d-inline-block px-3 py-2 rounded ${msg.sender === 'doctor' ? 'bg-primary text-white' : 'bg-light'}`} style={{ maxWidth: '70%' }}>
+                            <div className="message-text">{msg.message}</div>
+                            <small className={`message-time d-block mt-1 ${msg.sender === 'doctor' ? 'text-light' : 'text-muted'}`}>
+                              {new Date(msg.timestamp).toLocaleString('vi-VN')} - {msg.senderName || (msg.sender === 'doctor' ? 'Bác sĩ' : 'Bệnh nhân')}
+                            </small>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted">
+                        <FontAwesomeIcon icon={faComments} size="2x" className="mb-2" />
+                        <p>Không có tin nhắn nào trong cuộc gọi này</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Download log file */}
+                {videoCallLogData.logFileUrl && (
+                  <div className="mt-4 text-center">
+                    <Button 
+                      variant="outline-primary" 
+                      href={videoCallLogData.logFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <FontAwesomeIcon icon={faDownload} className="me-2" />
+                      Tải xuống file log chi tiết
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center p-4">
+                <FontAwesomeIcon icon={faExclamationTriangle} size="2x" className="text-warning mb-3" />
+                <h6>Không tìm thấy log cuộc gọi</h6>
+                <p className="text-muted">
+                  Log cuộc gọi video chưa được tạo hoặc đã bị xóa.
+                  <br />
+                  Vui lòng thực hiện cuộc gọi video để tạo log.
+                </p>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                setShowVideoCallLogModal(false);
+                setVideoCallLogData(null);
+              }}
+            >
+              Đóng
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
                  {/* Video call now opens in new tab */}
       </Container>
     </div>

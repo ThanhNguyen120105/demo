@@ -9,6 +9,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import AgoraRTM from 'agora-rtm-sdk';
+import VideoCallLogger from './VideoCallLogger';
 import './VideoCallPage.css';
 
 // Sử dụng cùng App ID cho cả RTC và RTM để tránh conflict
@@ -28,6 +29,9 @@ const VideoCallPage = () => {
   // Chat related refs
   const rtmClient = useRef(null);
   const rtmChannel = useRef(null);
+  
+  // Video Call Logger
+  const videoCallLogger = useRef(null);
   
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -58,6 +62,12 @@ const VideoCallPage = () => {
   const [chatInitialized, setChatInitialized] = useState(false);
   const [isDemoMode] = useState(false); // Set to false for real RTM chat
 
+  // Video Call Logger - REMOVED ALL LOGGING FEATURES
+  // Will be reimplemented from scratch
+  const [chatRetryCount, setChatRetryCount] = useState(0);
+
+  // Logger initialization - REMOVED
+
   const getChannelName = useCallback(() => {
     return `appointment_${appointmentId}`;
   }, [appointmentId]);
@@ -66,10 +76,12 @@ const VideoCallPage = () => {
     return userRole === 'doctor' ? 'Bác sĩ' : 'Bệnh nhân';
   }, [userRole]);
 
+  // Debug function - REMOVED ALL LOGGING DEBUG
+
+  // Auto-debug removed
+
   // Chat functions
   const initializeDemoMode = useCallback(() => {
-    console.log('Initializing enhanced demo chat with cross-tab sync...');
-    
     // Load existing messages from localStorage
     const storageKey = `chat_${appointmentId}`;
     const savedMessages = localStorage.getItem(storageKey);
@@ -78,7 +90,6 @@ const VideoCallPage = () => {
       try {
         const parsedMessages = JSON.parse(savedMessages);
         setMessages(parsedMessages);
-        console.log('Loaded', parsedMessages.length, 'messages from localStorage');
       } catch (e) {
         console.error('Failed to parse saved messages:', e);
         const defaultMessages = [
@@ -111,11 +122,9 @@ const VideoCallPage = () => {
     
     // Enhanced cross-tab communication
     const handleStorageChange = (e) => {
-      console.log('Storage change detected:', e.key, e.newValue);
       if (e.key === storageKey && e.newValue) {
         try {
           const newMessages = JSON.parse(e.newValue);
-          console.log('Updating messages from another tab:', newMessages.length);
           setMessages(prev => {
             // Merge và deduplicate messages
             const merged = [...prev];
@@ -158,15 +167,11 @@ const VideoCallPage = () => {
 
   const initializeChatClient = useCallback(async () => {
     try {
-      console.log('🚀 Starting RTM v1 initialization...');
-      console.log('AgoraRTM:', AgoraRTM);
-      console.log('AgoraRTM.createInstance:', typeof AgoraRTM.createInstance);
-      console.log('APP_ID:', APP_ID);
+      console.log('Starting RTM initialization...');
       
       // Cleanup RTM client nếu đã tồn tại
       if (rtmClient.current) {
         try {
-          console.log('Cleaning up previous RTM client...');
           await rtmClient.current.logout();
         } catch (e) {
           console.log('Previous RTM client cleanup:', e.message);
@@ -174,40 +179,32 @@ const VideoCallPage = () => {
       }
       
       // RTM v1 initialization
-      console.log('Creating RTM instance...');
       rtmClient.current = AgoraRTM.createInstance(APP_ID);
-      console.log('✅ RTM v1 client created successfully:', rtmClient.current);
       
       // Tạo unique user ID
       const userId = `${userRole}_${appointmentId}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log('Generated user ID:', userId);
       
       // Login RTM v1 with token (nếu cần)
-      console.log('Attempting RTM login...');
-      // Thử login không token trước
       try {
         await rtmClient.current.login({ uid: userId });
-        console.log('✅ RTM v1 logged in successfully without token');
+        console.log('RTM logged in successfully');
       } catch (error) {
-        console.log('Login without token failed, trying with empty token...');
         await rtmClient.current.login({ uid: userId, token: '' });
-        console.log('✅ RTM v1 logged in successfully with empty token');
+        console.log('RTM logged in with empty token');
       }
       
       // Create and join channel RTM v1
-      const channelName = 'abc';
-      console.log('Creating RTM channel:', channelName);
-      rtmChannel.current = rtmClient.current.createChannel(channelName);
-      console.log('RTM channel created:', rtmChannel.current);
+      const channelName = getChannelName();
       
-      console.log('Joining RTM channel...');
+      if (!channelName || typeof channelName !== 'string') {
+        throw new Error('Invalid channel name: ' + channelName);
+      }
+      
+      rtmChannel.current = rtmClient.current.createChannel(channelName);
       await rtmChannel.current.join();
-      console.log('✅ RTM v1 channel joined successfully');
       
       // Setup event listeners cho RTM v1
       rtmChannel.current.on('ChannelMessage', (message, memberId) => {
-        console.log('📨 RTM v1 message received:', message.text, 'from:', memberId);
-        
         // Không hiển thị tin nhắn của chính mình
         if (memberId === userId) return;
         
@@ -221,6 +218,16 @@ const VideoCallPage = () => {
         };
         
         setMessages(prev => [...prev, newMsg]);
+        
+        // Log chat message
+        if (videoCallLogger.current) {
+          videoCallLogger.current.logChatMessage(
+            isFromDoctor ? 'doctor' : 'patient',
+            message.text,
+            isFromDoctor ? 'Bác sĩ' : 'Bệnh nhân'
+          );
+        }
+        
         if (!isChatOpenRef.current) {
           setUnreadCount(prev => prev + 1);
         }
@@ -228,21 +235,20 @@ const VideoCallPage = () => {
       
       // Member events cho RTM v1
       rtmChannel.current.on('MemberJoined', (memberId) => {
-        console.log('👋 Member joined RTM channel:', memberId);
         const isDoctor = memberId.includes('doctor');
         const userName = isDoctor ? 'Bác sĩ' : 'Bệnh nhân';
         sendSystemMessage(`${userName} đã tham gia cuộc trò chuyện`);
       });
       
       rtmChannel.current.on('MemberLeft', (memberId) => {
-        console.log('👋 Member left RTM channel:', memberId);
         const isDoctor = memberId.includes('doctor');
         const userName = isDoctor ? 'Bác sĩ' : 'Bệnh nhân';
         sendSystemMessage(`${userName} đã rời khỏi cuộc trò chuyện`);
       });
       
       setChatConnected(true);
-      console.log('🎉 RTM chat connection established!');
+      setChatRetryCount(0); // Reset retry count khi thành công
+      console.log('RTM chat connection established!');
       sendSystemMessage('🟢 Chat RTM v1 đã kết nối thành công!');
       
     } catch (error) {
@@ -255,29 +261,42 @@ const VideoCallPage = () => {
       });
       setChatConnected(false);
       
-      // Fallback to demo mode
+      // Thông báo lỗi kết nối chat thay vì demo mode
       setMessages([
         {
-          id: '1',
-          text: `❌ RTM v1 thất bại: ${error.message} - Chuyển sang demo mode`,
+          id: `error_${Date.now()}`,
+          text: `❌ Không thể kết nối chat. Đang thử kết nối lại...`,
           sender: 'system',
           timestamp: new Date().toISOString(),
-          senderName: 'Hệ thống'
+          senderName: 'Hệ thống',
+          isError: true
         }
       ]);
       
-      // Initialize demo mode as fallback
-      console.log('🔄 Falling back to demo mode...');
-      initializeDemoMode();
+      // Retry kết nối sau 5 giây thay vì demo mode (tối đa 3 lần)
+      if (chatRetryCount < 3) {
+        setChatRetryCount(prev => prev + 1);
+        setTimeout(() => {
+          initializeChatClient();
+        }, 5000);
+      } else {
+        console.log('Max chat retry attempts reached. Chat will be disabled.');
+        setMessages([
+          {
+            id: `error_${Date.now()}`,
+            text: `❌ Không thể kết nối chat sau nhiều lần thử. Vui lòng kiểm tra kết nối mạng.`,
+            sender: 'system',
+            timestamp: new Date().toISOString(),
+            senderName: 'Hệ thống',
+            isError: true
+          }
+        ]);
+      }
     }
-  }, [userRole, appointmentId, sendSystemMessage, initializeDemoMode]);
+  }, [userRole, appointmentId, sendSystemMessage, initializeDemoMode, getChannelName, chatRetryCount]);
 
   const sendMessage = useCallback(async (messageText) => {
     if (!messageText.trim()) return;
-    
-    console.log(`📤 ${userRole} attempting to send RTM v1 message:`, messageText);
-    console.log('Chat connected status:', chatConnected);
-    console.log('RTM channel:', rtmChannel.current);
     
     const message = {
       id: Date.now().toString(),
@@ -288,51 +307,55 @@ const VideoCallPage = () => {
     };
     
     // Add to local messages immediately for better UX
-    setMessages(prev => {
-      console.log('Adding own message locally:', message);
-      return [...prev, message];
-    });
+    setMessages(prev => [...prev, message]);
     setNewMessage('');
+
+    // Log own chat message
+    if (videoCallLogger.current) {
+      videoCallLogger.current.logChatMessage(userRole, messageText.trim(), getUserName());
+    }
+
+    // Chat message logging removed - will be reimplemented
     
     try {
       // Send via RTM v1
       if (chatConnected && rtmChannel.current) {
-        console.log('🚀 Sending RTM v1 message via channel...');
         const messageObj = { text: messageText.trim() };
-        console.log('Message object to send:', messageObj);
-        
         await rtmChannel.current.sendMessage(messageObj);
-        console.log('✅ RTM v1 message sent successfully');
       } else {
-        console.log('❌ RTM not connected, using localStorage fallback...');
-        console.log('chatConnected:', chatConnected);
-        console.log('rtmChannel.current:', rtmChannel.current);
-        
-        // Save to localStorage for demo sync between tabs
-        const storageKey = `chat_${appointmentId}`;
-        const existingMessages = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const updatedMessages = [...existingMessages, message];
-        localStorage.setItem(storageKey, JSON.stringify(updatedMessages));
-        
-        // Trigger storage event for other tabs
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: storageKey,
-          newValue: JSON.stringify(updatedMessages),
-          oldValue: JSON.stringify(existingMessages)
-        }));
-        
-        console.log('💾 Message saved to localStorage (demo mode)');
-        sendSystemMessage('📝 Tin nhắn đã lưu trong demo mode (localStorage)');
+        // Thay vì localStorage, thông báo lỗi như messenger
+        throw new Error('Chat chưa kết nối');
       }
       
     } catch (error) {
       console.error('❌ Failed to send RTM v1 message:', error);
-      console.error('Send error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code
-      });
-      sendSystemMessage('⚠️ Lỗi gửi tin nhắn - Tin nhắn chỉ hiển thị local');
+      
+      // Remove message from local state vì không gửi được
+      setMessages(prev => prev.filter(m => m.id !== message.id));
+      
+      // Thông báo lỗi như messenger
+      const errorMessage = {
+        id: `error_${Date.now()}`,
+        text: '❌ Tin nhắn không được gửi. Kiểm tra kết nối mạng.',
+        sender: 'system',
+        timestamp: new Date().toISOString(),
+        senderName: 'Hệ thống',
+        isError: true
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      // Tự động xóa thông báo lỗi sau 3 giây
+      setTimeout(() => {
+        setMessages(prev => prev.filter(m => m.id !== errorMessage.id));
+      }, 3000);
+      
+      // Thử reconnect chat nếu chưa connected và chưa quá số lần retry
+      if (!chatConnected && chatRetryCount < 3) {
+        setTimeout(() => {
+          initializeChatClient();
+        }, 2000);
+      }
     }
   }, [userRole, getUserName, chatConnected, sendSystemMessage, appointmentId]);
 
@@ -358,25 +381,21 @@ const VideoCallPage = () => {
       }
       setChatConnected(false);
       setMessages([]);
-      console.log('RTM v1 chat cleanup completed');
+      console.log('RTM chat cleanup completed');
     } catch (error) {
-      console.error('Failed to cleanup RTM v1 chat:', error);
+      console.error('Failed to cleanup RTM chat:', error);
     }
   };
 
   // Check camera/microphone permissions
   const checkPermissions = async () => {
     try {
-      console.log('Checking camera/microphone permissions...');
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: true, 
         audio: true 
       });
       
-      console.log('Permissions granted');
       stream.getTracks().forEach(track => track.stop());
-      
       return true;
     } catch (error) {
       console.error('Permission check failed:', error);
@@ -398,14 +417,18 @@ const VideoCallPage = () => {
 
   // Initialize Agora client
   const initializeAgoraClient = useCallback(async () => {
+    // Prevent multiple initialization
+    if (isConnecting || isConnected) {
+      console.log('Agora client already initializing or connected, skipping...');
+      return;
+    }
+
     try {
       setIsConnecting(true);
       setConnectionStatus('connecting');
       setError(null);
 
-      console.log('Initializing Agora client...');
-      console.log('App ID:', APP_ID);
-      console.log('Channel:', getChannelName());
+      console.log('Initializing Agora client for channel:', getChannelName());
 
       const hasPermission = await checkPermissions();
       if (!hasPermission) {
@@ -429,8 +452,6 @@ const VideoCallPage = () => {
         throw new Error('Failed to create Agora client');
       }
 
-      console.log('Agora client created successfully');
-
       // Set up event listeners
       client.current.on('user-published', handleUserPublished);
       client.current.on('user-unpublished', handleUserUnpublished);
@@ -446,15 +467,19 @@ const VideoCallPage = () => {
       
       while (retries > 0 && !uid) {
         try {
-          console.log(`Attempting to join channel ${channelName}... (${3 - retries}/2)`);
           uid = await client.current.join(APP_ID, channelName, TOKEN, null);
           console.log('Joined channel successfully with UID:', uid);
+          
+          // Log current user joined
+          if (videoCallLogger.current) {
+            videoCallLogger.current.logUserJoined(userRole, uid);
+          }
+          
           break;
         } catch (joinError) {
           console.error('Join attempt failed:', joinError);
           retries--;
           if (retries > 0) {
-            console.log('Retrying in 1 second...');
             await new Promise(resolve => setTimeout(resolve, 1000));
           } else {
             throw joinError;
@@ -463,11 +488,15 @@ const VideoCallPage = () => {
       }
 
       await createLocalTracks();
-      await publishLocalTracks();
-
+      
+      // Set connected state BEFORE publishing
       setIsConnected(true);
       setConnectionStatus('connected');
       setError(null);
+      
+      await publishLocalTracks();
+      
+      // Logger notification removed - will be reimplemented
       
       // QUAN TRỌNG: Bỏ dòng này đi - không gọi initializeChatClient ở đây
       // await initializeChatClient();
@@ -476,24 +505,24 @@ const VideoCallPage = () => {
       handleAgoraError(error);
       setConnectionStatus('disconnected');
       
-      // Retry connection after 3 seconds instead of demo mode
-      console.log('Retrying Agora connection in 3 seconds...');
-      setTimeout(() => {
-        initializeAgoraClient();
-      }, 3000);
+      // Log connection error
+      if (videoCallLogger.current) {
+        videoCallLogger.current.logConnectionIssue('INITIALIZATION_FAILED', error.message);
+      }
+      
+      // No automatic retry - user can manually retry if needed
     } finally {
       setIsConnecting(false);
     }
-  }, [getChannelName]);
+  }, [getChannelName, isConnecting, isConnected]);
 
   // FIX: Tách chat initialization thành useEffect riêng
   useEffect(() => {
     if (isConnected && !chatInitialized) {
-      console.log('Video connected, initializing chat...');
       initializeChatClient();
       setChatInitialized(true);
     }
-  }, [isConnected, chatInitialized, initializeChatClient]);
+  }, [isConnected, chatInitialized]); // Remove function dependency
 
   const handleAgoraError = (error) => {
     console.error('Agora error details:', error);
@@ -515,21 +544,20 @@ const VideoCallPage = () => {
   const handleConnectionStateChanged = (curState, revState, reason) => {
     console.log('Connection state changed:', curState, 'Previous:', revState, 'Reason:', reason);
     
-    if (curState === 'DISCONNECTED') {
+    // Don't update state if already in correct state to avoid loops
+    if (curState === 'DISCONNECTED' && connectionStatus !== 'disconnected') {
       setConnectionStatus('disconnected');
       setIsConnected(false);
-    } else if (curState === 'CONNECTED') {
+    } else if (curState === 'CONNECTED' && connectionStatus !== 'connected') {
       setConnectionStatus('connected');
       setIsConnected(true);
-    } else if (curState === 'CONNECTING') {
+    } else if (curState === 'CONNECTING' && connectionStatus !== 'connecting') {
       setConnectionStatus('connecting');
     }
   };
 
   const createLocalTracks = async () => {
     try {
-      console.log('Creating local tracks...');
-      
       localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack({
         encoderConfig: {
           sampleRate: 48000,
@@ -548,21 +576,9 @@ const VideoCallPage = () => {
         }
       });
 
-      // Play local video with React-safe approach
+      // Simple video initialization - no DOM manipulation
       if (localContainer.current && localVideoTrack.current) {
-        const container = localContainer.current;
-        // Use requestAnimationFrame to avoid DOM conflicts with React
-        requestAnimationFrame(async () => {
-          try {
-            if (container && localVideoTrack.current) {
-              // Don't clear innerHTML, let Agora manage the video element
-              await localVideoTrack.current.play(container);
-              console.log('Local video playing');
-            }
-          } catch (error) {
-            console.warn('Failed to play local video:', error);
-          }
-        });
+        await localVideoTrack.current.play(localContainer.current);
       }
     } catch (error) {
       console.error('Failed to create local tracks:', error);
@@ -572,41 +588,40 @@ const VideoCallPage = () => {
 
   const publishLocalTracks = async () => {
     try {
+      // Check if client is in valid state for publishing
+      if (!client.current) {
+        console.log('No client available for publishing, skipping...');
+        return;
+      }
+
+      // Additional check for connection state
+      const connectionState = client.current.connectionState;
+      if (connectionState !== 'CONNECTED') {
+        console.log(`Client connection state is ${connectionState}, skipping publish...`);
+        return;
+      }
+
       const tracks = [];
       if (localAudioTrack.current) tracks.push(localAudioTrack.current);
       if (localVideoTrack.current) tracks.push(localVideoTrack.current);
       
-      if (tracks.length > 0 && client.current) {
+      if (tracks.length > 0) {
         await client.current.publish(tracks);
         console.log('Published local tracks successfully');
       }
     } catch (error) {
       console.error('Failed to publish local tracks:', error);
-      throw error;
+      // Don't throw error - just log it to prevent crash
     }
   };
 
   const handleUserPublished = async (user, mediaType) => {
     try {
-      console.log('User published:', user.uid, 'mediaType:', mediaType);
       await client.current.subscribe(user, mediaType);
-      console.log('Subscribed to user:', user.uid, 'mediaType:', mediaType);
 
       if (mediaType === 'video' && remoteContainer.current && user.videoTrack) {
-        const container = remoteContainer.current;
-        // Use requestAnimationFrame to avoid DOM conflicts
-        requestAnimationFrame(async () => {
-          try {
-            if (container && user.videoTrack) {
-              // Don't clear innerHTML, let Agora manage it
-              await user.videoTrack.play(container);
-              setHasRemoteUser(true);
-              console.log('Remote video playing');
-            }
-          } catch (error) {
-            console.warn('Failed to play remote video:', error);
-          }
-        });
+        await user.videoTrack.play(remoteContainer.current);
+        setHasRemoteUser(true);
         
         // Update remote users list
         setRemoteUsers(prev => {
@@ -617,11 +632,6 @@ const VideoCallPage = () => {
             return [...prev, { uid: user.uid, hasVideo: true, hasAudio: false }];
           }
         });
-        
-        // Set hasRemoteUser to true khi có video từ remote user
-        setHasRemoteUser(true);
-        
-        console.log('Remote video playing');
       }
       
       if (mediaType === 'audio') {
@@ -636,8 +646,6 @@ const VideoCallPage = () => {
             return [...prev, { uid: user.uid, hasVideo: false, hasAudio: true }];
           }
         });
-        
-        console.log('Remote audio playing');
       }
     } catch (error) {
       console.error('Failed to subscribe to user:', error);
@@ -645,10 +653,10 @@ const VideoCallPage = () => {
   };
 
   const handleUserUnpublished = (user, mediaType) => {
-    console.log('User unpublished:', user.uid, 'mediaType:', mediaType);
     if (mediaType === 'video') {
-      // Không set hasRemoteUser = false vì user vẫn còn trong call, chỉ tắt camera
       setRemoteUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, hasVideo: false } : u));
+      // Set hasRemoteUser to false khi không còn video
+      setHasRemoteUser(false);
     }
     if (mediaType === 'audio') {
       setRemoteUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, hasAudio: false } : u));
@@ -656,10 +664,14 @@ const VideoCallPage = () => {
   };
 
   const handleUserJoined = (user) => {
-    console.log('User joined:', user.uid);
     setRemoteUsers(prev => {
       const existing = prev.find(u => u.uid === user.uid);
       if (!existing) {
+        // Log user joined event
+        if (videoCallLogger.current) {
+          const otherUserRole = userRole === 'doctor' ? 'patient' : 'doctor';
+          videoCallLogger.current.logUserJoined(otherUserRole, user.uid);
+        }
         return [...prev, { uid: user.uid, hasVideo: false, hasAudio: false }];
       }
       return prev;
@@ -667,9 +679,15 @@ const VideoCallPage = () => {
   };
 
   const handleUserLeft = (user) => {
-    console.log('User left:', user.uid);
     setHasRemoteUser(false);
-    setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
+    setRemoteUsers(prev => {
+      // Log user left event
+      if (videoCallLogger.current) {
+        const otherUserRole = userRole === 'doctor' ? 'patient' : 'doctor';
+        videoCallLogger.current.logUserLeft(otherUserRole, user.uid);
+      }
+      return prev.filter(u => u.uid !== user.uid);
+    });
   };
 
   const toggleVideo = useCallback(async () => {
@@ -686,8 +704,6 @@ const VideoCallPage = () => {
         
         // Update React state
         setVideoEnabled(newVideoState);
-        
-        console.log(`Video ${newVideoState ? 'enabled' : 'disabled'}`);
       }
     } catch (error) {
       console.error('Failed to toggle video:', error);
@@ -702,8 +718,6 @@ const VideoCallPage = () => {
         const newAudioState = !audioEnabled;
         await localAudioTrack.current.setEnabled(newAudioState);
         setAudioEnabled(newAudioState);
-        
-        console.log(`Audio ${newAudioState ? 'enabled' : 'disabled'}`);
       } catch (error) {
         console.error('Failed to toggle audio:', error);
         setAudioEnabled(audioEnabled);
@@ -732,6 +746,24 @@ const VideoCallPage = () => {
     try {
       console.log('Cleaning up resources...');
       
+      // Log current user leaving và lưu vào localStorage
+      if (videoCallLogger.current) {
+        console.log('📤 Starting video call log cleanup and save to localStorage...');
+        videoCallLogger.current.logUserLeft(userRole, 'self_leaving');
+        // End logging session và lưu vào localStorage
+        videoCallLogger.current.endLogging();
+        
+        // Lưu log vào localStorage thay vì upload ngay
+        try {
+          videoCallLogger.current.saveLogToLocalStorage();
+          console.log('💾 Video call log saved to localStorage successfully');
+        } catch (saveError) {
+          console.error('❌ Failed to save video call log to localStorage:', saveError);
+        }
+      } else {
+        console.warn('⚠️ VideoCallLogger not found during cleanup');
+      }
+      
       // Cleanup chat first
       await cleanupChat();
       
@@ -759,6 +791,7 @@ const VideoCallPage = () => {
       setHasRemoteUser(false);
       setRemoteUsers([]);
       setConnectionStatus('disconnected');
+      // Participant count removed
       
     } catch (error) {
       console.error('Failed to cleanup resources:', error);
@@ -767,16 +800,19 @@ const VideoCallPage = () => {
 
   const leaveCall = async () => {
     try {
-      console.log('Leaving call...');
       await cleanupResources();
-
-      // Close the tab/window
-      window.close();
       
-      // Fallback if window.close() doesn't work
-      navigate('/');
+      // Kiểm tra xem có phải popup window không
+      if (window.opener) {
+        // Đây là popup window, đóng nó
+        window.close();
+      } else {
+        // Đây là tab thường, navigate về trang chủ
+        navigate('/');
+      }
     } catch (error) {
       console.error('Failed to leave call:', error);
+      // Fallback: luôn thử đóng window
       window.close();
     }
   };
@@ -797,17 +833,14 @@ const VideoCallPage = () => {
     initializeAgoraClient();
   };
 
-  // --- Drag and Resize Handlers ---
+  // --- Simple Drag and Resize Handlers ---
 
   const handleMouseDown = (e) => {
-    // Prevent starting drag on resize handle
-    if (e.target.classList.contains('resize-handle')) {
-      return;
-    }
+    if (e.target.classList.contains('resize-handle')) return;
     setIsDragging(true);
     dragInfo.current = {
       startX: e.clientX - localVideoPosition.x,
-      startY: e.clientY - localVideoPosition.y,
+      startY: e.clientY - localVideoPosition.y
     };
     e.preventDefault();
   };
@@ -839,13 +872,14 @@ const VideoCallPage = () => {
         startX: e.clientX,
         startY: e.clientY,
         startWidth: localVideoSize.width,
-        startHeight: localVideoSize.height,
+        startHeight: localVideoSize.height
     };
     document.body.style.cursor = 'nwse-resize';
   };
 
   const handleResizeMouseMove = useCallback((e) => {
     if (!isResizing) return;
+    
     const { startX, startWidth } = dragInfo.current;
     const deltaX = e.clientX - startX;
     let newWidth = startWidth + deltaX;
@@ -889,10 +923,6 @@ const VideoCallPage = () => {
   }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
   useEffect(() => {
-    console.log('VideoCall page opened');
-    console.log('Appointment ID:', appointmentId);
-    console.log('User Role:', userRole);
-    
     // --- Session Locking ---
     const lockKey = `video_call_lock_${appointmentId}_${userRole}`;
     if (localStorage.getItem(lockKey)) {
@@ -906,8 +936,23 @@ const VideoCallPage = () => {
     localStorage.setItem(lockKey, 'true');
     // --- End Session Locking ---
 
+    // Initialize Video Call Logger
+    console.log('🔥 Initializing VideoCallLogger...');
+    console.log('📋 appointmentId:', appointmentId);
+    console.log('👤 userRole:', userRole);
+    
+    try {
+      videoCallLogger.current = new VideoCallLogger(appointmentId, userRole);
+      console.log('✅ VideoCallLogger created:', videoCallLogger.current);
+      
+      videoCallLogger.current.startLogging();
+      console.log('🎬 VideoCallLogger startLogging() called');
+    } catch (error) {
+      console.error('❌ Error creating VideoCallLogger:', error);
+    }
+
     // Set initial position to top right corner
-    const initialX = window.innerWidth - localVideoSize.width - 20;
+    const initialX = window.innerWidth - 150 - 20; // Use fixed width instead of state
     setLocalVideoPosition({ x: initialX, y: 20 });
     
     // Always start with Agora
@@ -925,7 +970,7 @@ const VideoCallPage = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       cleanupResources();
     };
-  }, [appointmentId, userRole, localVideoSize.width, cleanupResources, initializeAgoraClient]);
+  }, [appointmentId, userRole]); // ONLY depend on static values, remove function dependencies
 
   const getStatusMessage = () => {
     if (permissionDenied) {
@@ -962,16 +1007,26 @@ const VideoCallPage = () => {
           <Button 
             variant="outline-light" 
             size="sm" 
-            onClick={() => navigate('/')}
+            onClick={() => {
+              // Kiểm tra xem có phải popup window không
+              if (window.opener) {
+                // Đây là popup window, đóng nó
+                window.close();
+              } else {
+                // Đây là tab thường, navigate về trang chủ
+                navigate('/');
+              }
+            }}
             className="me-3 back-button"
           >
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-            Quay lại
+            {window.opener ? 'Đóng' : 'Quay lại'}
           </Button>
-                      <h5 className="text-white mb-0">
+          <h5 className="text-white mb-0">
             <FontAwesomeIcon icon={faVideo} className="me-2" />
             Video Call - {getUserName()}
           </h5>
+          {/* All logging UI removed - will be reimplemented */}
         </div>
         
         <div className="video-call-status">
@@ -980,39 +1035,6 @@ const VideoCallPage = () => {
           {isConnecting && <Spinner size="sm" className="ms-2" />}
         </div>
       </div>
-
-      {/* Connection Status / Error Alert */}
-      {error && !isConnecting && (
-        <div className="error-alert">
-          <Alert variant={isCallLocked || permissionDenied ? "danger" : "warning"}>
-            <div className="d-flex justify-content-between align-items-start">
-              <div>
-                <strong>
-                  {isCallLocked && <><FontAwesomeIcon icon={faLock} className="me-2" />Cuộc gọi đã được mở</>}
-                  {permissionDenied && "Cần quyền truy cập:"}
-                  {!isCallLocked && !permissionDenied && "Trạng thái:"}
-                </strong>
-                <div>{error}</div>
-              </div>
-              <div>
-                {isCallLocked ? (
-                  <Button variant="outline-danger" size="sm" onClick={() => window.close()}>
-                    Đóng
-                  </Button>
-                ) : permissionDenied ? (
-                  <Button variant="outline-primary" size="sm" onClick={requestPermissions}>
-                    Cho phép quyền
-                  </Button>
-                ) : !isConnecting && (
-                  <Button variant="outline-primary" size="sm" onClick={retryConnection}>
-                    Kết nối lại
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Alert>
-        </div>
-      )}
 
       {/* Main Video Area - Bị ẩn đi nếu cuộc gọi bị khóa */}
       {!isCallLocked && (
@@ -1023,19 +1045,19 @@ const VideoCallPage = () => {
               {/* Remote video stream */}
               <div 
                 ref={remoteContainer}
-                className={`remote-video ${(remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'has-user' : 'no-user'}`}
-                style={{ display: (remoteUsers.length > 0 && remoteUsers[0]?.hasVideo) ? 'block' : 'none' }}
+                className={`remote-video ${hasRemoteUser ? 'has-user' : 'no-user'}`}
+                style={{ display: hasRemoteUser ? 'block' : 'none' }}
               />
               
               {/* Waiting/Camera off message overlay */}
-              {(remoteUsers.length === 0 || (remoteUsers.length > 0 && !remoteUsers[0]?.hasVideo)) && (
+              {!hasRemoteUser && (
                 <div className="waiting-message">
                   <FontAwesomeIcon 
                     icon={remoteUsers.length > 0 ? faVideoSlash : faVideo} 
                     size="4x" 
                     className="waiting-icon" 
                   />
-                              <h3>
+                  <h3>
                     {remoteUsers.length > 0
                       ? `${userRole === 'doctor' ? 'Bệnh nhân' : 'Bác sĩ'} đã tắt camera`
                       : `Đang chờ ${userRole === 'doctor' ? 'bệnh nhân' : 'bác sĩ'} tham gia...`
@@ -1109,9 +1131,6 @@ const VideoCallPage = () => {
               <div className="resize-handle" onMouseDown={handleResizeMouseDown}></div>
             </div>
           </div>
-
-          {/* Resize Handle */}
-          <div className="resize-handle" onMouseDown={handleResizeMouseDown}></div>
         </>
       )}
 
@@ -1190,7 +1209,7 @@ const VideoCallPage = () => {
                     message.sender === userRole
                       ? 'message-own'
                       : message.sender === 'system'
-                      ? 'message-system'
+                      ? message.isError ? 'message-error' : 'message-system'
                       : 'message-other'
                   }`}
                 >

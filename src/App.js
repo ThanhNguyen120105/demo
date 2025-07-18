@@ -49,6 +49,8 @@ import ManagerRoute from './components/common/ManagerRoute';
 // Video Call
 import VideoCallPage from './components/VideoCall/VideoCallPage';
 
+// Debug Components removed - will be reimplemented
+
 function App() {
   return (
     <AuthProvider>
@@ -86,10 +88,9 @@ function App() {
                     {/* Test Routes */}
               <Route path="/test-results" element={<TestResultsLookup />} />
                     <Route path="/navigation-demo" element={<NavigationDemo />} />
-              <Route path="/api-test" element={<ApiTestDemo />} />
+                    <Route path="/api-test" element={<ApiTestDemo />} />
                     <Route path="/staff-test-login" element={<StaffTestLogin />} />
-
-                    {/* Staff Routes - Using StaffRoute from HEAD */}
+                    {/* Debug routes removed - will be reimplemented */}                    {/* Staff Routes - Using StaffRoute from HEAD */}
               <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
               <Route path="/staff/appointment-approval" element={<StaffRoute><AppointmentApproval /></StaffRoute>} />

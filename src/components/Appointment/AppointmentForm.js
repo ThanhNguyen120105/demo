@@ -118,8 +118,37 @@ const AppointmentForm = () => {
       // Extract thông tin từ user object với fallback từ registrationData
       const nameToFill = user.fullName || user.name || user.displayName || registrationData.fullName || '';
       const phoneToFill = user.phoneNumber || user.phone || user.telephone || registrationData.phoneNumber || '';
-      const genderToFill = user.gender || user.sex || registrationData.gender || '';
-      const dobToFill = user.birthdate || user.dob || user.dateOfBirth || user.birthday || registrationData.birthdate || '';
+      
+      // Gender mapping: JWT trả về MALE/FEMALE, form cần MALE/FEMALE
+      let genderToFill = user.gender || user.sex || registrationData.gender || '';
+      // Đảm bảo gender format đúng
+      if (genderToFill && typeof genderToFill === 'string') {
+        genderToFill = genderToFill.toUpperCase(); // Chuyển về uppercase
+      }
+      
+      // Birthdate format: JWT có thể trả về nhiều format khác nhau
+      let dobToFill = user.birthdate || user.dob || user.dateOfBirth || user.birthday || registrationData.birthdate || '';
+      // Đảm bảo format date đúng cho input type="date" (YYYY-MM-DD)
+      if (dobToFill) {
+        try {
+          // Nếu là Date object, convert về string
+          if (dobToFill instanceof Date) {
+            dobToFill = dobToFill.toISOString().split('T')[0];
+          } else if (typeof dobToFill === 'string') {
+            // Nếu là string, parse và format lại
+            const date = new Date(dobToFill);
+            if (!isNaN(date.getTime())) {
+              dobToFill = date.toISOString().split('T')[0];
+            } else {
+              // Nếu parse failed, reset về empty
+              dobToFill = '';
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to parse birthdate:', dobToFill, e);
+          dobToFill = '';
+        }
+      }
       
       console.log('🎯 Final extracted values:');
       console.log('  - Name:', nameToFill, '(source: user or backup)');

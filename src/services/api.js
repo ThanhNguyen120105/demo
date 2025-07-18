@@ -193,6 +193,8 @@ export const authAPI = {
           email: userData.email,
           fullName: userData.fullName || userData.name || userData.username,
           phoneNumber: userData.phoneNumber || userData.phone,
+          gender: userData.gender, // Thêm gender
+          birthdate: userData.birthdate || userData.dob, // Thêm birthdate
           role: userData.role_id || userData.role,
           ...userData
         };
@@ -218,6 +220,8 @@ export const authAPI = {
             email: tokenPayload.email || tokenPayload.username || tokenPayload.sub + '@example.com',
             fullName: tokenPayload.name || tokenPayload.fullName || tokenPayload.given_name || tokenPayload.preferred_username || 'User',
             phoneNumber: tokenPayload.phoneNumber || tokenPayload.phone_number,
+            gender: tokenPayload.gender, // Thêm gender từ JWT
+            birthdate: tokenPayload.birthdate || tokenPayload.dob, // Thêm birthdate từ JWT (khi backend fix)
             role: tokenPayload.role_id || tokenPayload.role || tokenPayload.authorities?.[0] || 'USER'
           };
           
@@ -306,6 +310,8 @@ export const authAPI = {
           email: userData.email,
           fullName: userData.fullName || userData.name,
           phoneNumber: userData.phoneNumber,
+          gender: userData.gender, // Thêm gender
+          birthdate: userData.birthdate || userData.dob, // Thêm birthdate
           role: userData.role_id || userData.role,
           ...userData
         };
@@ -330,6 +336,8 @@ export const authAPI = {
             email: userData.email,
             fullName: userData.fullName || userData.name,
             phoneNumber: userData.phoneNumber,
+            gender: userData.gender, // Thêm gender
+            birthdate: userData.birthdate || userData.dob, // Thêm birthdate
             role: userData.role_id || userData.role,
             ...userData
           };
@@ -953,48 +961,91 @@ export const appointmentAPI = {
       };
     }
   },
-  // Cập nhật trạng thái appointment
-  updateAppointmentStatus: async (appointmentId, status) => {
+  // Cập nhật trạng thái appointment (có thể kèm logURL)
+  updateAppointmentStatus: async (appointmentId, status, logURL = null) => {
     console.log('=== DEBUG: Starting appointment status update ===');
     console.log('Appointment ID:', appointmentId);
     console.log('New Status:', status);
+    console.log('Log URL:', logURL);
     
-    // List of possible API endpoints to try
+    // Tạo request body - thử các cách khác nhau
+    const requestBody1 = { status: status };
+    if (logURL) {
+      requestBody1.logURL = logURL;
+    }
+    
+    const requestBody2 = { 
+      status: status,
+      logURL: logURL || null
+    };
+    
+    const requestBody3 = { 
+      status: status,
+      logURL: logURL || null  // Đổi lại thành logURL thay vì videoCallLogURL
+    };
+    
+    console.log('📋 Request body variants:');
+    console.log('  - Variant 1 (conditional):', requestBody1);
+    console.log('  - Variant 2 (always logURL):', requestBody2);
+    console.log('  - Variant 3 (logURL):', requestBody3);
+    
+    // List of possible API endpoints to try with different data structures
+    // Đặt endpoint đã test thành công qua Swagger lên đầu
     const endpoints = [
       {
         method: 'patch',
+        url: `/appointment/${appointmentId}`,
+        data: requestBody2  // { status: status, logURL: logURL || null }
+      },
+      {
+        method: 'patch',
         url: `/appointment/updateStatus/${appointmentId}`,
-        data: { status: status }
+        data: requestBody2
       },
       {
         method: 'patch',
-        url: `/appointment/${appointmentId}/status`,
-        data: { status: status }
-      },
-      {
-        method: 'put',
-        url: `/appointment/${appointmentId}/status`,
+        url: `/appointment/updateStatus/${appointmentId}${logURL ? `?logURL=${encodeURIComponent(logURL)}` : ''}`,
         data: { status: status }
       },
       {
         method: 'patch',
         url: `/appointment/${appointmentId}`,
+        data: requestBody3
+      },
+      {
+        method: 'patch',
+        url: `/appointment/${appointmentId}/status`,
+        data: requestBody2
+      },
+      {
+        method: 'patch',
+        url: `/appointment/${appointmentId}/status${logURL ? `?logURL=${encodeURIComponent(logURL)}` : ''}`,
         data: { status: status }
       },
       {
         method: 'put',
+        url: `/appointment/${appointmentId}/status`,
+        data: requestBody3
+      },
+      {
+        method: 'patch',
         url: `/appointment/${appointmentId}`,
-        data: { status: status }
+        data: requestBody1
+      },
+      {
+        method: 'put',
+        url: `/appointment/${appointmentId}`,
+        data: requestBody2
       },
       {
         method: 'post',
         url: `/appointment/${appointmentId}/complete`,
-        data: { status: status }
+        data: requestBody3
       },
       {
-        method: 'put',
-        url: `/appointment/${appointmentId}/complete`,
-        data: {}
+        method: 'post',
+        url: `/appointment/${appointmentId}/complete${logURL ? `?logURL=${encodeURIComponent(logURL)}` : ''}`,
+        data: { status: status }
       }
     ];
     
@@ -1006,6 +1057,18 @@ export const appointmentAPI = {
       
       try {
         console.log(`=== ATTEMPT ${i + 1}: Trying ${endpoint.method.toUpperCase()} ${endpoint.url} ===`);
+        console.log(`📤 Request data for attempt ${i + 1}:`, JSON.stringify(endpoint.data, null, 2));
+        console.log(`🔗 Full URL for attempt ${i + 1}:`, `${API_BASE_URL}${endpoint.url}`);
+        
+        // CRITICAL: Log thông tin request để so sánh với Swagger
+        if (endpoint.url.includes(`/${appointmentId}`) && endpoint.method === 'patch') {
+          console.log('🎯 THIS MATCHES SWAGGER ENDPOINT!');
+          console.log('🎯 Swagger URL:', `PATCH /api/appointment/${appointmentId}`);
+          console.log('🎯 Our URL:', `${endpoint.method.toUpperCase()} ${API_BASE_URL}${endpoint.url}`);
+          console.log('🎯 Request body comparison:');
+          console.log('  - Swagger body:', '{ "status": "ACCEPTED", "logURL": "..." }');
+          console.log('  - Our body:', JSON.stringify(endpoint.data, null, 2));
+        }
         
         let response;
         if (endpoint.method === 'patch') {
@@ -1017,6 +1080,7 @@ export const appointmentAPI = {
         }
         
         console.log('✅ SUCCESS: Update appointment status response:', response.data);
+        console.log('📥 Full response object:', JSON.stringify(response.data, null, 2));
         
         return {
           success: true,
@@ -2019,6 +2083,135 @@ export const managerAPI = {
         success: false,
         message: 'Không thể tải thống kê dashboard',
         error: error.message || error.response?.data
+      };
+    }
+  }
+};
+
+// Video Call Log API
+export const videoCallLogAPI = {
+  // Lưu video call log vào database
+  saveVideoCallLog: async (appointmentId, logData) => {
+    try {
+      console.log('=== DEBUG saveVideoCallLog API ===');
+      console.log('Appointment ID:', appointmentId);
+      console.log('Log Data:', JSON.stringify(logData, null, 2));
+      
+      const requestBody = {
+        appointmentId: appointmentId,
+        startTime: logData.startTime,
+        endTime: logData.endTime,
+        duration: logData.duration,
+        participants: logData.participants || [],
+        chatMessages: logData.chatMessages || [],
+        events: logData.events || [],
+        summary: logData.summary || {},
+        doctorId: logData.doctorId,
+        patientId: logData.patientId
+      };
+      
+      console.log('Request body:', requestBody);
+      
+      const response = await api.post('/video-call-log/save', requestBody);
+      
+      console.log('✅ Save video call log response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data,
+        message: response.data?.message || 'Lưu log cuộc gọi video thành công'
+      };
+    } catch (error) {
+      console.error('❌ Error saving video call log:', error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể lưu log cuộc gọi video',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Lấy video call log theo appointment ID
+  getVideoCallLogByAppointmentId: async (appointmentId) => {
+    try {
+      console.log('Getting video call log for appointment:', appointmentId);
+      
+      const response = await api.get(`/video-call-log/appointment/${appointmentId}`);
+      
+      console.log('✅ Get video call log response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data,
+        message: 'Lấy log cuộc gọi video thành công'
+      };
+    } catch (error) {
+      console.error('❌ Error getting video call log:', error);
+      
+      let errorMessage = 'Không thể lấy log cuộc gọi video';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Không tìm thấy log cuộc gọi video';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message,
+        data: null
+      };
+    }
+  },
+
+  // Lấy tất cả video call logs của doctor
+  getVideoCallLogsByDoctorId: async (doctorId) => {
+    try {
+      console.log('Getting video call logs for doctor:', doctorId);
+      
+      const response = await api.get(`/video-call-log/doctor/${doctorId}`);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || [],
+        message: 'Lấy danh sách log cuộc gọi video thành công'
+      };
+    } catch (error) {
+      console.error('❌ Error getting doctor video call logs:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách log cuộc gọi video',
+        error: error.response?.data || error.message,
+        data: []
+      };
+    }
+  },
+
+  // Lấy tất cả video call logs của patient
+  getVideoCallLogsByPatientId: async (patientId) => {
+    try {
+      console.log('Getting video call logs for patient:', patientId);
+      
+      const response = await api.get(`/video-call-log/patient/${patientId}`);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data || [],
+        message: 'Lấy danh sách log cuộc gọi video thành công'
+      };
+    } catch (error) {
+      console.error('❌ Error getting patient video call logs:', error);
+      
+      return {
+        success: false,
+        message: 'Không thể lấy danh sách log cuộc gọi video',
+        error: error.response?.data || error.message,
+        data: []
       };
     }
   }

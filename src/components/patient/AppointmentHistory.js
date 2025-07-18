@@ -19,7 +19,10 @@ import {
   faPhone,
   faBirthdayCake,
   faVenusMars,
-  faVideo
+  faVideo,
+  faFileAlt,
+  faComments,
+  faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import { appointmentAPI, medicalResultAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -39,6 +42,12 @@ const AppointmentHistory = () => {
   const [medicalResult, setMedicalResult] = useState(null);
   const [loadingMedicalResult, setLoadingMedicalResult] = useState(false);
   const [currentMedicalResultId, setCurrentMedicalResultId] = useState(null);
+  
+  // Video Call Log states
+  const [showVideoCallLogModal, setShowVideoCallLogModal] = useState(false);
+  const [videoCallLogData, setVideoCallLogData] = useState(null);
+  const [loadingVideoCallLog, setLoadingVideoCallLog] = useState(false);
+  
   // Video call states - No longer needed
   // const [showVideoCall, setShowVideoCall] = useState(false);
   // const [videoCallAppointment, setVideoCallAppointment] = useState(null);
@@ -172,6 +181,168 @@ const AppointmentHistory = () => {
       console.error('Popup blocked by browser');
     } else {
       console.log('Video call tab opened successfully');
+    }
+  };
+
+  // Hàm xử lý xem video call log
+  const handleViewVideoCallLog = async (appointment) => {
+    setLoadingVideoCallLog(true);
+    setShowVideoCallLogModal(true);
+    
+    try {
+      // Kiểm tra xem có log file cho appointment này không
+      console.log('Loading video call log for appointment:', appointment.id);
+      
+      // Thử load từ localStorage trước (fallback)
+      const localStorageLog = localStorage.getItem(`video_call_log_${appointment.id}`);
+      
+      if (localStorageLog) {
+        try {
+          const logData = JSON.parse(localStorageLog);
+          console.log('Found video call log in localStorage:', logData);
+          
+          // Debug: Log các thời gian từ các nguồn khác nhau
+          console.log('🔍 Debug timing data:');
+          console.log('callStatus.startTime:', logData.callStatus?.startTime);
+          console.log('callStatus.endTime:', logData.callStatus?.endTime);
+          console.log('callStatus.totalDuration:', logData.callStatus?.totalDuration);
+          console.log('summary.callSummary.startTime:', logData.summary?.callSummary?.startTime);
+          console.log('summary.callSummary.endTime:', logData.summary?.callSummary?.endTime);
+          console.log('summary.callSummary.totalDuration:', logData.summary?.callSummary?.totalDuration);
+          
+          // Format log data để hiển thị - tính thời gian đúng theo yêu cầu
+          const formattedLogData = {
+            appointmentId: appointment.id,
+            patientName: appointment.alternativeName || appointment.userName || 'Bệnh nhân',
+            doctorName: appointment.doctorName || 'Bác sĩ',
+            startTime: calculateRealStartTime(logData),
+            endTime: calculateRealEndTime(logData),
+            duration: calculateRealDuration(logData),
+            chatMessages: logData.chatMessages || [],
+            logFileUrl: logData.logFileUrl || null
+          };
+          
+          console.log('🔍 Final formatted data:', formattedLogData);
+          
+          setVideoCallLogData(formattedLogData);
+        } catch (parseError) {
+          console.error('Failed to parse video call log:', parseError);
+          setVideoCallLogData(null);
+        }
+      } else {
+        // Nếu không có log trong localStorage, tạo thông báo
+        setVideoCallLogData(null);
+        console.log('ℹ️ No video call log found for this appointment');
+      }
+      
+    } catch (error) {
+      console.error('Failed to load video call log:', error);
+      setVideoCallLogData(null);
+    } finally {
+      setLoadingVideoCallLog(false);
+    }
+  };
+
+  // Helper function để tính thời gian bắt đầu thực tế (khi cả hai cùng tham gia)
+  const calculateRealStartTime = (logData) => {
+    const doctorJoined = logData.participants?.doctor?.joined;
+    const patientJoined = logData.participants?.patient?.joined;
+    
+    if (doctorJoined && patientJoined) {
+      // Thời gian bắt đầu là thời điểm người cuối cùng tham gia
+      const doctorTime = new Date(doctorJoined).getTime();
+      const patientTime = new Date(patientJoined).getTime();
+      return new Date(Math.max(doctorTime, patientTime)).toISOString();
+    }
+    
+    return logData.callStatus?.startTime || 'Không xác định';
+  };
+
+  // Helper function để tính thời gian kết thúc thực tế (người cuối cùng rời đi)
+  const calculateRealEndTime = (logData) => {
+    const doctorLeft = logData.participants?.doctor?.left;
+    const patientLeft = logData.participants?.patient?.left;
+    
+    // Nếu có thông tin về thời gian rời đi
+    if (doctorLeft || patientLeft) {
+      const times = [];
+      if (doctorLeft) times.push(new Date(doctorLeft).getTime());
+      if (patientLeft) times.push(new Date(patientLeft).getTime());
+      
+      // Thời gian kết thúc là thời điểm người cuối cùng rời đi
+      return new Date(Math.max(...times)).toISOString();
+    }
+    
+    return logData.callStatus?.endTime || 'Không xác định';
+  };
+
+  // Helper function để tính thời lượng thực tế
+  const calculateRealDuration = (logData) => {
+    const startTime = calculateRealStartTime(logData);
+    const endTime = calculateRealEndTime(logData);
+    
+    if (startTime === 'Không xác định' || endTime === 'Không xác định') {
+      return 'Không xác định';
+    }
+    
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return 'Không xác định';
+      }
+      
+      const durationMs = end - start;
+      
+      if (durationMs <= 0) return 'Không xác định';
+      
+      const totalSeconds = Math.floor(durationMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      
+      if (minutes > 0) {
+        return `${minutes} phút ${seconds} giây`;
+      } else {
+        return `${seconds} giây`;
+      }
+    } catch (error) {
+      console.error('Error calculating real duration:', error);
+      return 'Không xác định';
+    }
+  };
+
+  // Helper function để tính thời lượng
+  const calculateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime || startTime === 'Không xác định' || endTime === 'Không xác định') {
+      return 'Không xác định';
+    }
+    
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      
+      // Kiểm tra tính hợp lệ của Date
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return 'Không xác định';
+      }
+      
+      const durationMs = end - start;
+      
+      if (durationMs <= 0) return 'Không xác định';
+      
+      const totalSeconds = Math.floor(durationMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      
+      if (minutes > 0) {
+        return `${minutes} phút ${seconds} giây`;
+      } else {
+        return `${seconds} giây`;
+      }
+    } catch (error) {
+      console.error('Error calculating duration:', error);
+      return 'Không xác định';
     }
   };
 
@@ -335,18 +506,19 @@ const AppointmentHistory = () => {
               <h5 className="text-muted">Chưa có lịch hẹn nào</h5>
               <p className="text-muted">Bạn chưa đặt lịch hẹn nào. Hãy đặt lịch khám để được chăm sóc sức khỏe!</p>
             </div>
-          ) : (            <div className="d-flex justify-content-center" style={{ padding: '0 15px' }}>
-              <div style={{ width: '90%', maxWidth: '1200px' }}>
+          ) : (            <div className="d-flex justify-content-center" style={{ padding: '0 10px' }}>
+              <div style={{ width: '98%', maxWidth: '1400px' }}>
                 <div className="table-responsive">
-                  <Table striped bordered hover size="sm" style={{ fontSize: '1rem', margin: '0 auto', width: '100%' }}>
-                    <thead className="table-light" style={{ fontSize: '0.95rem' }}>
-                      <tr style={{ height: '50px' }}>
-                        <th style={{ width: '22%', padding: '12px 15px', verticalAlign: 'middle' }}>Ngày khám</th>
-                        <th style={{ width: '13%', padding: '12px 15px', verticalAlign: 'middle' }}>Giờ khám</th>
-                        <th style={{ width: '18%', padding: '12px 15px', verticalAlign: 'middle' }}>Bác sĩ</th>
-                        <th style={{ width: '13%', padding: '12px 15px', verticalAlign: 'middle' }}>Loại khám</th>
-                        <th style={{ width: '13%', padding: '12px 15px', verticalAlign: 'middle' }}>Trạng thái</th>
-                        <th style={{ width: '21%', padding: '12px 15px', verticalAlign: 'middle' }}>Chi tiết</th>
+                  <Table striped bordered hover size="sm" style={{ fontSize: '0.85rem', margin: '0 auto', width: '100%' }}>
+                    <thead className="table-light" style={{ fontSize: '0.8rem' }}>
+                      <tr style={{ height: '45px' }}>
+                        <th style={{ width: '18%', padding: '10px 12px', verticalAlign: 'middle' }}>Ngày khám</th>
+                        <th style={{ width: '11%', padding: '10px 12px', verticalAlign: 'middle' }}>Giờ khám</th>
+                        <th style={{ width: '16%', padding: '10px 12px', verticalAlign: 'middle' }}>Bác sĩ</th>
+                        <th style={{ width: '11%', padding: '10px 12px', verticalAlign: 'middle' }}>Loại khám</th>
+                        <th style={{ width: '11%', padding: '10px 12px', verticalAlign: 'middle' }}>Trạng thái</th>
+                        <th style={{ width: '15%', padding: '10px 12px', verticalAlign: 'middle', textAlign: 'center' }}>Hình thức khám</th>
+                        <th style={{ width: '18%', padding: '10px 12px', verticalAlign: 'middle' }}>Chi tiết</th>
                       </tr>
                     </thead>                    <tbody>
                       {appointments.map((appointment, index) => {
@@ -362,15 +534,15 @@ const AppointmentHistory = () => {
                             className={isNewDate && index > 0 ? 'border-top-3' : ''}
                             style={{
                               ...(isNewDate && index > 0 ? { borderTop: '3px solid #e9ecef' } : {}),
-                              height: '60px'
+                              height: '50px'
                             }}
-                          >                            <td style={{ padding: '15px', verticalAlign: 'middle' }}>
-                              <div className="fw-bold text-primary" style={{ fontSize: '1rem' }}>
+                          >                            <td style={{ padding: '10px 12px', verticalAlign: 'middle' }}>
+                              <div className="fw-bold text-primary" style={{ fontSize: '0.85rem' }}>
                                 {formatDate(appointment.appointmentDate)}
                               </div>
-                            </td>                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
-                            <div className="d-flex align-items-center" style={{ fontSize: '0.95rem' }}>
-                              <FontAwesomeIcon icon={faClock} className="me-2 text-primary" size="sm" />
+                            </td>                          <td style={{ padding: '10px 12px', verticalAlign: 'middle' }}>
+                            <div className="d-flex align-items-center" style={{ fontSize: '0.8rem' }}>
+                              <FontAwesomeIcon icon={faClock} className="me-1 text-primary" size="sm" />
                               <span className="text-nowrap">
                                 {formatTimeSlot(
                                   appointment.slotStartTime, 
@@ -378,14 +550,14 @@ const AppointmentHistory = () => {
                                 )}
                               </span>
                             </div>
-                          </td>                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
-                            <div className="d-flex align-items-center" style={{ fontSize: '0.95rem' }}>
-                              <FontAwesomeIcon icon={faUserMd} className="me-2 text-success" size="sm" />
+                          </td>                          <td style={{ padding: '10px 12px', verticalAlign: 'middle' }}>
+                            <div className="d-flex align-items-center" style={{ fontSize: '0.8rem' }}>
+                              <FontAwesomeIcon icon={faUserMd} className="me-1 text-success" size="sm" />
                               <span className="fw-medium text-nowrap">{appointment.doctorName}</span>
                             </div>
-                          </td>                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
-                            <div className="d-flex align-items-center gap-2">
-                              <Badge bg="info" pill style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                          </td>                          <td style={{ padding: '10px 12px', verticalAlign: 'middle' }}>
+                            <div className="d-flex align-items-center gap-1">
+                              <Badge bg="info" pill style={{ fontSize: '0.7rem', padding: '4px 8px' }}>
                                 {getAppointmentTypeLabel(appointment.appointmentType)}
                               </Badge>
                               {appointment.medicalResultId && (
@@ -395,40 +567,64 @@ const AppointmentHistory = () => {
                               )}
                             </div>
                           </td>
-                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
+                          <td style={{ padding: '10px 12px', verticalAlign: 'middle' }}>
                             {getStatusBadge(appointment.status)}
                           </td>
-                          <td style={{ padding: '15px', verticalAlign: 'middle' }}>
-                            <div className="d-flex gap-2 flex-wrap justify-content-center">
+                          
+                          {/* Cột Hình thức khám */}
+                          <td style={{ padding: '10px 12px', verticalAlign: 'middle', textAlign: 'center' }}>
+                            {(appointment.status === 'ACCEPTED' || appointment.status === 'COMPLETED') && appointment.isAnonymous === true ? (
+                              <Button
+                                variant={canMakeVideoCall(appointment) ? "success" : "secondary"}
+                                size="sm"
+                                onClick={() => handleVideoCall(appointment)}
+                                disabled={!canMakeVideoCall(appointment)}
+                                title={!canMakeVideoCall(appointment) ? 
+                                  "Khám trực tuyến chỉ khả dụng trong khung giờ khám của ngày hôm nay" : 
+                                  "Bắt đầu Khám trực tuyến"}
+                                style={{ fontSize: '0.7rem', padding: '6px 12px', minWidth: '100px' }}
+                              >
+                                <FontAwesomeIcon icon={faVideo} className="me-1" size="sm" />
+                                Khám trực tuyến
+                                {!canMakeVideoCall(appointment) && (
+                                  <small className="d-block" style={{ fontSize: '0.6rem', marginTop: '1px' }}>
+                                    (Chưa đến giờ)
+                                  </small>
+                                )}
+                              </Button>
+                            ) : (
+                              <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                {appointment.isAnonymous !== true ? 'Khám trực tiếp' : 'Không khả dụng'}
+                              </span>
+                            )}
+                          </td>
+                          
+                          {/* Cột Chi tiết */}
+                          <td style={{ padding: '10px 12px', verticalAlign: 'middle' }}>
+                            <div className="d-flex gap-1 flex-wrap justify-content-center">
                               {(appointment.status === 'ACCEPTED' || appointment.status === 'COMPLETED') ? (
                                 <>
-                                <Button
-                                  variant="outline-info"
-                                  size="sm"
-                                  onClick={() => handleViewDetail(appointment)}
-                                  style={{ fontSize: '0.8rem', padding: '8px 16px', minWidth: '120px' }}
-                                >
-                                  <FontAwesomeIcon icon={faEye} className="me-2" size="sm" />
-                                  Xem chi tiết
-                                </Button>
-                                  {appointment.status === 'ACCEPTED' && appointment.isAnonymous === true && (
+                                  <Button
+                                    variant="outline-info"
+                                    size="sm"
+                                    onClick={() => handleViewDetail(appointment)}
+                                    style={{ fontSize: '0.7rem', padding: '6px 10px', minWidth: '85px' }}
+                                  >
+                                    <FontAwesomeIcon icon={faEye} className="me-1" size="sm" />
+                                    Xem chi tiết
+                                  </Button>
+                                  
+                                  {/* Nút xem log cuộc gọi video - chỉ hiển thị cho appointment anonymous */}
+                                  {appointment.isAnonymous === true && (
                                     <Button
-                                      variant={canMakeVideoCall(appointment) ? "success" : "secondary"}
+                                      className="btn-view-log"
                                       size="sm"
-                                      onClick={() => handleVideoCall(appointment)}
-                                      disabled={!canMakeVideoCall(appointment)}
-                                      title={!canMakeVideoCall(appointment) ? 
-                                        "Video Call chỉ khả dụng trong khung giờ khám của ngày hôm nay" : 
-                                        "Bắt đầu Video Call"}
-                                      style={{ fontSize: '0.8rem', padding: '8px 16px', minWidth: '120px' }}
+                                      onClick={() => handleViewVideoCallLog(appointment)}
+                                      title="Xem nhật ký cuộc gọi video"
+                                      style={{ fontSize: '0.7rem', padding: '6px 10px', minWidth: '85px' }}
                                     >
-                                      <FontAwesomeIcon icon={faVideo} className="me-2" size="sm" />
-                                      Video Call
-                                      {!canMakeVideoCall(appointment) && (
-                                        <small className="d-block" style={{ fontSize: '0.65rem', marginTop: '2px' }}>
-                                          (Chưa đến giờ)
-                                        </small>
-                                      )}
+                                      <FontAwesomeIcon icon={faFileAlt} className="me-1" size="sm" />
+                                      Nhật ký
                                     </Button>
                                   )}
                                 </>
@@ -437,9 +633,9 @@ const AppointmentHistory = () => {
                                   variant="outline-danger"
                                   size="sm"
                                   onClick={() => handleCancelClick(appointment)}
-                                  style={{ fontSize: '0.8rem', padding: '8px 16px', minWidth: '120px' }}
+                                  style={{ fontSize: '0.7rem', padding: '6px 12px', minWidth: '100px' }}
                                 >
-                                  <FontAwesomeIcon icon={faTimes} className="me-2" size="sm" />
+                                  <FontAwesomeIcon icon={faTimes} className="me-1" size="sm" />
                                   Hủy đơn
                                 </Button>
                               )}
@@ -1219,6 +1415,130 @@ const AppointmentHistory = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowMedicalResultModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal Log Cuộc Gọi Video */}
+      <Modal 
+        show={showVideoCallLogModal} 
+        onHide={() => {
+          setShowVideoCallLogModal(false);
+          setVideoCallLogData(null);
+          setLoadingVideoCallLog(false);
+        }} 
+        size="lg"
+        centered
+        className="video-call-log-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FontAwesomeIcon icon={faFileAlt} className="text-info me-2" />
+            Nhật ký cuộc gọi
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingVideoCallLog ? (
+            <div className="text-center p-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Đang tải...</span>
+              </div>
+              <p className="mt-2">Đang tải nhật ký cuộc gọi...</p>
+            </div>
+          ) : videoCallLogData ? (
+            <div>
+              {/* Thông tin cuộc gọi */}
+              <div className="call-info-section mb-4">
+                <h6 className="text-primary mb-3">
+                  <FontAwesomeIcon icon={faVideo} className="me-2" />
+                  Thông tin cuộc gọi
+                </h6>
+                <div className="row">
+                  <div className="col-md-6">
+                    <p><strong>Bệnh nhân:</strong> {videoCallLogData.patientName}</p>
+                    <p><strong>Bác sĩ:</strong> {videoCallLogData.doctorName}</p>
+                    <p><strong>Appointment ID:</strong> {videoCallLogData.appointmentId}</p>
+                  </div>
+                  <div className="col-md-6">
+                    <p><strong>Thời gian bắt đầu:</strong> {
+                      videoCallLogData.startTime === 'Không xác định' ? 
+                      'Chưa có dữ liệu' : 
+                      new Date(videoCallLogData.startTime).toLocaleString('vi-VN')
+                    }</p>
+                    <p><strong>Thời gian kết thúc:</strong> {
+                      videoCallLogData.endTime === 'Không xác định' ? 
+                      'Chưa có dữ liệu' : 
+                      new Date(videoCallLogData.endTime).toLocaleString('vi-VN')
+                    }</p>
+                    <p><strong>Thời lượng:</strong> {videoCallLogData.duration}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nội dung trò chuyện */}
+              <div className="chat-log-section">
+                <h6 className="text-primary mb-3">
+                  <FontAwesomeIcon icon={faComments} className="me-2" />
+                  Nội dung trò chuyện
+                </h6>
+                <div className="chat-log-container" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '5px', padding: '15px' }}>
+                  {videoCallLogData.chatMessages && videoCallLogData.chatMessages.length > 0 ? (
+                    videoCallLogData.chatMessages.map((msg, index) => (
+                      <div key={index} className={`chat-message mb-2 ${msg.sender === 'doctor' ? 'text-end' : 'text-start'}`}>
+                        <div className={`chat-bubble d-inline-block px-3 py-2 rounded ${msg.sender === 'doctor' ? 'bg-primary text-white' : 'bg-light'}`} style={{ maxWidth: '70%' }}>
+                          <div className="message-text">{msg.message}</div>
+                          <small className={`message-time d-block mt-1 ${msg.sender === 'doctor' ? 'text-light' : 'text-muted'}`}>
+                            {new Date(msg.timestamp).toLocaleString('vi-VN')} - {msg.senderName || (msg.sender === 'doctor' ? 'Bác sĩ' : 'Bệnh nhân')}
+                          </small>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-muted">
+                      <FontAwesomeIcon icon={faComments} size="2x" className="mb-2" />
+                      <p>Không có tin nhắn nào trong cuộc gọi này</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Link tải xuống file log nếu có */}
+              {videoCallLogData.logFileUrl && (
+                <div className="mt-4 text-center">
+                  <Button 
+                    variant="outline-primary" 
+                    href={videoCallLogData.logFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <FontAwesomeIcon icon={faDownload} className="me-2" />
+                    Tải xuống nhật ký chi tiết
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center p-4">
+              <FontAwesomeIcon icon={faExclamationTriangle} size="2x" className="text-warning mb-3" />
+              <h6>Không tìm thấy nhật ký cuộc gọi</h6>
+              <p className="text-muted">
+                Nhật ký cuộc gọi video chưa được tạo hoặc đã bị xóa.
+                <br />
+                Vui lòng thực hiện cuộc gọi video để tạo nhật ký.
+              </p>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              setShowVideoCallLogModal(false);
+              setVideoCallLogData(null);
+              setLoadingVideoCallLog(false);
+            }}
+          >
             Đóng
           </Button>
         </Modal.Footer>
