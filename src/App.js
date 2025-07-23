@@ -49,12 +49,8 @@ import ManagerRoute from './components/common/ManagerRoute';
 // Video Call
 import VideoCallPage from './components/VideoCall/VideoCallPage';
 
-<<<<<<< HEAD
-// Debug Components removed - will be reimplemented
-=======
 // Blog Components
 import { HIVPreventionBlog } from './components/Blog';
->>>>>>> ea74d97576ee67d3c79b9e6546b66855a3ef9fdc
 
 function App() {
   return (

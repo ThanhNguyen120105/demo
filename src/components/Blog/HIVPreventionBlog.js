@@ -8,6 +8,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { blogAPI } from '../../services/api';
 import LazyImage from '../common/LazyImage';
+import PostDetailModal from './PostDetailModal';
 import './HIVPreventionBlog.css';
 
 const HIVPreventionBlog = () => {
@@ -19,6 +20,10 @@ const HIVPreventionBlog = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(6);
+  
+  // Modal state
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Debounced search term
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -38,14 +43,15 @@ const HIVPreventionBlog = () => {
       id: apiPost.id || Math.random(),
       title: apiPost.title || 'Chưa có tiêu đề',
       excerpt: apiPost.excerpt || apiPost.content?.substring(0, 200) + '...' || 'Chưa có nội dung',
+      content: apiPost.content || null,
       author: apiPost.author || 'Tác giả ẩn danh',
       authorTitle: apiPost.authorTitle || 'Nhân viên y tế',
       publishDate: apiPost.publishDate || apiPost.createdAt || new Date().toISOString(),
-      thumbnail: apiPost.thumbnail || apiPost.image || 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      thumbnail: apiPost.thumbnail || apiPost.image || null,
       likes: apiPost.likes || 0,
       views: apiPost.views || 0,
       comments: apiPost.comments || 0,
-      category: apiPost.category || 'Tổng quát',
+      category: apiPost.category || null,
       readTime: apiPost.readTime || '5 phút đọc',
       featured: apiPost.featured || false,
       tags: apiPost.tags || []
@@ -133,6 +139,18 @@ const HIVPreventionBlog = () => {
       setSortOrder('desc');
     }
     setCurrentPage(1);
+  };
+
+  // Handle post click to open modal
+  const handlePostClick = (post) => {
+    setSelectedPost(post);
+    setShowModal(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedPost(null);
   };
 
   // Utility functions
@@ -361,9 +379,13 @@ const HIVPreventionBlog = () => {
                           </div>
                           
                           <Card.Title className="post-title">
-                            <a href={`/blog/post/${post.id}`} className="title-link">
+                            <button 
+                              className="title-link-btn"
+                              onClick={() => handlePostClick(post)}
+                              aria-label={`Xem chi tiết bài viết: ${post.title}`}
+                            >
                               {post.title}
-                            </a>
+                            </button>
                           </Card.Title>
                           
                           <Card.Text className="post-excerpt">
@@ -484,7 +506,13 @@ const HIVPreventionBlog = () => {
                         </div>
                         <div className="featured-content">
                           <h6 className="featured-title">
-                            <a href={`/blog/post/${post.id}`}>{post.title}</a>
+                            <button 
+                              className="featured-link-btn"
+                              onClick={() => handlePostClick(post)}
+                              aria-label={`Xem chi tiết bài viết nổi bật: ${post.title}`}
+                            >
+                              {post.title}
+                            </button>
                           </h6>
                           <div className="featured-meta">
                             <small className="text-muted">
@@ -512,7 +540,13 @@ const HIVPreventionBlog = () => {
                         <div className="popular-rank">#{index + 1}</div>
                         <div className="popular-content">
                           <h6 className="popular-title">
-                            <a href={`/blog/post/${post.id}`}>{post.title}</a>
+                            <button 
+                              className="popular-link-btn"
+                              onClick={() => handlePostClick(post)}
+                              aria-label={`Xem chi tiết bài viết phổ biến: ${post.title}`}
+                            >
+                              {post.title}
+                            </button>
                           </h6>
                           <div className="popular-stats">
                             <small className="text-muted">
@@ -556,6 +590,13 @@ const HIVPreventionBlog = () => {
           </Row>
         </Container>
       </section>
+
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        show={showModal}
+        onHide={handleModalClose}
+        post={selectedPost}
+      />
     </div>
   );
 };

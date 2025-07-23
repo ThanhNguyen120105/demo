@@ -931,43 +931,8 @@ export const appointmentAPI = {
     }
   },
 
-<<<<<<< HEAD
-  // Lấy chi tiết appointment theo ID
-  getAppointmentById: async (appointmentId) => {
-    try {
-      const response = await api.get(`/appointment/${appointmentId}`);
-      
-      return {
-        success: true,
-        data: response.data?.data || response.data,
-        message: 'Lấy chi tiết lịch hẹn thành công'
-      };
-    } catch (error) {
-      console.error('Get appointment details error:', error);
-      
-      let errorMessage = 'Không thể lấy chi tiết lịch hẹn';
-      
-      if (error.response?.status === 404) {
-        errorMessage = 'Không tìm thấy lịch hẹn';
-      } else if (error.response?.status === 403) {
-        errorMessage = 'Bạn không có quyền xem lịch hẹn này';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-        return {
-        success: false,
-        message: errorMessage,
-        error: error.response?.data || error.message,
-        data: null
-      };
-    }
-  },
   // Cập nhật trạng thái appointment (có thể kèm logURL)
   updateAppointmentStatus: async (appointmentId, status, logURL = null) => {
-=======
-  // Cập nhật trạng thái appointment
-  updateAppointmentStatus: async (appointmentId, status) => {
->>>>>>> ea74d97576ee67d3c79b9e6546b66855a3ef9fdc
     console.log('=== DEBUG: Starting appointment status update ===');
     console.log('Appointment ID:', appointmentId);
     console.log('New Status:', status);

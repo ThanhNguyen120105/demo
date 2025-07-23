@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Form, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -20,6 +20,13 @@ const CreateBlogPost = ({ show, onHide, post, onPostCreated, onPostUpdated }) =>
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(false);
+  
+  // Image upload states
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  
+  const fileInputRef = useRef(null);
 
   // Initialize form data when editing
   useEffect(() => {
@@ -44,6 +51,105 @@ const CreateBlogPost = ({ show, onHide, post, onPostCreated, onPostUpdated }) =>
       });
     }
   }, [post]);
+
+  // Handle image file selection and auto upload
+  const handleImageSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setUploadError('Kích thước file không được vượt quá 5MB');
+      return;
+    }
+
+    setUploadError('');
+    
+    // Create preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Auto upload using fetch API (similar to VideoCallLogger)
+    try {
+      setUploadingImage(true);
+      
+      console.log('Starting upload process...');
+      console.log('File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
+      // Create FormData like VideoCallLogger
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filePath', 'img');
+      formData.append('bucketName', 'document');
+
+      // Get token for authorization
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      // Use fetch API like VideoCallLogger
+      const response = await fetch('http://localhost:8080/upload', {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+
+      console.log('Upload response status:', response.status);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Upload result received:', result);
+
+        // Parse URL from response (should be in result.data)
+        const imageUrl = result.data; // Direct URL from backend
+        
+        console.log('Setting imageUrl to:', imageUrl);
+        
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: imageUrl
+        }));
+        
+        setUploadError('');
+        
+        // Clear file input but keep preview
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
+        console.log('Image uploaded successfully!');
+        
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+        console.error('Upload failed:', errorData);
+        setUploadError(errorData.message || 'Không thể tải ảnh lên');
+        setImagePreview(''); // Clear preview on error
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadError('Có lỗi xảy ra khi tải ảnh lên');
+      setImagePreview(''); // Clear preview on error
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,7 +182,7 @@ const CreateBlogPost = ({ show, onHide, post, onPostCreated, onPostUpdated }) =>
         title: formData.title.trim(),
         content: formData.content.trim(),
         summary: formData.summary.trim() || formData.content.substring(0, 200) + '...',
-        imageUrl: formData.imageUrl.trim() || 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: formData.imageUrl.trim() || null,
         tags: formData.tags.trim()
       };
 
@@ -109,19 +215,6 @@ const CreateBlogPost = ({ show, onHide, post, onPostCreated, onPostUpdated }) =>
 
   const togglePreview = () => {
     setPreview(!preview);
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // TODO: Implement image upload to server
-      // For now, just create a local URL
-      const imageUrl = URL.createObjectURL(file);
-      setFormData(prev => ({
-        ...prev,
-        imageUrl: imageUrl
-      }));
-    }
   };
 
   return (
@@ -214,16 +307,25 @@ const CreateBlogPost = ({ show, onHide, post, onPostCreated, onPostUpdated }) =>
                     <Form.Control
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={handleImageSelect}
                     />
+                    {uploadingImage && (
+                      <small className="text-info">
+                        <Spinner size="sm" className="me-1" />
+                        Đang tải lên...
+                      </small>
+                    )}
+                    {uploadError && (
+                      <small className="text-danger d-block">{uploadError}</small>
+                    )}
                   </Form.Group>
                 </Col>
               </Row>
 
-              {formData.imageUrl && (
+              {(imagePreview || formData.imageUrl) && (
                 <div className="mb-3">
                   <img 
-                    src={formData.imageUrl} 
+                    src={imagePreview || formData.imageUrl} 
                     alt="Preview" 
                     style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px' }}
                     onError={(e) => {
