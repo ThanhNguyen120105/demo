@@ -1323,38 +1323,6 @@ const AppointmentHistory = () => {
                    )}
                 </Card.Body>
               </Card>
-
-              {/* Thông tin thời gian */}
-              <Card>
-                <Card.Header className="bg-secondary text-white py-2">
-                  <FontAwesomeIcon icon={faClock} className="me-2" />
-                  Thông tin thời gian
-                </Card.Header>
-                <Card.Body>
-                  <Row>
-                    {medicalResult.createdAt && (
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <label className="form-label">Thời gian tạo</label>
-                          <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                            {new Date(medicalResult.createdAt).toLocaleString('vi-VN')}
-                          </div>
-                        </div>
-                      </Col>
-                    )}
-                    {medicalResult.updatedAt && (
-                      <Col md={6}>
-                        <div className="mb-3">
-                          <label className="form-label">Cập nhật lần cuối</label>
-                          <div className="form-control" style={{ backgroundColor: '#f8f9fa' }}>
-                            {new Date(medicalResult.updatedAt).toLocaleString('vi-VN')}
-                          </div>
-                        </div>
-                      </Col>
-                    )}
-                  </Row>
-                </Card.Body>
-              </Card>
             </div>
           )}
         </Modal.Body>

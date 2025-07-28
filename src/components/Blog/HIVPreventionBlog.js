@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Form, Button, Pagination, Spinner, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSearch, faCalendarAlt, faUser, faHeart, faEye,
+  faSearch, faCalendarAlt, faUser, faHeart,
   faFilter, faArrowUp, faArrowDown, faShieldAlt,
   faExclamationTriangle, faRedo
 } from '@fortawesome/free-solid-svg-icons';
@@ -49,7 +49,6 @@ const HIVPreventionBlog = () => {
       publishDate: apiPost.publishDate || apiPost.createdDate || new Date().toISOString(),
       thumbnail: apiPost.imageUrl || apiPost.thumbnail || apiPost.image || null,
       likes: apiPost.likes || 0,
-      views: apiPost.views || apiPost.viewCount || 0,
       comments: apiPost.comments || 0,
       category: apiPost.category || null,
       readTime: apiPost.readTime || '5 phút đọc',
@@ -105,9 +104,6 @@ const HIVPreventionBlog = () => {
           break;
         case 'likes':
           comparison = a.likes - b.likes;
-          break;
-        case 'views':
-          comparison = a.views - b.views;
           break;
         case 'title':
           comparison = a.title.localeCompare(b.title, 'vi');
@@ -255,8 +251,7 @@ const HIVPreventionBlog = () => {
                     <div className="sort-buttons">
                       {[
                         { key: 'date', label: 'Mới nhất', icon: faCalendarAlt },
-                        { key: 'likes', label: 'Yêu thích', icon: faHeart },
-                        { key: 'views', label: 'Xem nhiều', icon: faEye }
+                        { key: 'likes', label: 'Yêu thích', icon: faHeart }
                       ].map(({ key, label, icon }) => (
                         <Button
                           key={key}

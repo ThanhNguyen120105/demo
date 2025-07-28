@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Button, Table, Badge, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faPlus, faEdit, faEye, faTrash, faBlog,
+  faPlus, faEdit, faTrash, faBlog,
   faCalendarAlt, faUser, faSearch
 } from '@fortawesome/free-solid-svg-icons';
 import { blogAPI } from '../../services/api';
@@ -142,7 +142,7 @@ const BlogManagement = () => {
 
       {/* Stats Cards */}
       <Row className="mb-4">
-        <Col md={3}>
+        <Col md={4}>
           <Card className="text-center">
             <Card.Body>
               <h3 className="text-primary">{posts.length}</h3>
@@ -150,7 +150,7 @@ const BlogManagement = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={4}>
           <Card className="text-center">
             <Card.Body>
               <h3 className="text-success">
@@ -160,23 +160,13 @@ const BlogManagement = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={4}>
           <Card className="text-center">
             <Card.Body>
               <h3 className="text-warning">
                 {posts.filter(p => p.status === 'DRAFT').length}
               </h3>
               <p className="text-muted mb-0">Bản nháp</p>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="text-center">
-            <Card.Body>
-              <h3 className="text-info">
-                {posts.reduce((sum, p) => sum + (p.views || 0), 0)}
-              </h3>
-              <p className="text-muted mb-0">Tổng lượt xem</p>
             </Card.Body>
           </Card>
         </Col>
@@ -207,8 +197,7 @@ const BlogManagement = () => {
                     <th style={{width: '12%', textAlign: 'center'}}>Tác giả</th>
                     <th style={{width: '10%', textAlign: 'center'}}>Trạng thái</th>
                     <th style={{width: '15%', textAlign: 'center'}}>Ngày tạo</th>
-                    <th style={{width: '8%', textAlign: 'center'}}>Lượt xem</th>
-                    <th style={{width: '20%', textAlign: 'center'}}>Thao tác</th>
+                    <th style={{width: '28%', textAlign: 'center'}}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,10 +223,6 @@ const BlogManagement = () => {
                       <td style={{textAlign: 'center', verticalAlign: 'middle'}}>
                         <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                         {formatDate(post.createdAt || post.createdDate)}
-                      </td>
-                      <td style={{textAlign: 'center', verticalAlign: 'middle'}}>
-                        <FontAwesomeIcon icon={faEye} className="me-1" />
-                        {post.views || 0}
                       </td>
                       <td style={{textAlign: 'center', verticalAlign: 'middle'}}>
                         <div className="btn-group">
