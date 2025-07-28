@@ -917,3 +917,69 @@
     gap: 1rem;
   }
 }
+
+/* Modal Button Styling */
+.title-link-btn,
+.featured-link-btn,
+.popular-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  line-height: inherit;
+}
+
+.title-link-btn:hover,
+.title-link-btn:focus {
+  color: #4a90e2;
+  text-decoration: none;
+  outline: none;
+}
+
+.featured-link-btn:hover,
+.featured-link-btn:focus {
+  color: #4a90e2;
+  text-decoration: none;
+  outline: none;
+}
+
+.popular-link-btn:hover,
+.popular-link-btn:focus {
+  color: #4a90e2;
+  text-decoration: none;
+  outline: none;
+}
+
+/* Focus states for accessibility */
+.title-link-btn:focus-visible,
+.featured-link-btn:focus-visible,
+.popular-link-btn:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Ensure proper text styling inheritance */
+.post-title .title-link-btn {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.featured-title .featured-link-btn {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.popular-title .popular-link-btn {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
