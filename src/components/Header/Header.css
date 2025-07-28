@@ -262,6 +262,8 @@
   flex: 1;
   justify-content: flex-start;
   margin-top: 50px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Phần 3: Actions */
@@ -313,6 +315,14 @@
   padding: 0;
   gap: 5px;
   margin: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.main-nav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .nav-item {
@@ -324,6 +334,8 @@
   padding: 12px 15px;
   border-radius: 8px;
   min-height: 50px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-item:hover {
@@ -512,7 +524,7 @@
   }
 
   .nav-item {
-    padding: 8px 12px;
+    padding: 8px 10px;
   }
 
   .nav-item span {
@@ -522,6 +534,17 @@
   .appointment-btn {
     padding: 10px 16px;
     font-size: 12px;
+  }
+}
+
+/* Medium screens - adjust for CUSTOMER role extra nav item */
+@media (max-width: 1400px) {
+  .nav-item {
+    padding: 10px 12px;
+  }
+  
+  .nav-item span {
+    font-size: 13px;
   }
 }
 

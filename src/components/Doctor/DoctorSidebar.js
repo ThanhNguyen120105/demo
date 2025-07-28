@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChartLine, faCalendarCheck, faUserMd,
-  faClipboardList, faQuestionCircle
+  faClipboardList
 } from '@fortawesome/free-solid-svg-icons';
 import { doctorAPI, appointmentAPI } from '../../services/api';
 import { getUserInfoFromToken } from '../../utils/jwtUtils';
@@ -208,6 +208,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
             <Badge bg="warning" className="ms-auto">{appointmentsCount}</Badge>
           )}
         </ListGroup.Item>
+        {/* 
         <ListGroup.Item 
           action 
           active={activeTab === 'unanswered-questions'} 
@@ -220,6 +221,7 @@ const DoctorSidebar = ({ activeTab, setActiveTab, unansweredCount = 5 }) => {
             <Badge bg="danger" className="ms-auto">{unansweredCount}</Badge>
           )}
         </ListGroup.Item>
+        */}
       </ListGroup>
 
     </Col>

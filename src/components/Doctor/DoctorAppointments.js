@@ -191,6 +191,7 @@ const DoctorAppointments = () => {
   const [showCreateReportConfirmModal, setShowCreateReportConfirmModal] = useState(false);
   const [showCompleteAppointmentConfirmModal, setShowCompleteAppointmentConfirmModal] = useState(false);
   const [showSaveReportConfirmModal, setShowSaveReportConfirmModal] = useState(false);
+  const [showNoLogModal, setShowNoLogModal] = useState(false);
   const [pendingActionAppointment, setPendingActionAppointment] = useState(null);
     // Load appointments từ API khi component mount
   useEffect(() => {
@@ -225,7 +226,7 @@ const DoctorAppointments = () => {
               let serviceId = detailedAppt?.serviceId || appointment?.serviceId;
               
               // Tên bệnh nhân từ alternativeName (ưu tiên từ chi tiết), fallback về ID
-              const patientName = detailedAppt.alternativeName || appointment.alternativeName || `Bệnh nhân #${detailedAppt.userId || appointment.userId || appointment.id}`;
+              const patientName = formatPatientName(detailedAppt);
               
               // Tên dịch vụ từ appointmentService (ưu tiên từ chi tiết)
               const serviceName = detailedAppt.appointmentService || getServiceDisplay({ serviceId, appointmentType: detailedAppt.appointmentType }, getServiceNameById);
@@ -268,6 +269,7 @@ const DoctorAppointments = () => {
                 appointmentService: detailedAppt.appointmentService, // Tên dịch vụ từ API
                 consultationType: detailedAppt.consultationType || appointment.consultationType, // Thêm consultationType
                 isAnonymous: detailedAppt.isAnonymous !== undefined ? detailedAppt.isAnonymous : appointment.isAnonymous, // Đảm bảo isAnonymous được giữ nguyên
+                isOnline: detailedAppt.isOnline !== undefined ? detailedAppt.isOnline : appointment.isOnline, // Đảm bảo isOnline được giữ nguyên
                 detailsLoaded: true
               });
             } else {
@@ -277,7 +279,7 @@ const DoctorAppointments = () => {
               // Mapping serviceId từ appointmentType
               let serviceId = appointment?.serviceId;
               
-              const patientName = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
+              const patientName = formatPatientName(appointment);
               const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType }, getServiceNameById);
               
               detailedAppointments.push({
@@ -304,7 +306,7 @@ const DoctorAppointments = () => {
           } catch (detailError) {
             console.error('Error getting appointment details:', detailError);
             // Nếu lỗi, vẫn thêm appointment với dữ liệu cơ bản
-            const patientName = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
+                          const patientName = formatPatientName(appointment);
             let serviceId = appointment?.serviceId;
             const serviceName = getServiceDisplay({ serviceId, appointmentType: appointment.appointmentType }, getServiceNameById);
             
@@ -1263,7 +1265,7 @@ const DoctorAppointments = () => {
               userId: appointment.userId,
               appointmentId: appointment.id,
               patientInfo: {
-                name: appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`,
+                name: formatPatientName(appointment),
                 customerId: appointment.userId || appointment.id
               },
               visitDate: appointment.date,
@@ -1357,7 +1359,7 @@ const DoctorAppointments = () => {
           userId: appointment.userId || appointment.id,
           appointmentId: appointment.id,
           patientInfo: {
-            name: appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`,
+                            name: formatPatientName(appointment),
             customerId: appointment.userId || appointment.id
           },
           visitDate: appointment.date,
@@ -1430,7 +1432,7 @@ const DoctorAppointments = () => {
       
       console.log('📋 Appointment found:', {
         id: pendingActionAppointment.id,
-        patientName: pendingActionAppointment.alternativeName,
+                        patientName: formatPatientName(pendingActionAppointment),
         currentStatus: pendingActionAppointment.status,
         originalStatus: pendingActionAppointment.originalStatus,
         hasmedicalResult: !!pendingActionAppointment.medicalResultId
@@ -1439,8 +1441,8 @@ const DoctorAppointments = () => {
       // � Get existing video call log URL if already uploaded
       let videoCallLogURL = null;
       
-      if (pendingActionAppointment.isAnonymous === true) {
-        console.log('📹 Anonymous appointment - checking for uploaded log URL...');
+      if (pendingActionAppointment.isOnline === true) {
+        console.log('📹 Online appointment - checking for uploaded log URL...');
         
         // Check if log was already uploaded via "Tải Log" button
         const metadataKey = `video_call_log_metadata_${pendingActionAppointment.id}`;
@@ -1638,6 +1640,13 @@ const DoctorAppointments = () => {
     }
   };
 
+  // Helper function để format tên bệnh nhân với thông tin ẩn danh
+  const formatPatientName = (appointment) => {
+    if (!appointment) return 'Không xác định';
+    const name = appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`;
+    return name;
+  };
+
   // Hàm xử lý video call
   const handleVideoCall = (appointment) => {
     // Kiểm tra xem có thể thực hiện video call không
@@ -1672,7 +1681,7 @@ const DoctorAppointments = () => {
           // Format log data để hiển thị - tính thời gian đúng theo yêu cầu
           const formattedLogData = {
             appointmentId: appointment.id,
-            patientName: appointment.alternativeName || `Bệnh nhân #${appointment.userId}`,
+            patientName: formatPatientName(appointment),
             doctorName: 'Bác sĩ khám',
             startTime: calculateRealStartTime(logData),
             endTime: calculateRealEndTime(logData),
@@ -1795,14 +1804,16 @@ const DoctorAppointments = () => {
       const localStorageLog = localStorage.getItem(logKey);
       
       if (!localStorageLog) {
-        alert('❌ Không tìm thấy log cuộc gọi video trong localStorage.\n\nVui lòng thực hiện cuộc gọi video trước.');
+        // Hiển thị modal thân thiện thay vì alert
+        setShowNoLogModal(true);
+        setSelectedAppointment(appointment);
         return;
       }
 
       // Confirm before upload
       const confirmUpload = window.confirm(
         `📤 Tải log cuộc gọi video lên Supabase Storage?\n\n` +
-        `📋 Lịch hẹn: ${appointment.alternativeName || appointment.userName}\n` +
+        `📋 Lịch hẹn: ${formatPatientName(appointment)}\n` +
         `📅 Ngày: ${appointment.appointmentDate}\n\n` +
         `Log sẽ được lưu vĩnh viễn trên server.`
       );
@@ -2010,7 +2021,7 @@ const DoctorAppointments = () => {
                               <div className="appointment-info-line">
                                 <strong>Giờ khám:</strong> {`${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`}
                               </div>                              <div className="appointment-info-line">
-                                <strong>Bệnh nhân:</strong> {appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`}
+                                <strong>Bệnh nhân:</strong> {formatPatientName(appointment)}{appointment.isAnonymous ? ' (ẩn danh)' : ''}
                               </div>
                               <div className="appointment-info-line">
                                 <strong>Loại khám:</strong> {getAppointmentTypeDisplay(appointment.appointmentType || appointment.type)}
@@ -2064,70 +2075,69 @@ const DoctorAppointments = () => {
                             </div>
                             
                             <div className="appointment-actions mt-2">
-                              {/* Hiển thị "chi tiết lịch hẹn" luôn có, "videoCall" chỉ cho bệnh nhân ẩn danh */}
-                              <div className="d-flex align-items-center gap-2">
+                              {/* Hàng 1: Chi tiết lịch hẹn và Khám trực tuyến */}
+                              <div className="action-row">
                                 <Button
                                   variant="outline-secondary" 
                                   size="sm" 
-                                  className={`action-btn ${appointment.isAnonymous === true ? 'flex-grow-1' : 'w-100'}`}
+                                  className="action-btn"
                                   onClick={() => handleShowAppointmentDetails(appointment)}
                                 >
                                   <FontAwesomeIcon icon={faClipboardList} className="me-1" />
                                   Chi tiết lịch hẹn
                                 </Button>
                                 
-                                {/* Chỉ hiển thị Video Call cho bệnh nhân khám ẩn danh */}
-                                {appointment.isAnonymous === true && (
-                                  <>
-                                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
-                                    
-                                    <Button
-                                      variant={canMakeVideoCall(appointment) ? "success" : "secondary"} 
-                                      size="sm" 
-                                      className="action-btn flex-grow-1"
-                                      onClick={() => handleVideoCall(appointment)}
-                                      disabled={!canMakeVideoCall(appointment)}
-                                      title={!canMakeVideoCall(appointment) ? 
-                                        "Video Call chỉ khả dụng trong khung giờ khám của ngày hôm nay" : 
-                                        "Bắt đầu Video Call"}
-                                    >
-                                      <FontAwesomeIcon icon={faVideo} className="me-1" />
-                                      Video Call
-                                      {!canMakeVideoCall(appointment) && (
-                                        <small className="d-block" style={{ fontSize: '0.7rem', marginTop: '2px' }}>
-                                          (Chưa đến giờ)
-                                        </small>
-                                      )}
-                                    </Button>
-                                    
-                                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
-                                    
-                                    <Button
-                                      variant="outline-info" 
-                                      size="sm" 
-                                      className="action-btn flex-grow-1"
-                                      onClick={() => handleViewVideoCallLog(appointment)}
-                                      title="Xem nhật ký cuộc gọi video"
-                                    >
-                                      <FontAwesomeIcon icon={faFileAlt} className="me-1" />
-                                      Nhật ký cuộc gọi
-                                    </Button>
-                                    
-                                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>|</span>
-                                    
-                                    <Button
-                                      variant="warning" 
-                                      size="sm" 
-                                      className="action-btn flex-grow-1"
-                                      onClick={() => handleUploadVideoCallLog(appointment)}
-                                      title="Tải log lên Supabase Storage"
-                                    >
-                                      <FontAwesomeIcon icon={faUpload} className="me-1" />
-                                      Tải Log
-                                    </Button>
-                                  </>
+                                {/* Chỉ hiển thị Khám trực tuyến cho bệnh nhân khám trực tuyến */}
+                                {appointment.isOnline === true ? (
+                                  <Button
+                                    variant={canMakeVideoCall(appointment) ? "success" : "secondary"} 
+                                    size="sm" 
+                                    className="action-btn"
+                                    onClick={() => handleVideoCall(appointment)}
+                                    disabled={!canMakeVideoCall(appointment)}
+                                    title={!canMakeVideoCall(appointment) ? 
+                                      "Khám trực tuyến chỉ khả dụng trong khung giờ khám của ngày hôm nay" : 
+                                      "Bắt đầu khám trực tuyến"}
+                                  >
+                                    <FontAwesomeIcon icon={faVideo} className="me-1" />
+                                    Khám trực tuyến
+                                    {!canMakeVideoCall(appointment) && (
+                                      <small className="d-block" style={{ fontSize: '0.7rem', marginTop: '2px' }}>
+                                        (Chưa đến giờ)
+                                      </small>
+                                    )}
+                                  </Button>
+                                ) : (
+                                  <div className="action-btn"></div> // Placeholder để giữ layout
                                 )}
                               </div>
+                              
+                              {/* Hàng 2: Nhật ký cuộc gọi và Tải nhật ký cuộc gọi - chỉ cho bệnh nhân khám trực tuyến */}
+                              {appointment.isOnline === true && (
+                                <div className="action-row">
+                                  <Button
+                                    variant="outline-info" 
+                                    size="sm" 
+                                    className="action-btn"
+                                    onClick={() => handleViewVideoCallLog(appointment)}
+                                    title="Xem nhật ký cuộc gọi video"
+                                  >
+                                    <FontAwesomeIcon icon={faFileAlt} className="me-1" />
+                                    Nhật ký cuộc gọi
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="warning" 
+                                    size="sm" 
+                                    className="action-btn"
+                                    onClick={() => handleUploadVideoCallLog(appointment)}
+                                    title="Tải nhật ký cuộc gọi lên Supabase Storage"
+                                  >
+                                    <FontAwesomeIcon icon={faUpload} className="me-1" />
+                                    Tải nhật ký cuộc gọi
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -2163,7 +2173,7 @@ const DoctorAppointments = () => {
                         <tr key={appointment.id}>
                           <td>{`${appointment.slotStartTime || '00:00'} - ${appointment.slotEndTime || '00:00'}`}</td>
                           <td>
-                            {appointment.alternativeName || `Bệnh nhân #${appointment.userId || appointment.id}`}
+                            {formatPatientName(appointment)}{appointment.isAnonymous ? ' (ẩn danh)' : ''}
                           </td>
                           <td>
                             <Button 
@@ -2184,8 +2194,8 @@ const DoctorAppointments = () => {
                               <FontAwesomeIcon icon={faEdit} className="me-1" />
                               Chỉnh sửa báo cáo y tế
                             </Button>
-                            {/* Hiển thị nút Nhật ký cuộc gọi cho bệnh nhân ẩn danh */}
-                            {appointment.isAnonymous === true && (
+                            {/* Hiển thị nút Nhật ký cuộc gọi cho bệnh nhân khám trực tuyến */}
+                            {appointment.isOnline === true && (
                               <Button 
                                 variant="outline-success" 
                                 size="sm"
@@ -2275,7 +2285,7 @@ const DoctorAppointments = () => {
                 <p className="mb-3">Bạn có chắc chắn muốn tạo báo cáo y tế cho lịch hẹn này?</p>
                 <div className="appointment-info p-3 bg-light rounded">
                   <div className="mb-2">
-                    <strong>👤 Bệnh nhân:</strong> {pendingActionAppointment.alternativeName || `Bệnh nhân #${pendingActionAppointment.userId}`}
+                    <strong>👤 Bệnh nhân:</strong> {formatPatientName(pendingActionAppointment)}{pendingActionAppointment.isAnonymous ? ' (ẩn danh)' : ''}
                   </div>
                   <div className="mb-2">
                     <strong>📅 Ngày khám:</strong> {pendingActionAppointment.date}
@@ -2336,7 +2346,7 @@ const DoctorAppointments = () => {
                 <p className="mb-3">Bạn có chắc chắn muốn hoàn thành lịch hẹn này?</p>
                 <div className="appointment-info p-3 bg-light rounded">
                   <div className="mb-2">
-                    <strong>👤 Bệnh nhân:</strong> {pendingActionAppointment.alternativeName || `Bệnh nhân #${pendingActionAppointment.userId}`}
+                    <strong>👤 Bệnh nhân:</strong> {formatPatientName(pendingActionAppointment)}{pendingActionAppointment.isAnonymous ? ' (ẩn danh)' : ''}
                   </div>
                   <div className="mb-2">
                     <strong>📅 Ngày khám:</strong> {pendingActionAppointment.date}
@@ -2364,8 +2374,8 @@ const DoctorAppointments = () => {
                   </div>
                 )}
                 
-                {/* Hiển thị thông báo về video call log cho bệnh nhân ẩn danh */}
-                {pendingActionAppointment.isAnonymous === true && (
+                {/* Hiển thị thông báo về video call log cho bệnh nhân khám trực tuyến */}
+                {pendingActionAppointment.isOnline === true && (
                   <div className="alert alert-info mt-3">
                     <FontAwesomeIcon icon={faVideo} className="me-2" />
                     <strong>Video Call Log:</strong> Nếu có log cuộc gọi video, hệ thống sẽ tự động tải lên Supabase Storage và đính kèm vào lịch hẹn khi hoàn thành.
@@ -2414,7 +2424,7 @@ const DoctorAppointments = () => {
                 <p className="mb-3">Bạn có chắc chắn muốn lưu báo cáo y tế này?</p>
                 <div className="appointment-info p-3 bg-light rounded">
                   <div className="mb-2">
-                    <strong>👤 Bệnh nhân:</strong> {selectedAppointment.alternativeName || `Bệnh nhân #${selectedAppointment.userId}`}
+                    <strong>👤 Bệnh nhân:</strong> {formatPatientName(selectedAppointment)}{selectedAppointment.isAnonymous ? ' (ẩn danh)' : ''}
                   </div>
                   <div className="mb-2">
                     <strong>📅 Ngày khám:</strong> {selectedAppointment.date}
@@ -2585,6 +2595,69 @@ const DoctorAppointments = () => {
               }}
             >
               Đóng
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Modal thông báo không tìm thấy log */}
+        <Modal 
+          show={showNoLogModal} 
+          onHide={() => setShowNoLogModal(false)} 
+          centered
+          className="no-log-modal"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FontAwesomeIcon icon={faExclamationTriangle} className="text-warning me-2" />
+              Không tìm thấy nhật ký cuộc gọi
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {selectedAppointment && (
+              <div className="text-center">
+                <div className="mb-3">
+                  <FontAwesomeIcon icon={faFileAlt} size="3x" className="text-muted mb-3" />
+                  <h5>Chưa có nhật ký cuộc gọi</h5>
+                  <p className="text-muted">
+                    Vui lòng thực hiện cuộc gọi video trước khi tải nhật ký.
+                  </p>
+                </div>
+                
+                <div className="alert alert-info">
+                  <div className="d-flex align-items-start">
+                    <FontAwesomeIcon icon={faInfoCircle} className="me-2 mt-1" />
+                    <div>
+                      <strong>Hướng dẫn:</strong>
+                      <ul className="mb-0 mt-2">
+                        <li>Nhấn nút "Khám trực tuyến" để bắt đầu cuộc gọi</li>
+                        <li>Thực hiện cuộc gọi video với bệnh nhân</li>
+                        <li>Sau khi kết thúc, nhật ký sẽ được lưu tự động</li>
+                        <li>Quay lại nhấn "Tải nhật ký cuộc gọi" để cập nhật nhật ký cuộc gọi</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowNoLogModal(false)}
+            >
+              Đóng
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={() => {
+                setShowNoLogModal(false);
+                if (selectedAppointment) {
+                  handleVideoCall(selectedAppointment);
+                }
+              }}
+            >
+              <FontAwesomeIcon icon={faVideo} className="me-2" />
+              Bắt đầu cuộc gọi
             </Button>
           </Modal.Footer>
         </Modal>

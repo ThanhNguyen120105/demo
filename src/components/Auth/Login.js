@@ -10,7 +10,7 @@ import './Auth.css';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading, error, clearError, isAuthenticated, user } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated, user, setError } = useAuth();
   
   const [formData, setFormData] = useState({
     email: location.state?.email || '',
@@ -61,21 +61,41 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Ngăn form tự động submit
     
+    // Validate form
     if (!email || !password) {
+      clearError();
+      setError('Vui lòng điền đầy đủ email và mật khẩu');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      clearError();
+      setError('Email không hợp lệ');
       return;
     }
     
     try {
       const result = await login({ email, password });
       
-      if (result.success) {
-        // Chuyển hướng được xử lý trong useEffect
-        console.log('Login successful');
+      if (!result.success) {
+        // Hiển thị lỗi từ API
+        setError(result.message || 'Đăng nhập thất bại');
+        return; // Thêm return để ngăn chặn việc tiếp tục xử lý
       }
+
+      // Nếu đăng nhập thành công
+      setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
+      // Chuyển hướng được xử lý trong useEffect
+      console.log('Login successful');
+      
     } catch (error) {
       console.error('Login error:', error);
+      // Hiển thị lỗi từ API hoặc lỗi mặc định
+      setError(error.message || 'Đã xảy ra lỗi khi đăng nhập');
     }
   };
 
@@ -110,7 +130,7 @@ const Login = () => {
                   </Alert>
                 )}
                 
-                <Form onSubmit={handleSubmit}>
+                <Form onSubmit={handleSubmit} noValidate>
                   <Form.Group className="mb-4">
                     <Form.Label>Địa chỉ Email</Form.Label>
                     <InputGroup>
@@ -174,8 +194,8 @@ const Login = () => {
                       </>
                     ) : (
                       <>
-                    <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
-                    Đăng Nhập
+                        <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
+                        Đăng Nhập
                       </>
                     )}
                   </Button>

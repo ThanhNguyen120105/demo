@@ -381,7 +381,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
                       <Card className="h-100 shadow-sm border-0">                        <Card.Header className="bg-light">
                           <div className="d-flex justify-content-between align-items-center">                            <h6 className="mb-0">
                               <FontAwesomeIcon icon={faUserMd} className="me-2 text-primary" />
-                              {appointment.userName || appointment.alternativeName || 'Bệnh nhân'}
+                              {appointment.isAnonymous ? 'Ẩn danh' : (appointment.alternativeName || appointment.userName || 'Bệnh nhân')}
                             </h6>
                             {getStatusBadge(appointment)}
                           </div>
@@ -474,19 +474,31 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
             <Row>
               <Col md={6}>
                 <h6 className="text-primary">Thông tin bệnh nhân</h6>
-                <p><strong>Họ tên:</strong> {appointmentDetails.userName || appointmentDetails.alternativeName || 'N/A'}</p>
-                <p><strong>Số điện thoại:</strong> {appointmentDetails.alternativePhoneNumber || 'N/A'}</p>
-                {/* TODO: Uncomment when backend provides email data */}
-                {/* <p><strong>Email:</strong> {appointmentDetails.email || 'N/A'}</p> */}
-
+                <p><strong>Họ tên:</strong> {appointmentDetails.alternativeName || 'N/A'}</p>
+                {!appointmentDetails.isAnonymous && (
+                  <>
+                    <p><strong>Số điện thoại:</strong> {appointmentDetails.alternativePhoneNumber || 'N/A'}</p>
+                    <p><strong>Email:</strong> {appointmentDetails.userEmail || 'N/A'}</p>
+                    <p><strong>Ngày sinh:</strong> {appointmentDetails.birthdate ? formatDate(appointmentDetails.birthdate) : 'N/A'}</p>
+                    <p><strong>Giới tính:</strong> {
+                      appointmentDetails.gender === 'MALE' ? 'Nam' : 
+                      appointmentDetails.gender === 'FEMALE' ? 'Nữ' : 
+                      'N/A'
+                    }</p>
+                  </>
+                )}
+                {appointmentDetails.isAnonymous && (
+                  <p className="text-muted">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+                    Thông tin cá nhân được ẩn do khám ẩn danh
+                  </p>
+                )}
               </Col>
               <Col md={6}>
                 <h6 className="text-primary">Thông tin lịch hẹn</h6>
                 <p><strong>Ngày khám:</strong> {formatDate(appointmentDetails.appointmentDate)}</p>
                 <p><strong>Giờ khám:</strong> {appointmentDetails.slotStartTime} - {appointmentDetails.slotEndTime}</p>
-                {appointmentDetails.slotIndex && (
-                  <p><strong>Khung giờ:</strong> Slot {appointmentDetails.slotIndex}</p>
-                )}
+
                 <p><strong>Dịch vụ:</strong> {appointmentDetails.appointmentService || 'N/A'}</p>
                 <p><strong>Loại khám:</strong> {
                   appointmentDetails.appointmentType === 'INITIAL' ? 'Khám ban đầu' : 
@@ -527,9 +539,25 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
             <Row>
               <Col md={6}>
                 <h6 className="text-primary">Thông tin bệnh nhân</h6>
-                <p><strong>Họ tên:</strong> {selectedAppointment.user?.fullName || selectedAppointment.patientInfo?.fullName || selectedAppointment.patientName || 'N/A'}</p>
-                <p><strong>Số điện thoại:</strong> {selectedAppointment.user?.phoneNumber || selectedAppointment.patientInfo?.phoneNumber || selectedAppointment.phone || 'N/A'}</p>
-                <p><strong>Email:</strong> {selectedAppointment.user?.email || selectedAppointment.patientInfo?.email || 'N/A'}</p>
+                <p><strong>Họ tên:</strong> {selectedAppointment.alternativeName || 'N/A'}</p>
+                {!selectedAppointment.isAnonymous && (
+                  <>
+                    <p><strong>Số điện thoại:</strong> {selectedAppointment.alternativePhoneNumber || selectedAppointment.user?.phoneNumber || selectedAppointment.patientInfo?.phoneNumber || selectedAppointment.phone || 'N/A'}</p>
+                                         <p><strong>Email:</strong> {selectedAppointment.userEmail || 'N/A'}</p>
+                    <p><strong>Ngày sinh:</strong> {selectedAppointment.birthdate ? formatDate(selectedAppointment.birthdate) : 'N/A'}</p>
+                    <p><strong>Giới tính:</strong> {
+                      selectedAppointment.gender === 'MALE' ? 'Nam' : 
+                      selectedAppointment.gender === 'FEMALE' ? 'Nữ' : 
+                      'N/A'
+                    }</p>
+                  </>
+                )}
+                {selectedAppointment.isAnonymous && (
+                  <p className="text-muted">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+                    Thông tin cá nhân được ẩn do khám ẩn danh
+                  </p>
+                )}
                 {selectedAppointment.patientInfo?.customerId && (
                   <p><strong>Mã BHYT:</strong> {selectedAppointment.patientInfo.customerId}</p>
                 )}
@@ -574,7 +602,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
         </Modal.Header>        <Modal.Body>
           {selectedAppointment && (
             <>
-              <p>Bạn có chắc chắn muốn <strong>DUYỆT</strong> lịch hẹn của <strong>{selectedAppointment.user?.fullName || selectedAppointment.patientInfo?.fullName || selectedAppointment.patientName}</strong>?</p>
+              <p>Bạn có chắc chắn muốn <strong>DUYỆT</strong> lịch hẹn này</p>
               <p className="text-muted small">Lịch hẹn sẽ chuyển từ trạng thái PENDING sang ACCEPTED.</p>
               <Form.Group>
                 <Form.Label>Ghi chú (tùy chọn)</Form.Label>
@@ -618,7 +646,7 @@ const AppointmentApproval = () => {  const [appointments, setAppointments] = use
           </Modal.Title>
         </Modal.Header>        <Modal.Body>          {selectedAppointment && (
             <>
-              <p>Bạn có chắc chắn muốn <strong>TỪ CHỐI</strong> lịch hẹn của <strong>{selectedAppointment.user?.fullName || selectedAppointment.patientInfo?.fullName || selectedAppointment.patientName}</strong>?</p>
+              <p>Bạn có chắc chắn muốn <strong>TỪ CHỐI</strong> lịch hẹn này</p>
               <p className="text-muted small">Lịch hẹn sẽ chuyển từ trạng thái PENDING sang DENIED.</p>
               <Form.Group>
                 <Form.Label>Lý do từ chối <span className="text-danger">*</span></Form.Label>

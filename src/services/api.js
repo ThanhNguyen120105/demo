@@ -255,11 +255,27 @@ export const authAPI = {
       let errorMessage = 'Đã xảy ra lỗi khi đăng nhập';
       
       if (error.response?.status === 401) {
-        errorMessage = 'Email hoặc mật khẩu không đúng';
+        errorMessage = 'Sai tài khoản hoặc mật khẩu';
       } else if (error.response?.status === 400) {
         errorMessage = 'Thông tin đăng nhập không hợp lệ';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Tài khoản không có quyền truy cập';
       } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+        // Kiểm tra các trường hợp lỗi cụ thể từ backend
+        const backendMessage = error.response.data.message.toLowerCase();
+        if (backendMessage.includes('password') || backendMessage.includes('mật khẩu')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('email') || backendMessage.includes('not found')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('locked') || backendMessage.includes('khóa')) {
+          errorMessage = 'Tài khoản đã bị khóa';
+        } else if (backendMessage.includes('authentication')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('exception')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        }
       }
       
       return {
@@ -404,7 +420,8 @@ export const authAPI = {
         email: credentials.email,
         password: credentials.password
       });
-        console.log('LoginAsDoctor API response:', response.data);
+      
+      console.log('LoginAsDoctor API response:', response.data);
       console.log('Full response object:', response);
       console.log('Response data keys:', response.data ? Object.keys(response.data) : 'No data');
       
@@ -496,13 +513,27 @@ export const authAPI = {
       let errorMessage = 'Đã xảy ra lỗi khi đăng nhập';
       
       if (error.response?.status === 401) {
-        errorMessage = 'Email hoặc mật khẩu không đúng';
+        errorMessage = 'Sai tài khoản hoặc mật khẩu';
       } else if (error.response?.status === 400) {
         errorMessage = 'Thông tin đăng nhập không hợp lệ';
       } else if (error.response?.status === 403) {
         errorMessage = 'Tài khoản không có quyền truy cập';
       } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+        // Kiểm tra các trường hợp lỗi cụ thể từ backend
+        const backendMessage = error.response.data.message.toLowerCase();
+        if (backendMessage.includes('password') || backendMessage.includes('mật khẩu')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('email') || backendMessage.includes('not found')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('locked') || backendMessage.includes('khóa')) {
+          errorMessage = 'Tài khoản đã bị khóa';
+        } else if (backendMessage.includes('authentication')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('exception')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        }
       }
       
       return {
@@ -931,7 +962,6 @@ export const appointmentAPI = {
     }
   },
 
-<<<<<<< HEAD
   // Lấy chi tiết appointment theo ID
   getAppointmentById: async (appointmentId) => {
     try {
@@ -964,10 +994,6 @@ export const appointmentAPI = {
   },
   // Cập nhật trạng thái appointment (có thể kèm logURL)
   updateAppointmentStatus: async (appointmentId, status, logURL = null) => {
-=======
-  // Cập nhật trạng thái appointment
-  updateAppointmentStatus: async (appointmentId, status) => {
->>>>>>> ea74d97576ee67d3c79b9e6546b66855a3ef9fdc
     console.log('=== DEBUG: Starting appointment status update ===');
     console.log('Appointment ID:', appointmentId);
     console.log('New Status:', status);

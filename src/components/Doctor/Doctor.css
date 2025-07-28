@@ -536,8 +536,33 @@
 
 .appointment-actions {
   display: flex;
-  gap: 5px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 5px;
+}
+
+/* Layout 2x2 cho các nút action */
+.appointment-actions .action-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.appointment-actions .action-row .action-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 576px) {
+  .appointment-actions .action-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .appointment-actions .action-row .action-btn {
+    width: 100%;
+  }
 }
 
 .action-btn {

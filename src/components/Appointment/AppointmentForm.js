@@ -47,7 +47,8 @@ const AppointmentForm = () => {
     name: '',
     gender: '',
     registrationType: 'hiv-care',
-    consultationType: 'direct' // direct: khám trực tiếp, anonymous: khám ẩn danh
+    isOnline: false, // false: khám trực tiếp, true: khám trực tuyến
+    isAnonymous: false // false: hiển thị thông tin, true: ẩn thông tin cá nhân
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -381,9 +382,9 @@ const AppointmentForm = () => {
       }
       setFormStep(2); // Navigate to next step
     } else if (formStep === 2) {
-      // Validation: kiểm tra consultationType
-      if (!formData.consultationType) {
-        alert('Vui lòng chọn loại hình khám');
+      // Validation: kiểm tra isOnline có được set chưa (có thể true hoặc false)
+      if (formData.isOnline === undefined || formData.isOnline === null) {
+        alert('Vui lòng chọn hình thức khám');
         return;
       }
       setFormStep(3);    } else if (formStep === 3) {
@@ -453,8 +454,9 @@ const AppointmentForm = () => {
         gender: formData.gender,
         notes: formData.healthIssues || '',
         doctorId: formData.doctor || null, // Giữ nguyên string UUID, không parseInt
-        serviceId: parseInt(formData.serviceId), // Service ID thực từ user chọn (1 hoặc 2)
-        anonymous: formData.consultationType === 'anonymous', // true nếu khám ẩn danh
+        serviceId: formData.serviceId, // Service ID thực từ user chọn (string theo API mới)
+        isAnonymous: formData.isAnonymous, // true nếu tick vào checkbox ẩn danh
+        isOnline: formData.isOnline, // true nếu chọn khám trực tuyến, false nếu chọn khám trực tiếp
         slotEntityId: formData.time // Giữ nguyên slotId từ database (có thể là string)
       };
         console.log('Creating appointment with schema-compliant data:', appointmentData);
@@ -462,6 +464,11 @@ const AppointmentForm = () => {
       console.log('Service ID:', formData.serviceId, 'Type:', typeof formData.serviceId);
       console.log('Slot ID:', formData.time, 'Type:', typeof formData.time);
       console.log('Doctor ID:', formData.doctor, 'Type:', typeof formData.doctor);
+      console.log('=== DEBUG: Online/Anonymous values ===');
+      console.log('FormData isOnline:', formData.isOnline, 'Type:', typeof formData.isOnline);
+      console.log('FormData isAnonymous:', formData.isAnonymous, 'Type:', typeof formData.isAnonymous);
+      console.log('API isOnline field:', appointmentData.isOnline, 'Type:', typeof appointmentData.isOnline);
+      console.log('API isAnonymous field:', appointmentData.isAnonymous, 'Type:', typeof appointmentData.isAnonymous);
       
       // Strict validation - không dùng fallback
       if (!appointmentData.serviceId) {
@@ -847,85 +854,108 @@ const AppointmentForm = () => {
           {/* Bước 2: Chọn loại hình khám */}
           {formStep === 2 && (
             <div className="form-step-container animated fadeIn">
-              <h4 className="text-center mb-4">Bước 2: Chọn loại hình khám</h4>
+              <h4 className="text-center mb-4">Bước 2: Chọn hình thức khám</h4>
 
+              {/* Chọn hình thức khám: Trực tiếp hoặc Trực tuyến */}
               <div className="form-group">
                 <Form.Label>
                   <FontAwesomeIcon icon={faUserMd} className="me-1" />
-                  Loại hình khám *
+                  Hình thức khám *
                 </Form.Label>
                 <div className="consultation-type-options">
                   <div className="d-flex gap-3">
                     <div 
-                      className={`consultation-card ${formData.consultationType === 'direct' ? 'active' : ''}`}
-                      onClick={() => setFormData({...formData, consultationType: 'direct'})}
+                      className={`consultation-card ${formData.isOnline === false ? 'active' : ''}`}
+                      onClick={() => setFormData({...formData, isOnline: false})}
                       style={{
                         border: '2px solid #e9ecef',
                         borderRadius: '12px',
                         padding: '20px',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        background: formData.consultationType === 'direct' ? '#f8f9ff' : 'white',
-                        borderColor: formData.consultationType === 'direct' ? '#007bff' : '#e9ecef',
-                        boxShadow: formData.consultationType === 'direct' ? '0 4px 15px rgba(0,123,255,0.2)' : 'none',
+                        background: formData.isOnline === false ? '#f8f9ff' : 'white',
+                        borderColor: formData.isOnline === false ? '#007bff' : '#e9ecef',
+                        boxShadow: formData.isOnline === false ? '0 4px 15px rgba(0,123,255,0.2)' : 'none',
                         flex: 1,
                         textAlign: 'center'
                       }}
                     >
-                      <Form.Check
-                        type="radio"
-                        id="direct-consultation"
-                        name="consultationType"
-                        value="direct"
-                        checked={formData.consultationType === 'direct'}
-                        onChange={handleInputChange}
-                        style={{ display: 'none' }}
-                      />
                       <FontAwesomeIcon icon={faUser} size="2x" className="mb-3" style={{ color: '#007bff' }} />
                       <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
                         Khám trực tiếp
                       </div>
+                      <small className="d-block text-muted mt-1">
+                        Đến trực tiếp tại bệnh viện
+                      </small>
                     </div>
 
                     <div 
-                      className={`consultation-card ${formData.consultationType === 'anonymous' ? 'active' : ''}`}
-                      onClick={() => setFormData({...formData, consultationType: 'anonymous'})}
+                      className={`consultation-card ${formData.isOnline === true ? 'active' : ''}`}
+                      onClick={() => setFormData({...formData, isOnline: true})}
                       style={{
                         border: '2px solid #e9ecef',
                         borderRadius: '12px',
                         padding: '20px',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        background: formData.consultationType === 'anonymous' ? '#f8f9ff' : 'white',
-                        borderColor: formData.consultationType === 'anonymous' ? '#007bff' : '#e9ecef',
-                        boxShadow: formData.consultationType === 'anonymous' ? '0 4px 15px rgba(0,123,255,0.2)' : 'none',
+                        background: formData.isOnline === true ? '#f8f9ff' : 'white',
+                        borderColor: formData.isOnline === true ? '#007bff' : '#e9ecef',
+                        boxShadow: formData.isOnline === true ? '0 4px 15px rgba(0,123,255,0.2)' : 'none',
                         flex: 1,
                         textAlign: 'center'
                       }}
                     >
-                      <Form.Check
-                        type="radio"
-                        id="anonymous-consultation"
-                        name="consultationType"
-                        value="anonymous"
-                        checked={formData.consultationType === 'anonymous'}
-                        onChange={handleInputChange}
-                        style={{ display: 'none' }}
-                      />
-                      <FontAwesomeIcon icon={faInfoCircle} size="2x" className="mb-3" style={{ color: '#007bff' }} />
+                      <FontAwesomeIcon icon={faStethoscope} size="2x" className="mb-3" style={{ color: '#007bff' }} />
                       <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
-                        Khám ẩn danh
+                        Khám trực tuyến
                       </div>
+                      <small className="d-block text-muted mt-1">
+                        Khám qua video call
+                      </small>
                     </div>
                   </div>
                 </div>
-                <small className="text-muted">
-                  {formData.consultationType === 'anonymous' 
-                    ? 'Chế độ ẩn danh: Thông tin cá nhân sẽ được mã hóa và bảo mật tuyệt đối'
-                    : 'Chế độ trực tiếp: Thông tin sẽ được lưu trữ trong hệ thống để theo dõi quá trình điều trị'
-                  }
-                </small>
               </div>
+
+              {/* Checkbox Khám ẩn danh */}
+              <div className="form-group mt-4">
+                <div 
+                  className="anonymous-checkbox-wrapper"
+                  style={{
+                    border: '2px solid #e9ecef',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    background: formData.isAnonymous ? '#fff8e1' : 'white',
+                    borderColor: formData.isAnonymous ? '#ff9800' : '#e9ecef',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <Form.Check
+                    type="checkbox"
+                    id="anonymous-checkbox"
+                    name="isAnonymous"
+                    checked={formData.isAnonymous}
+                    onChange={(e) => setFormData({...formData, isAnonymous: e.target.checked})}
+                    label={
+                      <div style={{ marginLeft: '8px' }}>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                          <FontAwesomeIcon icon={faInfoCircle} className="me-2" style={{ color: '#ff9800' }} />
+                          Khám ẩn danh
+                        </div>
+                        <small className="text-muted d-block mt-1">
+                          Thông tin cá nhân sẽ được mã hóa và bảo mật tuyệt đối. Chỉ hiển thị mã bệnh nhân và email.
+                        </small>
+                      </div>
+                    }
+                    style={{ 
+                      fontSize: '1.2rem',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </div>
+              </div>
+
+
 
               <div className="form-submit">
                 <div className="d-flex gap-3">
@@ -1091,7 +1121,7 @@ const AppointmentForm = () => {
               
               {/* Conditional rendering: chỉ hiển thị khi tất cả required fields có giá trị */}
               {/* Logical AND (&&) operator để check multiple conditions */}
-              {formData.serviceDetail && formData.consultationType && formData.date && formData.time && (
+              {formData.serviceDetail && (formData.isOnline !== undefined && formData.isOnline !== null) && formData.date && formData.time && (
                 <div className="mb-4">
                   <Row>
                     <Col md={6}>
@@ -1112,12 +1142,12 @@ const AppointmentForm = () => {
                     <Col md={6}>
                       <Form.Label className="text-success fw-bold">
                         <FontAwesomeIcon icon={faUserMd} className="me-2" />
-                        Loại khám đã chọn:
+                        Hình thức khám đã chọn:
                       </Form.Label>
                       <Form.Control
                         type="text"
-                        // Ternary operator để conditional value based on consultationType
-                        value={formData.consultationType === 'anonymous' ? 'Khám ẩn danh' : 'Khám trực tiếp'}
+                        // Hiển thị hình thức khám và trạng thái ẩn danh
+                        value={`${formData.isOnline ? 'Khám trực tuyến' : 'Khám trực tiếp'}${formData.isAnonymous ? ' (Ẩn danh)' : ''}`}
                         readOnly
                         className="mb-2"
                         style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
@@ -1226,9 +1256,16 @@ const AppointmentForm = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  placeholder="Nhập họ và tên đầy đủ"
+                  placeholder={formData.isAnonymous ? "Nhập tên/biệt danh để bảo mật" : "Nhập họ và tên đầy đủ"}
+                  readOnly={!formData.isAnonymous}
+                  style={!formData.isAnonymous ? { backgroundColor: '#f8f9fa', cursor: 'not-allowed' } : {}}
                 />
-                <small className="text-muted">Họ tên như trong CMND/CCCD</small>
+                <small className="text-muted">
+                  {formData.isAnonymous 
+                    ? "Đối với khám ẩn danh thì bạn có thể đặt tên khác để bảo mật thông tin"
+                    : "Họ tên như trong CMND/CCCD"
+                  }
+                </small>
               </div>              <Row>
                 <Col md={6}>
                   <div className="form-group">
@@ -1410,7 +1447,8 @@ const AppointmentForm = () => {
             dob: '',
             name: '',
             registrationType: 'hiv-care',
-            consultationType: 'direct'
+            isOnline: false,
+            isAnonymous: false
           });
           setFormStep(1);
         }} 
@@ -1519,7 +1557,8 @@ const AppointmentForm = () => {
                     dob: '',
                     name: '',
                     registrationType: 'hiv-care',
-                    consultationType: 'direct'
+                    isOnline: false,
+                    isAnonymous: false
                   });
                   setFormStep(1);
                 }}

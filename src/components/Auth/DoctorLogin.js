@@ -43,8 +43,16 @@ const DoctorLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate form
     if (!email || !password) {
-      setError('Vui lòng điền đầy đủ thông tin');
+      setError('Vui lòng điền đầy đủ email và mật khẩu');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Email không hợp lệ');
       return;
     }
 
@@ -75,13 +83,52 @@ const DoctorLogin = () => {
             replace: true,
             state: { message: 'Chào mừng bác sĩ đến với hệ thống!' }
           });
-        }, 1000);
+        }, 1500); // Tăng thời gian hiển thị thông báo thành công
       } else {
-        setError(result.message || 'Đăng nhập thất bại');
+        // Xử lý các trường hợp lỗi cụ thể
+        let errorMessage = 'Đăng nhập thất bại';
+        if (result.message) {
+          if (result.message.includes('password') || result.message.includes('mật khẩu')) {
+            errorMessage = 'Tài khoản hoặc mật khẩu không chính xác';
+          } else if (result.message.includes('email') || result.message.includes('not found')) {
+            errorMessage = 'Email không tồn tại trong hệ thống';
+          } else if (result.message.includes('role') || result.message.includes('permission')) {
+            errorMessage = 'Tài khoản không có quyền truy cập vào hệ thống bác sĩ';
+          } else {
+            errorMessage = result.message;
+          }
+        }
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Doctor login error:', error);
-      setError('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.');
+      let errorMessage = 'Đã xảy ra lỗi khi đăng nhập';
+      
+      // Xử lý các loại lỗi network
+      if (!navigator.onLine) {
+        errorMessage = 'Không có kết nối internet. Vui lòng kiểm tra và thử lại.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Kết nối đến server quá chậm. Vui lòng thử lại sau.';
+      } else if (error.response) {
+        // Xử lý response error
+        switch (error.response.status) {
+          case 401:
+            errorMessage = 'Email hoặc mật khẩu không chính xác';
+            break;
+          case 403:
+            errorMessage = 'Tài khoản không có quyền truy cập';
+            break;
+          case 404:
+            errorMessage = 'Email không tồn tại trong hệ thống';
+            break;
+          case 500:
+            errorMessage = 'Lỗi server. Vui lòng thử lại sau';
+            break;
+          default:
+            errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+        }
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -153,33 +200,31 @@ const DoctorLogin = () => {
                     </InputGroup>
                   </Form.Group>
 
-                  <div className="d-grid gap-2">
-                    <Button 
-                      type="submit" 
-                      variant="primary" 
-                      size="lg"
-                      disabled={isLoading}
-                      className="auth-btn"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Spinner
-                            as="span"
-                            animation="border"
-                            size="sm"
-                            role="status"
-                            aria-hidden="true"
-                          />
-                          {' '}Đang đăng nhập...
-                        </>
-                      ) : (
-                        <>
-                          <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
-                          Đăng nhập
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    size="lg"
+                    disabled={isLoading}
+                    className="auth-btn w-100"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                        {' '}Đang đăng nhập...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faSignInAlt} className="me-2" />
+                        Đăng nhập
+                      </>
+                    )}
+                  </Button>
                 </Form>
 
                 <div className="text-center mt-4">

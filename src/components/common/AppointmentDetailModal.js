@@ -131,10 +131,10 @@ const AppointmentDetailModal = ({
                   <p className="mb-2">
                     <strong>Hình thức khám:</strong> 
                     <Badge 
-                      bg={appointmentDetail.isAnonymous === true ? 'success' : 'primary'} 
+                      bg={appointmentDetail.isOnline === true ? 'success' : 'primary'} 
                       className="ms-2 small-badge"
                     >
-                      {appointmentDetail.isAnonymous === true ? 'Khám trực tuyến' : 'Khám trực tiếp'}
+                      {appointmentDetail.isOnline === true ? 'Khám trực tuyến' : 'Khám trực tiếp'}
                     </Badge>
                   </p>
                   <p className="mb-0">
@@ -152,26 +152,49 @@ const AppointmentDetailModal = ({
                 Thông tin khám bệnh
               </h6>
               <div className="bg-light p-3 rounded">
-                <p className="mb-2">
-                  <strong>Tên người khám:</strong> 
-                  <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'}</span>
-                </p>
-                <p className="mb-2">
-                  <strong>Ngày sinh:</strong>
-                  <span className="ms-2">{appointmentDetail.birthdate ? formatDate(appointmentDetail.birthdate) : 'Trống'}</span>
-                </p>
-                <p className="mb-2">
-                  <strong>Giới tính:</strong>
-                  <span className="ms-2">{formatGender(appointmentDetail.gender)}</span>
-                </p>
-                <p className="mb-2">
-                  <strong>Số điện thoại:</strong> 
-                  <span className="ms-2">{appointmentDetail.alternativePhoneNumber || 'Trống'}</span>
-                </p>
-                <p className="mb-0">
-                  <strong>Lý do khám:</strong> 
-                  <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
-                </p>
+                {appointmentDetail.isAnonymous === true ? (
+                  /* Hiển thị thông tin ẩn danh - chỉ tên và lý do khám */
+                  <>
+                    <p className="mb-2">
+                      <strong>Tên người khám:</strong> 
+                      <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'} (ẩn danh)</span>
+                    </p>
+                    <p className="mb-0">
+                      <strong>Lý do khám:</strong> 
+                      <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
+                    </p>
+                    <div className="mt-2">
+                      <small className="text-muted">
+                        <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+                        Thông tin cá nhân được ẩn do khám ẩn danh
+                      </small>
+                    </div>
+                  </>
+                ) : (
+                  /* Hiển thị thông tin đầy đủ */
+                  <>
+                    <p className="mb-2">
+                      <strong>Tên người khám:</strong> 
+                      <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'}</span>
+                    </p>
+                    <p className="mb-2">
+                      <strong>Ngày sinh:</strong>
+                      <span className="ms-2">{appointmentDetail.birthdate ? formatDate(appointmentDetail.birthdate) : 'Trống'}</span>
+                    </p>
+                    <p className="mb-2">
+                      <strong>Giới tính:</strong>
+                      <span className="ms-2">{formatGender(appointmentDetail.gender)}</span>
+                    </p>
+                    <p className="mb-2">
+                      <strong>Số điện thoại:</strong> 
+                      <span className="ms-2">{appointmentDetail.alternativePhoneNumber || 'Trống'}</span>
+                    </p>
+                    <p className="mb-0">
+                      <strong>Lý do khám:</strong> 
+                      <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

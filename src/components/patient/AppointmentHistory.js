@@ -33,7 +33,7 @@ const AppointmentHistory = () => {
   const { user } = useAuth();  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
+
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [appointmentDetail, setAppointmentDetail] = useState(null);
@@ -154,10 +154,7 @@ const AppointmentHistory = () => {
   useEffect(() => {
     loadAppointments();
   }, [loadAppointments]);
-  const handleCancelClick = (appointment) => {
-    setSelectedAppointment(appointment);
-    setShowCancelModal(true);
-  };
+
 
   const handleVideoCall = (appointment) => {
     // Kiểm tra xem có thể thực hiện video call không
@@ -409,15 +406,7 @@ const AppointmentHistory = () => {
     }
   };
 
-  const handleConfirmCancel = async () => {
-    if (selectedAppointment) {
-      // TODO: Implement cancel appointment API when available
-      // await appointmentAPI.cancelAppointment(selectedAppointment.id);
-      setShowCancelModal(false);
-      setSelectedAppointment(null);
-      // loadAppointments(); // Reload after cancel
-    }
-  };
+
 
   // Map trạng thái từ backend thành badge
   const getStatusBadge = (status) => {    const statusConfig = {
@@ -435,10 +424,7 @@ const AppointmentHistory = () => {
     );
   };
 
-  // Kiểm tra có thể hủy appointment không (chỉ PENDING)
-  const canCancelAppointment = (appointment) => {
-    return appointment.status === 'PENDING';
-  };
+
 
   // Format appointment type
   const getAppointmentTypeLabel = (type) => {
@@ -573,7 +559,7 @@ const AppointmentHistory = () => {
                           
                           {/* Cột Hình thức khám */}
                           <td style={{ padding: '10px 12px', verticalAlign: 'middle', textAlign: 'center' }}>
-                            {(appointment.status === 'ACCEPTED' || appointment.status === 'COMPLETED') && appointment.isAnonymous === true ? (
+                            {(appointment.status === 'ACCEPTED' || appointment.status === 'COMPLETED') && appointment.isOnline === true ? (
                               <Button
                                 variant={canMakeVideoCall(appointment) ? "success" : "secondary"}
                                 size="sm"
@@ -594,7 +580,7 @@ const AppointmentHistory = () => {
                               </Button>
                             ) : (
                               <span className="text-muted" style={{ fontSize: '0.75rem' }}>
-                                {appointment.isAnonymous !== true ? 'Khám trực tiếp' : 'Không khả dụng'}
+                                {appointment.isOnline !== true ? 'Khám trực tiếp' : 'Không khả dụng'}
                               </span>
                             )}
                           </td>
@@ -614,8 +600,8 @@ const AppointmentHistory = () => {
                                     Xem chi tiết
                                   </Button>
                                   
-                                  {/* Nút xem log cuộc gọi video - chỉ hiển thị cho appointment anonymous */}
-                                  {appointment.isAnonymous === true && (
+                                  {/* Nút xem log cuộc gọi video - chỉ hiển thị cho appointment online */}
+                                  {appointment.isOnline === true && (
                                     <Button
                                       className="btn-view-log"
                                       size="sm"
@@ -630,13 +616,13 @@ const AppointmentHistory = () => {
                                 </>
                               ) : (
                                 <Button
-                                  variant="outline-danger"
+                                  variant="outline-info"
                                   size="sm"
-                                  onClick={() => handleCancelClick(appointment)}
-                                  style={{ fontSize: '0.7rem', padding: '6px 12px', minWidth: '100px' }}
+                                  onClick={() => handleViewDetail(appointment)}
+                                  style={{ fontSize: '0.7rem', padding: '6px 10px', minWidth: '85px' }}
                                 >
-                                  <FontAwesomeIcon icon={faTimes} className="me-1" size="sm" />
-                                  Hủy đơn
+                                  <FontAwesomeIcon icon={faEye} className="me-1" size="sm" />
+                                  Xem chi tiết
                                 </Button>
                               )}
                             </div>
@@ -653,48 +639,7 @@ const AppointmentHistory = () => {
         </Card.Body>
       </Card>
 
-      <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faExclamationTriangle} className="text-warning me-2" />
-            Xác nhận hủy lịch hẹn
-          </Modal.Title>
-        </Modal.Header>        <Modal.Body>
-          {selectedAppointment && (
-            <div>
-              <p><strong>Bạn có chắc chắn muốn hủy lịch hẹn này?</strong></p>
-              <div className="bg-light p-3 rounded">
-                <p className="mb-1">
-                  <strong>Ngày:</strong> {formatDate(selectedAppointment.appointmentDate)}
-                </p>                <p className="mb-1">
-                  <strong>Giờ:</strong> {formatTimeSlot(
-                    selectedAppointment.slotStartTime,
-                    selectedAppointment.slotEndTime
-                  )}
-                </p>
-                <p className="mb-0">
-                  <strong>Bác sĩ:</strong> {selectedAppointment.doctorName}
-                </p>
-              </div>
-              <div className="mt-3">
-                <small className="text-muted">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
-                  Lưu ý: Hành động này không thể hoàn tác.
-                </small>
-              </div>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
-            Đóng
-          </Button>
-          <Button variant="danger" onClick={handleConfirmCancel}>
-            <FontAwesomeIcon icon={faTimes} className="me-1" />
-            Xác nhận hủy
-          </Button>
-        </Modal.Footer>
-      </Modal>
+
 
       {/* Modal chi tiết lịch hẹn */}
       <Modal 

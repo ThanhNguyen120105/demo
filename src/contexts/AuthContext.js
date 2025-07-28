@@ -98,91 +98,117 @@ export const AuthProvider = ({ children }) => {
       
       console.log('AuthContext: Login result:', result);
       
-      if (result.success) {
-        // Ưu tiên sử dụng user data từ API service đã process
-        let userData = result.user;
-        
-        // Nếu không có, fallback về cách parse cũ
-        if (!userData && result.data) {
-          if (result.data.data?.user) {
-            userData = result.data.data.user;
-          } else if (result.data.data) {
-            userData = result.data.data;
-          } else if (result.data.user) {
-            userData = result.data.user;
-          } else {
-            userData = result.data;
-          }
-        }
-          console.log('AuthContext - Raw userData from login result:', userData);
-        
-        if (userData) {
-          // Debug: log tất cả properties
-          console.log('AuthContext - All userData properties:', Object.keys(userData));
-            // Lấy thông tin đăng ký đã lưu (nếu có) để bổ sung
-          const savedRegistrationInfo = localStorage.getItem('registrationInfo');
-          let registrationData = {};
-          if (savedRegistrationInfo) {
-            try {
-              registrationData = JSON.parse(savedRegistrationInfo);
-              console.log('AuthContext - Found saved registration info:', registrationData);
-            } catch (e) {
-              console.warn('AuthContext - Failed to parse registration info:', e);
-            }
-          }
-          
-          // Đảm bảo userData có đầy đủ thông tin và ưu tiên role_id
-          const processedUser = {
-            id: userData?.id,
-            email: userData?.email,
-            fullName: userData?.fullName || userData?.doctorName || userData?.name || userData?.username || userData?.displayName || registrationData?.fullName,
-            name: userData?.name || userData?.doctorName || userData?.fullName || registrationData?.fullName,
-            phoneNumber: userData?.phoneNumber || userData?.phone || registrationData?.phoneNumber,
-            birthdate: userData?.birthdate || userData?.dob || userData?.dateOfBirth || registrationData?.birthdate,
-            gender: userData?.gender || userData?.sex || registrationData?.gender,
-            role: userData?.role_id || userData?.role, // Ưu tiên role_id
-            role_id: userData?.role_id, // Giữ lại role_id gốc
-            token: result.token, // Lưu token để có thể decode thông tin
-            ...userData // Spread tất cả properties gốc để không mất dữ liệu
-          };
-          
-          console.log('AuthContext - Setting user:', processedUser);
-          setUser(processedUser);
-          setIsAuthenticated(true);
-          
-          // Xóa thông tin đăng ký đã lưu sau khi merge thành công
-          if (savedRegistrationInfo) {
-            localStorage.removeItem('registrationInfo');
-            console.log('AuthContext - Cleaned up registration info after successful merge');
-          }
-          
-          // Tạm thời tắt getUserProfile vì backend chưa hỗ trợ
-          // TODO: Bật lại khi backend có API lấy user profile
-          /*
-          console.log('AuthContext - Attempting to fetch full user profile...');
-          authAPI.getUserProfile().then(profileResult => {
-            if (profileResult.success && profileResult.data) {
-              console.log('AuthContext - Got full user profile:', profileResult.data);
-              setUser(profileResult.data);
-            } else {
-              console.log('AuthContext - Could not fetch full profile, keeping current user data');
-            }
-          }).catch(error => {
-            console.log('AuthContext - Profile fetch failed, keeping current user data:', error);
-          });
-          */
+      if (!result.success) {
+        const errorMessage = result.message || 'Đăng nhập thất bại';
+        setError(errorMessage);
+        return {
+          success: false,
+          message: errorMessage
+        };
+      }
+      
+      // Ưu tiên sử dụng user data từ API service đã process
+      let userData = result.user;
+      
+      // Nếu không có, fallback về cách parse cũ
+      if (!userData && result.data) {
+        if (result.data.data?.user) {
+          userData = result.data.data.user;
+        } else if (result.data.data) {
+          userData = result.data.data;
+        } else if (result.data.user) {
+          userData = result.data.user;
         } else {
-          console.warn('AuthContext - Warning: No user data available after login');
+          userData = result.data;
+        }
+      }
+      
+      console.log('AuthContext - Raw userData from login result:', userData);
+      
+      if (userData) {
+        // Debug: log tất cả properties
+        console.log('AuthContext - All userData properties:', Object.keys(userData));
+        
+        // Lấy thông tin đăng ký đã lưu (nếu có) để bổ sung
+        const savedRegistrationInfo = localStorage.getItem('registrationInfo');
+        let registrationData = {};
+        if (savedRegistrationInfo) {
+          try {
+            registrationData = JSON.parse(savedRegistrationInfo);
+            console.log('AuthContext - Found saved registration info:', registrationData);
+          } catch (e) {
+            console.warn('AuthContext - Failed to parse registration info:', e);
+          }
         }
         
-        return result;
+        // Đảm bảo userData có đầy đủ thông tin và ưu tiên role_id
+        const processedUser = {
+          id: userData?.id,
+          email: userData?.email,
+          fullName: userData?.fullName || userData?.doctorName || userData?.name || userData?.username || userData?.displayName || registrationData?.fullName,
+          name: userData?.name || userData?.doctorName || userData?.fullName || registrationData?.fullName,
+          phoneNumber: userData?.phoneNumber || userData?.phone || registrationData?.phoneNumber,
+          birthdate: userData?.birthdate || userData?.dob || userData?.dateOfBirth || registrationData?.birthdate,
+          gender: userData?.gender || userData?.sex || registrationData?.gender,
+          role: userData?.role_id || userData?.role, // Ưu tiên role_id
+          role_id: userData?.role_id, // Giữ lại role_id gốc
+          token: result.token, // Lưu token để có thể decode thông tin
+          ...userData // Spread tất cả properties gốc để không mất dữ liệu
+        };
+        
+        console.log('AuthContext - Setting user:', processedUser);
+        setUser(processedUser);
+        setIsAuthenticated(true);
+        
+        // Xóa thông tin đăng ký đã lưu sau khi merge thành công
+        if (savedRegistrationInfo) {
+          localStorage.removeItem('registrationInfo');
+          console.log('AuthContext - Cleaned up registration info after successful merge');
+        }
+        
+        return {
+          success: true,
+          data: processedUser,
+          message: 'Đăng nhập thành công'
+        };
       } else {
-        setError(result.message);
-        return result;
+        console.warn('AuthContext - Warning: No user data available after login');
+        const errorMessage = 'Không thể lấy thông tin người dùng';
+        setError(errorMessage);
+        return {
+          success: false,
+          message: errorMessage
+        };
       }
     } catch (error) {
       console.error('AuthContext: Login error:', error);
-      const errorMessage = 'Đã xảy ra lỗi không mong muốn';
+      
+      let errorMessage = 'Đã xảy ra lỗi khi đăng nhập';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Sai tài khoản hoặc mật khẩu';
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Thông tin đăng nhập không hợp lệ';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Tài khoản không có quyền truy cập';
+      } else if (error.response?.data?.message) {
+        // Kiểm tra các trường hợp lỗi cụ thể từ backend
+        const backendMessage = error.response.data.message.toLowerCase();
+        if (backendMessage.includes('password') || backendMessage.includes('mật khẩu')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('email') || backendMessage.includes('not found')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('locked') || backendMessage.includes('khóa')) {
+          errorMessage = 'Tài khoản đã bị khóa';
+        } else if (backendMessage.includes('authentication')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else if (backendMessage.includes('exception')) {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        } else {
+          errorMessage = 'Sai tài khoản hoặc mật khẩu';
+        }
+      }
+      
       setError(errorMessage);
       return {
         success: false,
@@ -219,7 +245,8 @@ export const AuthProvider = ({ children }) => {
     clearError,
     updateUserAuth,
     setUser,
-    setIsAuthenticated
+    setIsAuthenticated,
+    setError
   };
 
   return (
