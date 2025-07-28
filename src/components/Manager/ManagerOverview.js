@@ -56,7 +56,7 @@ const ManagerOverview = () => {
       <Card className="h-100 stat-card shadow-sm border-0">
         <Card.Body className="d-flex align-items-center p-4">
           <div className={`stat-icon bg-${color} text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm`}>
-            <FontAwesomeIcon icon={icon} size="lg" />
+            <FontAwesomeIcon icon={icon} />
           </div>
           <div className="flex-grow-1">
             <div className="d-flex align-items-center justify-content-between mb-1">
@@ -71,7 +71,6 @@ const ManagerOverview = () => {
               )}
             </h2>
             {description && <small className="text-muted d-block">{description}</small>}
-            {subtext && <small className="text-info d-block mt-1">{subtext}</small>}
           </div>
         </Card.Body>
       </Card>
@@ -105,7 +104,7 @@ const ManagerOverview = () => {
         <div>
           <h2 className="mb-1 fw-bold">
             <FontAwesomeIcon icon={faChartLine} className="me-2 text-primary" />
-            Manager Dashboard
+            Tổng quan
           </h2>
           <p className="text-muted mb-0">Tổng quan hệ thống quản lý HIV Treatment Center</p>
         </div>
@@ -139,7 +138,6 @@ const ManagerOverview = () => {
             icon={faCalendarCheck}
             color="primary"
             description="Tất cả lịch hẹn trong hệ thống"
-            subtext="Bao gồm tất cả trạng thái"
           />
           
           <StatCard
@@ -148,7 +146,6 @@ const ManagerOverview = () => {
             icon={faCalendarDay}
             color="success"
             description={`Ngày ${new Date().toLocaleDateString('vi-VN')}`}
-            subtext="Chỉ tính trạng thái COMPLETED"
             badge={{ color: 'success', text: 'Hôm nay' }}
           />
           
@@ -158,7 +155,6 @@ const ManagerOverview = () => {
             icon={faUsers}
             color="info"
             description="Bệnh nhân duy nhất trong hệ thống"
-            subtext="Tính theo userName"
           />
           
           <StatCard
@@ -167,7 +163,6 @@ const ManagerOverview = () => {
             icon={faUserMd}
             color="danger"
             description="Bác sĩ chuyên khoa HIV/AIDS"
-            subtext="Đang hoạt động"
           />
           
           <StatCard
@@ -176,7 +171,6 @@ const ManagerOverview = () => {
             icon={faUserTie}
             color="warning"
             description="Nhân viên hỗ trợ"
-            subtext="Từ API backend"
           />
 
           {/* Summary Card */}
@@ -234,15 +228,23 @@ const ManagerOverview = () => {
           box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
         }
         .stat-icon {
-          width: 60px;
-          height: 60px;
-          font-size: 1.2rem;
+          width: 48px;
+          height: 48px;
+          font-size: 1rem;
+          border-radius: 50%;
+          min-width: 48px;
         }
         .progress {
           border-radius: 10px;
         }
         .progress-bar {
           border-radius: 10px;
+        }
+        h2 {
+          font-size: 1.8rem;
+        }
+        .card-body {
+          padding: 1.25rem !important;
         }
       `}</style>
     </Container>

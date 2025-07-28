@@ -4,7 +4,7 @@ import {
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faUserMd, faEye, faEdit, faTrash, faPlus, faTimes, faCheck, faList
+  faUserMd, faEye, faEdit, faTrash, faPlus, faTimes, faCheck, faList, faUpload, faImage
 } from '@fortawesome/free-solid-svg-icons';
 import { doctorAPI } from '../../services/api';
 import './DoctorManagement.css';
@@ -35,8 +35,11 @@ const DoctorManagement = () => {
   });
   const [updateLoading, setUpdateLoading] = useState(false);
   
-  // File upload states (kept for preview functionality)
+  // File upload states
+  const [selectedFile, setSelectedFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     fetchDoctors();
@@ -99,7 +102,7 @@ const DoctorManagement = () => {
           description: result.data.description || '',
           awards: result.data.awards || ''
         });
-        // Reset preview state
+        // Set preview image from existing avatarURL
         setPreviewImage(result.data.avatarURL || null);
         setShowUpdateModal(true);
       } else {
@@ -113,8 +116,6 @@ const DoctorManagement = () => {
     }
   };
 
-
-
   const handleShowDelete = (doctor) => {
     setSelectedDoctor(doctor);
     setShowDeleteModal(true);
@@ -126,10 +127,131 @@ const DoctorManagement = () => {
       ...prev,
       [name]: value
     }));
-    
-    // Update preview when avatarURL changes
-    if (name === 'avatarURL') {
-      setPreviewImage(value);
+  };
+
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Create preview URL for the selected image
+      const previewURL = URL.createObjectURL(file);
+      setPreviewImage(previewURL);
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      alert('Vui lòng chọn một ảnh để tải lên');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      console.log('Bắt đầu upload ảnh:', selectedFile.name, 'kích thước:', selectedFile.size, 'loại:', selectedFile.type);
+
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('filePath', 'doctorImage');
+      formData.append('bucketName', 'document');
+
+      // Log FormData content for debugging
+      console.log('FormData được tạo với các trường:');
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+
+      // Get auth token
+      const token = localStorage.getItem('token');
+      console.log('Token xác thực có sẵn:', !!token);
+      
+      // Hiển thị thông báo đang xử lý
+      setMessage({ type: 'info', content: 'Đang tải ảnh lên server...' });
+      
+      // Gọi API upload - sử dụng endpoint đúng như trong videoCallLogger.js
+      const response = await fetch('http://localhost:8080/upload', {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData
+      });
+      
+      console.log('Server response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed with status:', response.status);
+        console.error('Error response:', errorText);
+        throw new Error(`Upload thất bại với mã lỗi: ${response.status}. ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Upload successful, server response:', result);
+      console.log('Response structure:', Object.keys(result || {}));
+      
+      // Thử nhiều format response khác nhau - giống như trong videoCallLogger.js
+      let uploadUrl = null;
+      
+      // Format 1: {status: {code: 200}, data: {url: "..."}}
+      if (result.status?.code === 200 && result.data?.url) {
+        uploadUrl = result.data.url;
+        console.log('✅ Format 1 - Found URL:', uploadUrl);
+      }
+      // Format 2: {success: true, data: {url: "..."}}
+      else if (result.success && result.data?.url) {
+        uploadUrl = result.data.url;
+        console.log('✅ Format 2 - Found URL:', uploadUrl);
+      }
+      // Format 3: {url: "..."}
+      else if (result.url) {
+        uploadUrl = result.url;
+        console.log('✅ Format 3 - Found URL:', uploadUrl);
+      }
+      // Format 4: {data: "url_string"}
+      else if (typeof result.data === 'string' && result.data.startsWith('http')) {
+        uploadUrl = result.data;
+        console.log('✅ Format 4 - Found URL:', uploadUrl);
+      }
+      // Format 5: {fileUrl: "..."}
+      else if (result.fileUrl) {
+        uploadUrl = result.fileUrl;
+        console.log('✅ Format 5 - Found URL:', uploadUrl);
+      }
+      
+      if (uploadUrl) {
+        // Update form data with the new image URL
+        setUpdateFormData(prev => ({
+          ...prev,
+          avatarURL: uploadUrl
+        }));
+        
+        setMessage({ type: 'success', content: 'Tải ảnh lên thành công' });
+      } else {
+        console.error('❌ No URL found in response:', result);
+        setMessage({ 
+          type: 'warning', 
+          content: 'Tải ảnh lên thành công nhưng không nhận được URL. Vui lòng liên hệ quản trị viên.' 
+        });
+      }
+      
+      setUploadProgress(100);
+      setTimeout(() => setIsUploading(false), 500); // Giữ thanh tiến trình 100% trong nửa giây
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setMessage({ 
+        type: 'danger', 
+        content: `Không thể tải ảnh lên: ${error.message}. Vui lòng thử lại hoặc liên hệ quản trị viên.` 
+      });
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -143,7 +265,14 @@ const DoctorManagement = () => {
       if (result.success) {
         setMessage({ type: 'success', content: 'Cập nhật thông tin bác sĩ thành công' });
         setShowUpdateModal(false);
+        
+        // Clean up preview URL
+        if (previewImage && previewImage.startsWith('blob:')) {
+          URL.revokeObjectURL(previewImage);
+        }
         setPreviewImage(null);
+        setSelectedFile(null);
+        
         fetchDoctors(); // Refresh list
       } else {
         setMessage({ type: 'danger', content: result.message });
@@ -181,7 +310,14 @@ const DoctorManagement = () => {
     setShowUpdateModal(false);
     setShowDeleteModal(false);
     setSelectedDoctor(null);
+    
+    // Clean up preview URL
+    if (previewImage && previewImage.startsWith('blob:')) {
+      URL.revokeObjectURL(previewImage);
+    }
     setPreviewImage(null);
+    setSelectedFile(null);
+    setUploadProgress(0);
   };
 
   return (
@@ -386,31 +522,30 @@ const DoctorManagement = () => {
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>Ảnh đại diện</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={selectedDoctor.avatarURL || 'Chưa có'}
-                      readOnly
-                      className="bg-light"
-                    />
                     
                     {/* Image Preview */}
-                    {selectedDoctor.avatarURL && (
-                      <div className="mt-3 text-center">
+                    <div className="mt-2 text-center">
+                      {selectedDoctor.avatarURL ? (
                         <img
                           src={selectedDoctor.avatarURL}
                           alt="Avatar"
                           className="img-thumbnail"
-                          style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                          style={{ width: '150px', height: '150px', objectFit: 'cover' }}
                           onError={(e) => {
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'block';
                           }}
                         />
-                        <div style={{ display: 'none' }} className="text-muted">
-                          <small>Không thể tải ảnh từ URL này</small>
+                      ) : (
+                        <div className="avatar-placeholder">
+                          <FontAwesomeIcon icon={faUserMd} size="3x" />
+                          <p>Chưa có ảnh đại diện</p>
                         </div>
+                      )}
+                      <div style={{ display: 'none' }} className="text-muted">
+                        <small>Không thể tải ảnh</small>
                       </div>
-                    )}
+                    </div>
                   </Form.Group>
                 </Col>
               </Row>
@@ -580,38 +715,78 @@ const DoctorManagement = () => {
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Ảnh đại diện</Form.Label>
+                  <div className="d-flex align-items-center mb-2">
+                    <Form.Control
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      disabled={updateLoading || isUploading}
+                      className="me-2"
+                    />
+                    <Button
+                      variant="primary"
+                      onClick={handleFileUpload}
+                      disabled={!selectedFile || updateLoading || isUploading}
+                      title="Tải ảnh lên"
+                    >
+                      {isUploading ? (
+                        <Spinner animation="border" size="sm" />
+                      ) : (
+                        <FontAwesomeIcon icon={faUpload} />
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {/* Upload Progress */}
+                  {isUploading && (
+                    <div className="mb-2">
+                      <div className="progress">
+                        <div 
+                          className="progress-bar progress-bar-striped progress-bar-animated" 
+                          role="progressbar" 
+                          style={{ width: `${uploadProgress}%` }}
+                          aria-valuenow={uploadProgress} 
+                          aria-valuemin="0" 
+                          aria-valuemax="100"
+                        >
+                          {uploadProgress}%
+                        </div>
+                      </div>
+                      <div className="text-center mt-1">
+                        <small>Đang tải lên... vui lòng đợi</small>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Hidden field to store the image URL */}
                   <Form.Control
-                    type="url"
+                    type="hidden"
                     name="avatarURL"
                     value={updateFormData.avatarURL}
-                    onChange={handleUpdateInputChange}
-                    disabled={updateLoading}
-                    placeholder="https://example.com/avatar.jpg"
                   />
                   
                   {/* Image Preview */}
                   {previewImage && (
-                    <div className="mt-3 text-center">
+                    <div className="mt-3 text-center file-upload-preview">
                       <img
                         src={previewImage}
                         alt="Preview"
                         className="img-thumbnail"
-                        style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                        style={{ width: '150px', height: '150px', objectFit: 'cover' }}
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'block';
+                          console.error('Không thể tải ảnh từ URL:', previewImage);
                         }}
                       />
                       <div style={{ display: 'none' }} className="text-muted">
-                        <small>Không thể tải ảnh từ URL này</small>
+                        <small>Không thể tải ảnh</small>
                       </div>
                     </div>
                   )}
                 </Form.Group>
               </Col>
             </Row>
-
-
 
             <Row>
               <Col md={12}>
@@ -651,7 +826,7 @@ const DoctorManagement = () => {
             <Button 
               variant="secondary" 
               onClick={closeModals} 
-              disabled={updateLoading}
+              disabled={updateLoading || isUploading}
               className="button-uniform"
             >
               <FontAwesomeIcon icon={faTimes} className="me-1" />
@@ -660,7 +835,7 @@ const DoctorManagement = () => {
             <Button 
               type="submit" 
               variant="primary" 
-              disabled={updateLoading}
+              disabled={updateLoading || isUploading}
               className="button-uniform"
             >
               {updateLoading ? (
