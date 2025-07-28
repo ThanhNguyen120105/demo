@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSearch, faCalendarAlt, faUser, faHeart, faEye,
   faFilter, faArrowUp, faArrowDown, faShieldAlt,
-  faStethoscope, faUsers, faExclamationTriangle, faRedo
+  faExclamationTriangle, faRedo
 } from '@fortawesome/free-solid-svg-icons';
 import { blogAPI } from '../../services/api';
 import LazyImage from '../common/LazyImage';
@@ -42,19 +42,19 @@ const HIVPreventionBlog = () => {
     return {
       id: apiPost.id || Math.random(),
       title: apiPost.title || 'Chưa có tiêu đề',
-      excerpt: apiPost.excerpt || apiPost.content?.substring(0, 200) + '...' || 'Chưa có nội dung',
+      excerpt: apiPost.excerpt || apiPost.summary || apiPost.content?.substring(0, 200) + '...' || 'Chưa có nội dung',
       content: apiPost.content || null,
       author: apiPost.author || 'Tác giả ẩn danh',
       authorTitle: apiPost.authorTitle || 'Nhân viên y tế',
-      publishDate: apiPost.publishDate || apiPost.createdAt || new Date().toISOString(),
-      thumbnail: apiPost.thumbnail || apiPost.image || null,
+      publishDate: apiPost.publishDate || apiPost.createdDate || new Date().toISOString(),
+      thumbnail: apiPost.imageUrl || apiPost.thumbnail || apiPost.image || null,
       likes: apiPost.likes || 0,
-      views: apiPost.views || 0,
+      views: apiPost.views || apiPost.viewCount || 0,
       comments: apiPost.comments || 0,
       category: apiPost.category || null,
       readTime: apiPost.readTime || '5 phút đọc',
       featured: apiPost.featured || false,
-      tags: apiPost.tags || []
+      tags: Array.isArray(apiPost.tags) ? apiPost.tags : (apiPost.tags ? apiPost.tags.split(',').map(tag => tag.trim()) : [])
     };
   };
 
@@ -161,21 +161,6 @@ const HIVPreventionBlog = () => {
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const formatNumber = (num) => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
-    }
-    return num.toString();
-  };
-
-  const getFeaturedPosts = () => {
-    return posts.filter(post => post.featured).slice(0, 3);
-  };
-
-  const getPopularPosts = () => {
-    return posts.sort((a, b) => b.views - a.views).slice(0, 5);
   };
 
   // Loading state
@@ -317,7 +302,7 @@ const HIVPreventionBlog = () => {
         <Container>
           <Row>
             {/* Main Posts Area */}
-            <Col lg={8}>
+            <Col lg={12}>
               {filteredAndSortedPosts.length === 0 ? (
                 <Alert variant="info" className="empty-state">
                   <div className="text-center py-4">
@@ -373,9 +358,6 @@ const HIVPreventionBlog = () => {
                               <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                               <small>{formatDate(post.publishDate)}</small>
                             </div>
-                            <div className="meta-item">
-                              <small className="read-time">{post.readTime}</small>
-                            </div>
                           </div>
                           
                           <Card.Title className="post-title">
@@ -408,17 +390,6 @@ const HIVPreventionBlog = () => {
                               <div className="author-details">
                                 <div className="author-name">{post.author}</div>
                                 <div className="author-title">{post.authorTitle}</div>
-                              </div>
-                            </div>
-                            
-                            <div className="post-stats">
-                              <div className="stat">
-                                <FontAwesomeIcon icon={faHeart} className="text-danger" />
-                                <span>{formatNumber(post.likes)}</span>
-                              </div>
-                              <div className="stat">
-                                <FontAwesomeIcon icon={faEye} className="text-muted" />
-                                <span>{formatNumber(post.views)}</span>
                               </div>
                             </div>
                           </div>
@@ -485,107 +456,6 @@ const HIVPreventionBlog = () => {
                   )}
                 </>
               )}
-            </Col>
-
-            {/* Sidebar */}
-            <Col lg={4}>
-              <div className="sidebar">
-                {/* Featured Posts */}
-                <Card className="sidebar-card">
-                  <Card.Header>
-                    <h5 className="mb-0">
-                      <FontAwesomeIcon icon={faShieldAlt} className="me-2 text-primary" />
-                      Bài viết nổi bật
-                    </h5>
-                  </Card.Header>
-                  <Card.Body>
-                    {getFeaturedPosts().map((post, index) => (
-                      <div key={post.id} className={`featured-item ${index > 0 ? 'border-top pt-3 mt-3' : ''}`}>
-                        <div className="featured-thumbnail">
-                          <LazyImage src={post.thumbnail} alt={post.title} />
-                        </div>
-                        <div className="featured-content">
-                          <h6 className="featured-title">
-                            <button 
-                              className="featured-link-btn"
-                              onClick={() => handlePostClick(post)}
-                              aria-label={`Xem chi tiết bài viết nổi bật: ${post.title}`}
-                            >
-                              {post.title}
-                            </button>
-                          </h6>
-                          <div className="featured-meta">
-                            <small className="text-muted">
-                              <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                              {formatDate(post.publishDate)}
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </Card.Body>
-                </Card>
-
-                {/* Popular Posts */}
-                <Card className="sidebar-card">
-                  <Card.Header>
-                    <h5 className="mb-0">
-                      <FontAwesomeIcon icon={faEye} className="me-2 text-success" />
-                      Xem nhiều nhất
-                    </h5>
-                  </Card.Header>
-                  <Card.Body>
-                    {getPopularPosts().map((post, index) => (
-                      <div key={post.id} className={`popular-item ${index > 0 ? 'border-top pt-2 mt-2' : ''}`}>
-                        <div className="popular-rank">#{index + 1}</div>
-                        <div className="popular-content">
-                          <h6 className="popular-title">
-                            <button 
-                              className="popular-link-btn"
-                              onClick={() => handlePostClick(post)}
-                              aria-label={`Xem chi tiết bài viết phổ biến: ${post.title}`}
-                            >
-                              {post.title}
-                            </button>
-                          </h6>
-                          <div className="popular-stats">
-                            <small className="text-muted">
-                              <FontAwesomeIcon icon={faEye} className="me-1" />
-                              {formatNumber(post.views)} lượt xem
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </Card.Body>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card className="sidebar-card">
-                  <Card.Header>
-                    <h5 className="mb-0">
-                      <FontAwesomeIcon icon={faUsers} className="me-2 text-info" />
-                      Liên hệ hỗ trợ
-                    </h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="quick-actions">
-                      <Button variant="outline-primary" size="sm" className="w-100 mb-2">
-                        <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                        Đặt lịch tư vấn
-                      </Button>
-                      <Button variant="outline-success" size="sm" className="w-100 mb-2">
-                        <FontAwesomeIcon icon={faUsers} className="me-2" />
-                        Tham gia cộng đồng
-                      </Button>
-                      <Button variant="outline-info" size="sm" className="w-100">
-                        <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                        Xem lịch khám
-                      </Button>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
             </Col>
           </Row>
         </Container>
