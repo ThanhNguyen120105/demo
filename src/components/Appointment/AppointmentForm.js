@@ -20,7 +20,11 @@ import {
   faMapMarkerAlt,
   faInfoCircle,
   faExclamationTriangle,
-  faVenusMars
+  faVenusMars,
+  faCreditCard,
+  faMoneyBillWave,
+  faSpinner,
+  faReceipt
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
 import { useLocation } from 'react-router-dom';
@@ -48,13 +52,18 @@ const AppointmentForm = () => {
     gender: '',
     registrationType: 'hiv-care',
     isOnline: false, // false: khám trực tiếp, true: khám trực tuyến
-    isAnonymous: false // false: hiển thị thông tin, true: ẩn thông tin cá nhân
+    isAnonymous: false, // false: hiển thị thông tin, true: ẩn thông tin cá nhân
+    // Payment fields
+    paymentMethod: 'vnpay', // Chỉ hỗ trợ VNPay
+    paymentAmount: 0, // Số tiền thanh toán
+    paymentStatus: 'pending' // 'pending' | 'processing' | 'completed' | 'failed'
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [loadingAvailableSlots, setLoadingAvailableSlots] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   // useState hook để lưu trữ array of objects chứa thông tin slot thời gian từ database
   const [availableTimes, setAvailableTimes] = useState([]);
   // useState hook để lưu trữ array of objects chứa thông tin bác sĩ từ database
@@ -400,7 +409,7 @@ const AppointmentForm = () => {
         return;
       }
       setFormStep(4);} else if (formStep === 4) {
-      // Final validation: kiểm tra các required fields
+      // Final validation cho bước 4: kiểm tra các required fields
       if (!formData.name || !formData.phone || !formData.dob || !formData.gender) {
         alert('Vui lòng điền đầy đủ họ tên, số điện thoại, ngày sinh và giới tính');
         return;
@@ -412,6 +421,20 @@ const AppointmentForm = () => {
         return;
       }
       
+      // Tính toán payment amount từ service đã chọn
+      const selectedService = availableServices.find(service => service.id === formData.serviceId);
+      const servicePrice = selectedService?.price || 200000; // Default price
+      const serviceFee = Math.round(servicePrice * 0.05); // 5% service fee
+      const totalAmount = servicePrice + serviceFee;
+      
+      setFormData(prev => ({
+        ...prev,
+        paymentAmount: totalAmount
+      }));
+      
+      setFormStep(5); // Chuyển sang bước thanh toán
+    } else if (formStep === 5) {
+      // Validation cho bước thanh toán - VNPay đã được set mặc định
       // Gửi appointment đến backend
       handleCreateAppointment();
     }
@@ -517,6 +540,52 @@ const AppointmentForm = () => {
     const selectedSlot = availableTimes.find(slot => slot.id === formData.time);
     if (!selectedSlot) return '';
     return `${selectedSlot.label} (${selectedSlot.time})`;
+  };
+
+  // Helper functions cho thanh toán
+  const getPaymentMethodIcon = (method) => {
+    switch (method) {
+      case 'vnpay': return faCreditCard;
+      default: return faCreditCard;
+    }
+  };
+
+  const getPaymentMethodLabel = (method) => {
+    switch (method) {
+      case 'vnpay': return 'Thanh toán qua VNPay';
+      default: return 'Thanh toán qua VNPay';
+    }
+  };
+
+  const handlePaymentLater = () => {
+    // Với chỉ có VNPay, không có tùy chọn thanh toán sau
+    alert('Vui lòng hoàn tất thanh toán qua VNPay để tiếp tục.');
+  };
+
+  const handlePaymentNow = async () => {
+    setIsProcessingPayment(true);
+    try {
+      // Simulate VNPay payment processing
+      console.log('Processing VNPay payment...');
+      await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds for VNPay processing
+      
+      setFormData(prev => ({
+        ...prev,
+        paymentStatus: 'completed'
+      }));
+      
+      console.log('VNPay payment completed successfully');
+      handleCreateAppointment();
+    } catch (error) {
+      console.error('VNPay payment error:', error);
+      setFormData(prev => ({
+        ...prev,
+        paymentStatus: 'failed'
+      }));
+      alert('Có lỗi xảy ra trong quá trình thanh toán VNPay. Vui lòng thử lại.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   return (
@@ -763,6 +832,11 @@ const AppointmentForm = () => {
           <div className={`progress-step ${formStep >= 4 ? 'active' : ''}`}>
             <div className="step-number">4</div>
             <div className="step-label">Thông Tin Cá Nhân</div>
+          </div>
+          <div className="progress-connector"></div>
+          <div className={`progress-step ${formStep >= 5 ? 'active' : ''}`}>
+            <div className="step-number">5</div>
+            <div className="step-label">Thanh Toán</div>
           </div>
         </div>
         
@@ -1425,6 +1499,152 @@ const AppointmentForm = () => {
               </div>
             </div>
           )}
+
+          {/* Bước 5: Thanh toán */}
+          {formStep === 5 && (
+            <div className="form-step-container animated fadeIn">
+              <h4 className="text-center mb-4">Bước 5: Thanh toán</h4>
+              
+              {/* Summary Section */}
+              <div className="payment-summary mb-4">
+                <Card className="border-0" style={{ backgroundColor: '#f8f9fa' }}>
+                  <Card.Header className="bg-primary text-white">
+                    <FontAwesomeIcon icon={faReceipt} className="me-2" />
+                    Thông tin đặt lịch
+                  </Card.Header>
+                  <Card.Body>
+                    <Row>
+                      <Col md={6}>
+                        <p><strong>Dịch vụ:</strong> {getServiceDetailName(formData.registrationType, formData.serviceDetail)}</p>
+                        <p><strong>Hình thức:</strong> {formData.isOnline ? 'Khám trực tuyến' : 'Khám trực tiếp'}</p>
+                        <p><strong>Bác sĩ:</strong> {availableDoctors.find(d => d.id === formData.doctor)?.name}</p>
+                      </Col>
+                      <Col md={6}>
+                        <p><strong>Ngày khám:</strong> {new Date(formData.date).toLocaleDateString('vi-VN')}</p>
+                        <p><strong>Giờ khám:</strong> {getSelectedSlotInfo()}</p>
+                        <p><strong>Bệnh nhân:</strong> {formData.name}</p>
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </div>
+
+              {/* Payment Details */}
+              <div className="payment-details mb-4">
+                <Card>
+                  <Card.Header>
+                    <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" />
+                    Chi tiết thanh toán
+                  </Card.Header>
+                  <Card.Body>
+                    {(() => {
+                      const selectedService = availableServices.find(service => service.id === formData.serviceId);
+                      const servicePrice = selectedService?.price || 200000;
+                      const serviceFee = Math.round(servicePrice * 0.05);
+                      const totalAmount = servicePrice + serviceFee;
+                      
+                      return (
+                        <>
+                          <div className="d-flex justify-content-between mb-2">
+                            <span>Dịch vụ: {selectedService?.name || 'Dịch vụ HIV'}</span>
+                            <span>{servicePrice.toLocaleString('vi-VN')} VNĐ</span>
+                          </div>
+                          <div className="d-flex justify-content-between mb-2">
+                            <span>Phí dịch vụ (5%):</span>
+                            <span>{serviceFee.toLocaleString('vi-VN')} VNĐ</span>
+                          </div>
+                          <hr/>
+                          <div className="d-flex justify-content-between">
+                            <strong>Tổng cộng:</strong>
+                            <strong className="text-primary">{totalAmount.toLocaleString('vi-VN')} VNĐ</strong>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </Card.Body>
+                </Card>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="payment-methods mb-4">
+                <h6 className="mb-3">Phương thức thanh toán:</h6>
+                <Row className="justify-content-center">
+                  <Col md={8}>
+                    <Card 
+                      className="payment-method-card selected"
+                      style={{ 
+                        border: '2px solid #1f4e8c',
+                        boxShadow: '0 4px 12px rgba(31,78,140,0.3)',
+                        transform: 'translateY(-2px)'
+                      }}
+                    >
+                      <Card.Body className="text-center py-4">
+                        <FontAwesomeIcon 
+                          icon={faCreditCard} 
+                          size="3x" 
+                          className="mb-3" 
+                          style={{ color: '#1f4e8c' }}
+                        />
+                        <h5 className="mb-2" style={{ color: '#1f4e8c', fontWeight: '600' }}>
+                          Thanh toán qua VNPay
+                        </h5>
+                        <p className="text-muted mb-0">
+                          Phương thức thanh toán an toàn và tiện lợi
+                        </p>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+              </div>
+
+              {/* Payment Actions */}
+              <div className="payment-actions">
+                <div className="d-flex gap-3">
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={handlePreviousStep}
+                    style={{
+                      borderColor: '#6c757d',
+                      color: '#6c757d',
+                      fontWeight: '500',
+                      padding: '12px 20px',
+                      borderRadius: '8px',
+                      flex: '0 0 auto',
+                      minWidth: '120px'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+                    Quay lại
+                  </Button>
+                  <Button 
+                    variant="primary" 
+                    onClick={handlePaymentNow}
+                    className="flex-fill" 
+                    disabled={isSubmitting || isProcessingPayment}
+                    style={{
+                      fontWeight: '600',
+                      padding: '12px 20px',
+                      borderRadius: '8px',
+                      backgroundColor: '#1f4e8c',
+                      borderColor: '#1f4e8c'
+                    }}
+                  >
+                    {isProcessingPayment ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin className="me-2" />
+                        Đang xử lý thanh toán VNPay...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faCreditCard} className="me-2" />
+                        Thanh toán qua VNPay
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </Form>
       </div>
 
@@ -1448,7 +1668,10 @@ const AppointmentForm = () => {
             name: '',
             registrationType: 'hiv-care',
             isOnline: false,
-            isAnonymous: false
+            isAnonymous: false,
+            paymentMethod: 'vnpay',
+            paymentAmount: 0,
+            paymentStatus: 'pending'
           });
           setFormStep(1);
         }} 
@@ -1498,6 +1721,39 @@ const AppointmentForm = () => {
               </div>
             </div>
 
+            {/* Payment Information */}
+            {formData.paymentMethod && (
+              <div className="payment-info">
+                <div className="payment-info-header">
+                  <FontAwesomeIcon icon={faCreditCard} className="payment-info-icon" />
+                  <span>Thông tin thanh toán</span>
+                </div>
+                <div className="payment-info-content">
+                  <div className="payment-info-item">
+                    <span>Phương thức:</span>
+                    <span className="payment-method-badge">
+                      <FontAwesomeIcon icon={getPaymentMethodIcon(formData.paymentMethod)} className="me-1" />
+                      {getPaymentMethodLabel(formData.paymentMethod)}
+                    </span>
+                  </div>
+                  <div className="payment-info-item">
+                    <span>Số tiền:</span>
+                    <span className="payment-amount">
+                      {formData.paymentAmount.toLocaleString('vi-VN')} VNĐ
+                    </span>
+                  </div>
+                  <div className="payment-info-item">
+                    <span>Trạng thái:</span>
+                    <span className={`payment-status ${formData.paymentStatus}`}>
+                      {formData.paymentStatus === 'completed' ? 'Đã thanh toán qua VNPay' : 
+                       formData.paymentStatus === 'pending' ? 'Chờ xác nhận thanh toán' :
+                       formData.paymentStatus === 'processing' ? 'Đang xử lý thanh toán' : 'Lỗi thanh toán'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Contact Support */}
             <div className="contact-support">
               <div className="support-content">
@@ -1530,7 +1786,10 @@ const AppointmentForm = () => {
                     dob: '',
                     name: '',
                     registrationType: 'hiv-care',
-                    consultationType: 'direct'
+                    consultationType: 'direct',
+                    paymentMethod: 'vnpay',
+                    paymentAmount: 0,
+                    paymentStatus: 'pending'
                   });
                   setFormStep(1);
                 }}
@@ -1558,7 +1817,10 @@ const AppointmentForm = () => {
                     name: '',
                     registrationType: 'hiv-care',
                     isOnline: false,
-                    isAnonymous: false
+                    isAnonymous: false,
+                    paymentMethod: 'vnpay',
+                    paymentAmount: 0,
+                    paymentStatus: 'pending'
                   });
                   setFormStep(1);
                 }}
@@ -1884,6 +2146,115 @@ const AppointmentForm = () => {
           .modal-actions {
             padding: 0.75rem 1rem;
           }
+        }
+
+        /* Payment Step Styles */
+        .payment-summary .card {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .payment-details .card {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .payment-method-card {
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .payment-method-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .payment-method-card.selected {
+          box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+          transform: translateY(-2px);
+        }
+
+        /* Payment Info in Success Modal */
+        .payment-info {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-radius: 15px;
+          padding: 1.5rem;
+          margin: 1.5rem 2rem;
+          border: 1px solid #dee2e6;
+        }
+
+        .payment-info-header {
+          display: flex;
+          align-items: center;
+          font-weight: 600;
+          font-size: 1.1rem;
+          color: #495057;
+          margin-bottom: 1rem;
+        }
+
+        .payment-info-icon {
+          color: #007bff;
+          margin-right: 0.5rem;
+          font-size: 1.2rem;
+        }
+
+        .payment-info-content {
+          space-y: 0.75rem;
+        }
+
+        .payment-info-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid #e9ecef;
+        }
+
+        .payment-info-item:last-child {
+          border-bottom: none;
+        }
+
+        .payment-method-badge {
+          background: #007bff;
+          color: white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+
+        .payment-amount {
+          font-weight: 600;
+          color: #28a745;
+          font-size: 1.1rem;
+        }
+
+        .payment-status.completed {
+          color: #28a745;
+          font-weight: 600;
+        }
+
+        .payment-status.pending {
+          color: #ffc107;
+          font-weight: 600;
+        }
+
+        .payment-status.processing {
+          color: #17a2b8;
+          font-weight: 600;
+        }
+
+        .payment-status.failed {
+          color: #dc3545;
+          font-weight: 600;
+        }
+
+        .payment-notice {
+          background: #fff3cd;
+          border: 1px solid #ffeaa7;
+          color: #856404;
+          padding: 0.75rem;
+          border-radius: 8px;
+          margin-top: 0.75rem;
+          font-size: 0.875rem;
         }
       `}</style>
     </Container>

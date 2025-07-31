@@ -86,9 +86,9 @@
 
 .progress-connector {
   height: 3px;
-  width: 100px;
+  width: 80px;
   background-color: #e0e0e0;
-  margin: 0 15px;
+  margin: 0 10px;
   position: relative;
   top: -16px;
   z-index: 0;
@@ -703,5 +703,74 @@
   
   .back-button {
     order: 2;
+  }
+}
+
+/* Payment Step Styles */
+.payment-summary .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.payment-details .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.payment-methods h6 {
+  font-weight: 600;
+  color: #495057;
+}
+
+.payment-method-card {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #dee2e6;
+  cursor: pointer;
+}
+
+.payment-method-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.payment-method-card.selected {
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+  transform: translateY(-2px);
+}
+
+.payment-actions .btn {
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 20px;
+  transition: all 0.3s ease;
+}
+
+.payment-actions .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustments for payment step */
+@media (max-width: 767px) {
+  .payment-methods .col-md-6 {
+    margin-bottom: 15px;
+  }
+  
+  .payment-actions .d-flex {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .payment-actions .flex-fill {
+    width: 100%;
+  }
+  
+  .progress-connector {
+    width: 40px;
+  }
+  
+  .step-label {
+    font-size: 12px;
+    text-align: center;
   }
 }
