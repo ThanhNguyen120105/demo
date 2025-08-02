@@ -547,23 +547,34 @@ export const authAPI = {
 
 // Appointment API
 export const appointmentAPI = {
-  // Tạo appointment mới (customer)
+  // Tạo appointment với bắt buộc thanh toán VNPay - trả về payment URL
   createAppointment: async (appointmentData) => {
     try {
-      console.log('Creating appointment:', appointmentData);
+      console.log('Creating appointment with VNPay payment:', appointmentData);
+      // Sử dụng endpoint đúng từ Swagger
       const response = await api.post('/appointment/bookAnAppointment', appointmentData);
       
       console.log('Create appointment response:', response.data);
       
+      // Kiểm tra response format từ Swagger - trường data chứa VNPay URL
+      if (response.data?.status?.code === 200 && response.data?.data) {
+        return {
+          status: response.data.status,
+          data: response.data.data, // VNPay payment URL
+          success: true,
+          message: 'Payment URL created successfully'
+        };
+      }
+      
       return {
-        success: true,
-        data: response.data,
-        message: 'Đặt lịch hẹn thành công! Lịch hẹn đang chờ được duyệt.'
+        success: false,
+        message: 'Không thể tạo liên kết thanh toán',
+        error: response.data
       };
     } catch (error) {
       console.error('Create appointment error:', error);
       
-      let errorMessage = 'Đã xảy ra lỗi khi đặt lịch hẹn';
+      let errorMessage = 'Đã xảy ra lỗi khi tạo lịch hẹn';
       
       if (error.response?.status === 400) {
         errorMessage = 'Thông tin đặt lịch không hợp lệ';
@@ -572,7 +583,8 @@ export const appointmentAPI = {
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-        return {
+        
+      return {
         success: false,
         message: errorMessage,
         error: error.response?.data || error.message
@@ -958,37 +970,6 @@ export const appointmentAPI = {
         message: errorMessage,
         error: error.response?.data || error.message,
         data: []
-      };
-    }
-  },
-
-  // Lấy chi tiết appointment theo ID
-  getAppointmentById: async (appointmentId) => {
-    try {
-      const response = await api.get(`/appointment/${appointmentId}`);
-      
-      return {
-        success: true,
-        data: response.data?.data || response.data,
-        message: 'Lấy chi tiết lịch hẹn thành công'
-      };
-    } catch (error) {
-      console.error('Get appointment details error:', error);
-      
-      let errorMessage = 'Không thể lấy chi tiết lịch hẹn';
-      
-      if (error.response?.status === 404) {
-        errorMessage = 'Không tìm thấy lịch hẹn';
-      } else if (error.response?.status === 403) {
-        errorMessage = 'Bạn không có quyền xem lịch hẹn này';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-        return {
-        success: false,
-        message: errorMessage,
-        error: error.response?.data || error.message,
-        data: null
       };
     }
   },

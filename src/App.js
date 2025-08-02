@@ -49,6 +49,9 @@ import ManagerRoute from './components/common/ManagerRoute';
 // Video Call
 import VideoCallPage from './components/VideoCall/VideoCallPage';
 
+// Payment Components
+import PaymentCallback from './components/Payment/PaymentCallback';
+
 // Blog Components
 import { HIVPreventionBlog } from './components/Blog';
 
@@ -78,6 +81,9 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/doctor-login" element={<DoctorLogin />} />
                     <Route path="/signup" element={<Signup />} />
+                    
+                    {/* Payment Routes */}
+                    <Route path="/payment-callback" element={<PaymentCallback />} />
                     
                     {/* Patient Routes - Using ProtectedRoute */}
                     <Route path="/appointment" element={<ProtectedRoute><AppointmentPage /></ProtectedRoute>} />
