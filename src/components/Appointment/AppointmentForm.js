@@ -31,6 +31,7 @@ import { useLocation } from 'react-router-dom';
 import BackButton from '../common/BackButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { appointmentAPI, slotAPI, doctorAPI, serviceAPI } from '../../services/api';
+import { createVNPayPayment, storeTempAppointmentData } from '../../services/payment';
 
 const AppointmentForm = () => {
   const location = useLocation();
@@ -421,11 +422,10 @@ const AppointmentForm = () => {
         return;
       }
       
-      // Tính toán payment amount từ service đã chọn
+      // Tính toán payment amount từ service đã chọn (bỏ phí dịch vụ 5%)
       const selectedService = availableServices.find(service => service.id === formData.serviceId);
       const servicePrice = selectedService?.price || 200000; // Default price
-      const serviceFee = Math.round(servicePrice * 0.05); // 5% service fee
-      const totalAmount = servicePrice + serviceFee;
+      const totalAmount = servicePrice; // Chỉ tính giá dịch vụ, không cộng phí dịch vụ
       
       setFormData(prev => ({
         ...prev,
@@ -434,9 +434,9 @@ const AppointmentForm = () => {
       
       setFormStep(5); // Chuyển sang bước thanh toán
     } else if (formStep === 5) {
-      // Validation cho bước thanh toán - VNPay đã được set mặc định
-      // Gửi appointment đến backend
-      handleCreateAppointment();
+      // Bước thanh toán - chỉ xử lý khi user chọn "Thanh toán ngay"
+      // Không làm gì ở đây, để handlePaymentNow xử lý
+      return;
     }
   };
 
@@ -564,25 +564,93 @@ const AppointmentForm = () => {
 
   const handlePaymentNow = async () => {
     setIsProcessingPayment(true);
+    setErrorMessage('');
+    
     try {
-      // Simulate VNPay payment processing
-      console.log('Processing VNPay payment...');
-      await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds for VNPay processing
+      console.log('🏦 Starting VNPay payment process...');
       
-      setFormData(prev => ({
-        ...prev,
-        paymentStatus: 'completed'
-      }));
+      // Validate required appointment data
+      if (!user?.id) {
+        throw new Error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+      }
       
-      console.log('VNPay payment completed successfully');
-      handleCreateAppointment();
+      if (!formData.serviceId || !formData.doctor || !formData.time) {
+        throw new Error('Thiếu thông tin đặt lịch. Vui lòng kiểm tra lại.');
+      }
+
+      // Prepare appointment data for payment
+      const appointmentData = {
+        // Customer info - theo format API backend yêu cầu
+        customerId: user.id,
+        alternativeName: formData.name || user.fullName,
+        alternativePhoneNumber: formData.phone || user.phoneNumber,
+        birthdate: formData.dob || user.birthdate,
+        gender: formData.gender || user.gender,
+        
+        // Appointment details
+        appointmentDate: formData.date,
+        serviceId: formData.serviceId,
+        doctorId: formData.doctor, // UUID string, không parse int
+        slotEntityId: formData.time, // UUID string, không parse int
+        
+        // Additional info
+        reason: formData.healthIssues || '',
+        notes: formData.notes || '',
+        registrationType: formData.registrationType,
+        isOnline: formData.isOnline,
+        isAnonymous: formData.isAnonymous,
+        
+        // Payment info for VNPay
+        paymentMethod: 'vnpay',
+        paymentAmount: formData.paymentAmount
+      };
+
+      console.log('📋 Appointment data for payment:', appointmentData);
+      console.log('🔍 User object:', user);
+      console.log('📝 Form data:', formData);
+
+      // Generate unique transaction reference
+      const transactionRef = `APT_${Date.now()}_${user.id}`;
+      
+      // Store appointment data temporarily for callback processing
+      storeTempAppointmentData(appointmentData, transactionRef);
+      console.log('💾 Stored temporary data with ref:', transactionRef);
+      
+      // Create VNPay payment URL
+      console.log('🚀 Calling createVNPayPayment...');
+      const paymentResult = await createVNPayPayment({
+        ...appointmentData,
+        transactionRef: transactionRef
+      });
+
+      console.log('📥 Payment result:', paymentResult);
+
+      if (paymentResult.success && paymentResult.paymentUrl) {
+        console.log('✅ VNPay payment URL created:', paymentResult.paymentUrl);
+        
+        // Update payment status
+        setFormData(prev => ({
+          ...prev,
+          paymentStatus: 'processing'
+        }));
+        
+        // Redirect to VNPay payment page
+        window.location.href = paymentResult.paymentUrl;
+        
+      } else {
+        throw new Error(paymentResult.error || 'Không thể tạo liên kết thanh toán VNPay');
+      }
+      
     } catch (error) {
-      console.error('VNPay payment error:', error);
+      console.error('❌ VNPay payment creation failed:', error);
+      
       setFormData(prev => ({
         ...prev,
         paymentStatus: 'failed'
       }));
-      alert('Có lỗi xảy ra trong quá trình thanh toán VNPay. Vui lòng thử lại.');
+      
+      setErrorMessage(error.message || 'Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại.');
+      
     } finally {
       setIsProcessingPayment(false);
     }
@@ -1490,8 +1558,8 @@ const AppointmentForm = () => {
                       </>
                     ) : (
                       <>
-                        <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
-                        Hoàn Tất Đặt Lịch
+                        <FontAwesomeIcon icon={faArrowRight} className="me-2" />
+                        Tiếp tục
                       </>
                     )}
                   </Button>
@@ -1540,18 +1608,13 @@ const AppointmentForm = () => {
                     {(() => {
                       const selectedService = availableServices.find(service => service.id === formData.serviceId);
                       const servicePrice = selectedService?.price || 200000;
-                      const serviceFee = Math.round(servicePrice * 0.05);
-                      const totalAmount = servicePrice + serviceFee;
+                      const totalAmount = servicePrice; // Bỏ phí dịch vụ 5%
                       
                       return (
                         <>
                           <div className="d-flex justify-content-between mb-2">
                             <span>Dịch vụ: {selectedService?.name || 'Dịch vụ HIV'}</span>
                             <span>{servicePrice.toLocaleString('vi-VN')} VNĐ</span>
-                          </div>
-                          <div className="d-flex justify-content-between mb-2">
-                            <span>Phí dịch vụ (5%):</span>
-                            <span>{serviceFee.toLocaleString('vi-VN')} VNĐ</span>
                           </div>
                           <hr/>
                           <div className="d-flex justify-content-between">
@@ -1596,6 +1659,14 @@ const AppointmentForm = () => {
                   </Col>
                 </Row>
               </div>
+              
+              {/* Error Display */}
+              {errorMessage && (
+                <div className="alert alert-danger mb-4" role="alert">
+                  <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                  {errorMessage}
+                </div>
+              )}
 
               {/* Payment Actions */}
               <div className="payment-actions">

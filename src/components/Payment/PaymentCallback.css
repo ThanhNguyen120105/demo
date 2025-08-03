@@ -1,0 +1,346 @@
+.payment-callback-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.payment-callback-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: 100%;
+  padding: 40px;
+  text-align: center;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Processing Section */
+.processing-section {
+  padding: 20px 0;
+}
+
+.processing-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.processing-section h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.processing-section p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Success Section */
+.success-section {
+  padding: 20px 0;
+}
+
+.success-icon,
+.failed-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  display: block;
+  animation: iconPulse 2s infinite;
+}
+
+.success-icon {
+  animation: successPulse 2s infinite;
+}
+
+.failed-icon {
+  animation: failedShake 2s infinite;
+}
+
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes failedShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes iconPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.success-section h2 {
+  color: #28a745;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.success-section p {
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+/* Failed Section */
+.failed-section {
+  padding: 20px 0;
+}
+
+.failed-icon {
+  font-size: 5rem;
+  color: #dc3545;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.failed-section h2 {
+  color: #dc3545;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.failed-section p {
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+}
+
+/* Icon styles for emoji replacement */
+.icon {
+  margin-right: 8px;
+  font-size: 1.2em;
+  display: inline-block;
+}
+
+/* Payment Details */
+.payment-details,
+.appointment-details {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 25px 0;
+  text-align: left;
+}
+
+.payment-details h4,
+.appointment-details h4 {
+  color: #495057;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row .label {
+  font-weight: 600;
+  color: #495057;
+  flex: 1;
+}
+
+.detail-row .value {
+  font-weight: 500;
+  color: #212529;
+  flex: 1;
+  text-align: right;
+  word-break: break-word;
+}
+
+/* Countdown Message */
+.countdown-message {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin: 25px 0;
+  font-weight: 600;
+  animation: countdownPulse 1s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.countdown-message.warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+@keyframes countdownPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+.cancel-redirect-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid white;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.cancel-redirect-btn:hover {
+  background: white;
+  color: #333;
+}
+
+/* Action Buttons */
+.action-buttons {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.action-buttons .btn {
+  padding: 12px 30px;
+  font-weight: 600;
+  border-radius: 25px;
+  border: none;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 150px;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-buttons .btn-primary {
+  background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.action-buttons .btn-secondary {
+  background: linear-gradient(45deg, #6c757d, #495057);
+}
+
+.action-buttons .btn-primary:hover {
+  background: linear-gradient(45deg, #0056b3, #004085);
+}
+
+.action-buttons .btn-secondary:hover {
+  background: linear-gradient(45deg, #495057, #343a40);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .payment-callback-container {
+    padding: 10px;
+  }
+  
+  .payment-callback-card {
+    padding: 30px 20px;
+  }
+  
+  .processing-icon,
+  .success-icon,
+  .failed-icon {
+    font-size: 3.5rem;
+  }
+  
+  .success-section h2,
+  .failed-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .action-buttons .btn {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .detail-row .value {
+    text-align: left;
+  }
+  
+  .countdown-message {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-callback-card {
+    padding: 20px 15px;
+  }
+  
+  .payment-details,
+  .appointment-details {
+    padding: 15px;
+  }
+  
+  .processing-icon,
+  .success-icon,
+  .failed-icon {
+    font-size: 3rem;
+  }
+  
+  .success-section h2,
+  .failed-section h2 {
+    font-size: 1.3rem;
+  }
+  
+  .action-buttons .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Duplicate styles removed - keeping only the first clean version */
