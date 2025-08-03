@@ -3,7 +3,7 @@ import { Modal, Button, Form, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes, faSearch, faPills } from '@fortawesome/free-solid-svg-icons';
 import { medicineAPI } from '../../services/api';
-
+import './MedicineSelector.css';
 const MedicineSelector = ({ 
   show, 
   onHide, 
@@ -67,17 +67,39 @@ const MedicineSelector = ({
         return;
       }
 
+      if (newMedicine.name.length < 2) {
+        setAlert({
+          show: true,
+          variant: 'warning',
+          message: 'Tên thuốc phải có ít nhất 2 ký tự'
+        });
+        return;
+      }
+
+      // Kiểm tra xem thuốc đã tồn tại chưa
+      const existingMedicine = availableMedicines.find(med => med.name.toLowerCase() === newMedicine.name.toLowerCase());
+      if (existingMedicine) {
+        setAlert({
+          show: true,
+          variant: 'warning',
+          message: `Thuốc "${newMedicine.name}" đã tồn tại`
+        });
+        return;
+      }
+
+      // Tạo thuốc mới
       setLoading(true);
       const result = await medicineAPI.createMedicine({
         name: newMedicine.name.trim(),
-        description: newMedicine.description.trim() || null
+        description: newMedicine.description.trim() || null,
+        imgURL: null // Có thể thêm sau nếu cần
       });
 
       if (result.success) {
         setAlert({
           show: true,
           variant: 'success',
-          message: 'Tạo thuốc mới thành công'
+          message: `Tạo thuốc "${newMedicine.name}" thành công`
         });
         
         // Reset form
@@ -94,7 +116,6 @@ const MedicineSelector = ({
         });
       }
     } catch (error) {
-      console.error('Error creating medicine:', error);
       setAlert({
         show: true,
         variant: 'danger',
@@ -106,12 +127,28 @@ const MedicineSelector = ({
   };
 
   const handleMedicineSelect = (medicineId, medicineName) => {
+
+    // Kiểm tra xem thuốc đã được chọn chưa
+    const isAlreadySelected = medicines.some(med => 
+      med.medicineId === medicineId || med.name.toLowerCase() === medicineName.toLowerCase()
+    );
+
+    if (isAlreadySelected) {
+      setAlert({
+        show: true,
+        variant: 'warning',
+        message: `Thuốc "${medicineName}" đã được chọn`
+      });
+      return;
+    }
+
     // Thêm thuốc mới vào danh sách
     const newMedicine = {
       medicineId: medicineId,
-      medicineName: medicineName,
+      name: medicineName,
       dosage: '',
-      status: 'Mới'
+      amount: 0,
+      note: ''
     };
     onAddMedicine(newMedicine);
   };
@@ -126,7 +163,7 @@ const MedicineSelector = ({
     <Modal 
       show={show} 
       onHide={onHide} 
-      size="lg" 
+      size="lg"
       centered
       className="medicine-selector-modal"
     >
@@ -154,13 +191,13 @@ const MedicineSelector = ({
           {medicines && medicines.length > 0 ? (
             medicines.map((med, index) => (
               <Row key={index} className="mb-2 align-items-center p-2 border rounded">
-                <Col md={4}>
+                <Col md={3}>
                   <Form.Group>
                     <Form.Label className="small">Tên thuốc *</Form.Label>
                     <Form.Control 
                       type="text" 
-                      value={med.medicineName || ''}
-                      onChange={(e) => onMedicineChange(index, 'medicineName', e.target.value)}
+                      value={med.name || ''}
+                      onChange={(e) => onMedicineChange(index, 'name', e.target.value)}
                       readOnly={readOnly}
                       size="sm"
                     />
@@ -181,21 +218,32 @@ const MedicineSelector = ({
                 </Col>
                 <Col md={3}>
                   <Form.Group>
-                    <Form.Label className="small">Trạng thái *</Form.Label>
-                    <Form.Select 
-                      value={med.status || 'Mới'}
-                      onChange={(e) => onMedicineChange(index, 'status', e.target.value)}
-                      disabled={readOnly}
+                    <Form.Label className="small">Số lượng</Form.Label>
+                    <Form.Control
+                      type="number"
+                      min="0"
+                      value={med.amount || 0}
+                      onChange={(e) => onMedicineChange(index, 'amount', e.target.value)}
+                      readOnly={readOnly}
                       size="sm"
-                    >
-                      <option value="Mới">Mới</option>
-                      <option value="Tiếp tục">Tiếp tục</option>
-                      <option value="Đã thay đổi">Đã thay đổi</option>
-                      <option value="Đã ngừng">Đã ngừng</option>
-                    </Form.Select>
+                    />
                   </Form.Group>
                 </Col>
-                {!readOnly && (
+                <Col md={3}>
+                  <Form.Group>
+                    <Form.Label className="small">Ghi chú</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      row={2}
+                      value={med.note || ''}
+                      onChange={(e) => onMedicineChange(index, 'note', e.target.value)}
+                      readOnly={readOnly}
+                      size="sm"
+                      placeholder="VD: Uống sau ăn"
+                    />
+                  </Form.Group>
+                </Col>
+                {/* {!readOnly && (
                   <Col md={2} className="d-flex align-items-end">
                     <Button 
                       variant="outline-danger" 
@@ -205,7 +253,7 @@ const MedicineSelector = ({
                       <FontAwesomeIcon icon={faTimes} />
                     </Button>
                   </Col>
-                )}
+                )} */}
               </Row>
             ))
           ) : (
@@ -234,46 +282,92 @@ const MedicineSelector = ({
               {/* Form tạo thuốc mới */}
               {showCreateForm && (
                 <div className="mb-3 p-3 border rounded bg-light">
-                  <h6>Tạo thuốc mới:</h6>
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-2">
-                        <Form.Label className="small">Tên thuốc *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={newMedicine.name}
-                          onChange={(e) => setNewMedicine(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Nhập tên thuốc"
-                          size="sm"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Group className="mb-2">
-                        <Form.Label className="small">Mô tả</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={newMedicine.description}
-                          onChange={(e) => setNewMedicine(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="Mô tả thuốc (tùy chọn)"
-                          size="sm"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={2} className="d-flex align-items-end">
-                      <Button
-                        variant="primary"
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h6 className="mb-0">
+                    <FontAwesomeIcon icon={faPlus} className="me-2 text-primary" />
+                    Tạo thuốc mới
+                  </h6>
+                <Button 
+                        variant="outline-secondary" 
                         size="sm"
-                        onClick={handleCreateMedicine}
-                        disabled={loading}
-                        className="w-100"
+                        onClick={() => {
+                          setShowCreateForm(false);
+                          setNewMedicine({ name: '', description: '' });
+                        }}
                       >
-                        {loading ? <Spinner size="sm" /> : 'Tạo'}
+                        <FontAwesomeIcon icon={faTimes} />
                       </Button>
-                    </Col>
-                  </Row>
-                </div>
-              )}
+                    </div>
+                    
+                    <Row>
+                      <Col md={6}>
+                        <Form.Group className="mb-2">
+                          <Form.Label className="small fw-bold">
+                            Tên thuốc *
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            value={newMedicine.name}
+                            onChange={(e) => setNewMedicine(prev => ({ 
+                              ...prev, 
+                              name: e.target.value 
+                            }))}
+                            placeholder="VD: Thuốc Tenofovir"
+                            size="sm"
+                            maxLength={100}
+                          />
+                          <Form.Text className="text-muted">
+                            {newMedicine.name.length}/100 ký tự
+                          </Form.Text>
+                        </Form.Group>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Group className="mb-2">
+                          <Form.Label className="small fw-bold">
+                            Mô tả
+                          </Form.Label>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            value={newMedicine.description}
+                            onChange={(e) => setNewMedicine(prev => ({ 
+                              ...prev, 
+                              description: e.target.value 
+                            }))}
+                            placeholder="VD: Thuốc thuốc này hoạt động bằng cách ngăn chặn enzyme sao chép ngược ..."
+                            size="sm"
+                            maxLength={200}
+                          />
+                          <Form.Text className="text-muted">
+                            {newMedicine.description.length}/200 ký tự
+                          </Form.Text>
+                        </Form.Group>
+                      </Col>
+                      <Col md={2} className="d-flex align-items-end">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={handleCreateMedicine}
+                          disabled={loading || !newMedicine.name.trim()}
+                          className="w-100"
+                          style={{ marginBottom: '1.5rem' }}
+                        >
+                          {loading ? (
+                            <>
+                              <Spinner size="sm" className="me-1" />
+                              Đang tạo...
+                            </>
+                          ) : (
+                            <>
+                              <FontAwesomeIcon icon={faPlus} className="me-1" />
+                              Tạo
+                            </>
+                          )}
+                        </Button>
+                      </Col>
+                    </Row>
+                  </div>
+                )}
 
               {/* Tìm kiếm */}
               <Form.Group className="mb-3">

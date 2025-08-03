@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import { Modal, Button, Badge, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -12,10 +13,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useServiceData } from '../../hooks/useServiceData';
 
-/**
- * Modal chung để hiển thị chi tiết lịch hẹn
- * Có thể sử dụng cho cả CUSTOMER và DOCTOR
- */
 const AppointmentDetailModal = ({ 
   show, 
   onHide, 
@@ -28,7 +25,7 @@ const AppointmentDetailModal = ({
   getStatusBadge
 }) => {
   const { getServiceNameById } = useServiceData();
-  
+  const [showAnonymousInfo, setShowAnonymousInfo] = useState(false);
   // Helper function to format gender
   const formatGender = (gender) => {
     if (!gender) return 'Trống';
@@ -147,31 +144,78 @@ const AppointmentDetailModal = ({
 
             {/* Thông tin bệnh nhân */}
             <div className="mb-3">
-              <h6 className="text-warning mb-2">
-                <FontAwesomeIcon icon={faStethoscope} className="me-2" />
-                Thông tin khám bệnh
-              </h6>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="text-warning mb-0">
+                  <FontAwesomeIcon icon={faStethoscope} className="me-2" />
+                  Thông tin khám bệnh
+                </h6>
+                
+                {/* Nút toggle thông tin ẩn danh - chỉ hiện khi isAnonymous = true */}
+                {appointmentDetail.isAnonymous === true && (
+                  <Button
+                    variant={showAnonymousInfo ? "warning" : "outline-warning"}
+                    size="sm"
+                    onClick={() => setShowAnonymousInfo(!showAnonymousInfo)}
+                  >
+                    <FontAwesomeIcon 
+                      icon={showAnonymousInfo ? faExclamationTriangle : faInfoCircle} 
+                      className="me-2" 
+                    />
+                    {showAnonymousInfo ? 'Ẩn thông tin' : 'Hiện thông tin'}
+                  </Button>
+                )}
+              </div>
+              
               <div className="bg-light p-3 rounded">
                 {appointmentDetail.isAnonymous === true ? (
-                  /* Hiển thị thông tin ẩn danh - chỉ tên và lý do khám */
+                  /* Hiển thị thông tin ẩn danh với toggle */
                   <>
-                    <p className="mb-2">
-                      <strong>Tên người khám:</strong> 
-                      <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'} (ẩn danh)</span>
-                    </p>
-                    <p className="mb-0">
-                      <strong>Lý do khám:</strong> 
-                      <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
-                    </p>
-                    <div className="mt-2">
-                      <small className="text-muted">
-                        <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
-                        Thông tin cá nhân được ẩn do khám ẩn danh
-                      </small>
-                    </div>
+                    {!showAnonymousInfo ? (
+                      /* Hiển thị thông tin bị ẩn */
+                      <>
+                        <p className="mb-2">
+                          <strong>Tên người khám:</strong> 
+                          <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'} (ẩn danh)</span>
+                        </p>
+                        <p className="mb-0">
+                          <strong>Lý do khám:</strong> 
+                          <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
+                        </p>
+                        <div className="mt-2">
+                          <small className="text-muted">
+                            <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+                            Thông tin cá nhân được ẩn do khám ẩn danh
+                          </small>
+                        </div>
+                      </>
+                    ) : (
+                      /* Hiển thị thông tin đầy đủ khi được phép */
+                      <>
+                        <p className="mb-2">
+                          <strong>Tên người khám:</strong> 
+                          <span className="ms-2">{appointmentDetail.alternativeName || 'Trống'}</span>
+                        </p>
+                        <p className="mb-2">
+                          <strong>Ngày sinh:</strong>
+                          <span className="ms-2">{appointmentDetail.birthdate ? formatDate(appointmentDetail.birthdate) : 'Trống'}</span>
+                        </p>
+                        <p className="mb-2">
+                          <strong>Giới tính:</strong>
+                          <span className="ms-2">{formatGender(appointmentDetail.gender)}</span>
+                        </p>
+                        <p className="mb-2">
+                          <strong>Số điện thoại:</strong> 
+                          <span className="ms-2">{appointmentDetail.alternativePhoneNumber || 'Trống'}</span>
+                        </p>
+                        <p className="mb-0">
+                          <strong>Lý do khám:</strong> 
+                          <span className="ms-2">{appointmentDetail.reason || 'Trống'}</span>
+                        </p>
+                      </>
+                    )}
                   </>
                 ) : (
-                  /* Hiển thị thông tin đầy đủ */
+                  /* Hiển thị thông tin đầy đủ cho appointment không ẩn danh */
                   <>
                     <p className="mb-2">
                       <strong>Tên người khám:</strong> 

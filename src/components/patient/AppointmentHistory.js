@@ -1240,7 +1240,7 @@ const AppointmentHistory = () => {
                 </Card.Body>
               </Card>
 
-               {/* Phần thuốc (chỉ xem) */}
+               {/* Phần thuốc */}
               <Card className="mb-3">
                 <Card.Header className="bg-success text-white py-2">
                   <FontAwesomeIcon icon={faPrescriptionBottleAlt} className="me-2" />
@@ -1254,26 +1254,17 @@ const AppointmentHistory = () => {
                           <tr>
                             <th>Tên thuốc</th>
                             <th>Liều lượng</th>
-                            <th>Trạng thái</th>
+                            <th>Số lượng</th>
+                            <th>Ghi chú</th>
                           </tr>
                         </thead>
                         <tbody>
                           {medicalResult.medicalResultMedicines.map((med, index) => (
                             <tr key={index}>
-                              <td>{med.medicineName || med.name || 'Chưa nhập'}</td>
+                              <td>{med.name || 'Chưa nhập'}</td>
                               <td>{med.dosage || 'Chưa nhập'}</td>
-                              <td>
-                                <Badge 
-                                  bg={
-                                    med.status === 'Mới' ? 'primary' :
-                                    med.status === 'Tiếp tục' ? 'success' :
-                                    med.status === 'Đã thay đổi' ? 'warning' :
-                                    med.status === 'Đã ngừng' ? 'danger' : 'secondary'
-                                  }
-                                >
-                                  {med.status || 'Chưa nhập'}
-                                </Badge>
-                              </td>
+                              <td>{med.amount || 'Chưa nhập'}</td>
+                              <td>{med.note || 'Chưa nhập'}</td>
                             </tr>
                           ))}
                         </tbody>

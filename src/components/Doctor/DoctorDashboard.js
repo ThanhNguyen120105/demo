@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import './Doctor.css';
 import DoctorSidebar from './DoctorSidebar';
-import AppointmentDetailModal from '../common/AppointmentDetailModal';
+import AppointmentDetailModal from '../Doctor/AppointmentDetailModal';
 // import VideoCall from '../VideoCall/videoCall'; // No longer needed
 import { appointmentAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';

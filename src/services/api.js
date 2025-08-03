@@ -1747,56 +1747,10 @@ export const medicalResultAPI = {  // Tạo medical result cho appointment
   },  // Cập nhật medical result
   updateMedicalResult: async (medicalResultId, medicalData) => {
     try {
-      // ========= COMPREHENSIVE TOKEN AND HEADER DEBUGGING =========
-      console.log('=== API LAYER TOKEN DEBUGGING ===');
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('❌ No token found in localStorage');
-        throw new Error('Authentication required - no token found');
-      }
-      
-      console.log('📋 Token present in API call:', !!token);
-      console.log('📋 Token length:', token.length);
-      console.log('📋 Token first 50 chars:', token.substring(0, 50) + '...');
-      
-      // Decode and check token in API layer too
-      let apiTokenPayload = null;
-      try {
-        const jwtDecode = require('jwt-decode').default || require('jwt-decode');
-        apiTokenPayload = jwtDecode(token);
-        console.log('🔍 API Layer - Token payload:', JSON.stringify(apiTokenPayload, null, 2));
-        
-        const roles = apiTokenPayload?.roles || apiTokenPayload?.authorities || [];
-        const hasDoctor = Array.isArray(roles) ? 
-          roles.some(r => (typeof r === 'string' ? r : r?.authority)?.includes('DOCTOR')) :
-          roles?.toString().includes('DOCTOR');
-        
-        console.log('🎯 API Layer - DOCTOR role check:', hasDoctor);
-        console.log('🎯 API Layer - All roles/authorities:', roles);
-        
-        // Check expiration
-        const now = Math.floor(Date.now() / 1000);
-        const exp = apiTokenPayload?.exp;
-        console.log('⏰ Token expiry check:');
-        console.log('- Token exp:', exp ? new Date(exp * 1000) : 'Not found');
-        console.log('- Current time:', new Date(now * 1000));
-        console.log('- Is expired:', exp && exp < now);
-        
-      } catch (decodeError) {
-        console.error('❌ API Layer - Error decoding token:', decodeError);
-      }
-      
-      console.log('=== END API TOKEN DEBUGGING ===');
-      // ========= END TOKEN DEBUGGING =========
+      console.log('Updating medical result:', medicalResultId);
 
-      console.log('=== DEBUG updateMedicalResult API ===');
-      console.log('Medical Result ID:', medicalResultId);
-      console.log('Medical Data:', JSON.stringify(medicalData, null, 2));      // Debug token and headers
-      console.log('Token in API call:', token ? `${token.substring(0, 50)}...` : 'NO TOKEN');        // ============ FORMDATA WITH INDIVIDUAL FIELDS ============
-      console.log('=== CREATING FORMDATA WITH INDIVIDUAL FIELDS ===');
-        const formData = new FormData();
-      
+      const formData = new FormData();
+
       // Backend expects @RequestPart("data") as a JSON object
       const dataObj = {
         doctorId: medicalData.doctorId || '',
@@ -1818,17 +1772,18 @@ export const medicalResultAPI = {  // Tạo medical result cho appointment
         totalCholesterol: medicalData.totalCholesterol || '',
         ldl: medicalData.ldl || '',
         hdl: medicalData.hdl || '',
-        trigilycerides: medicalData.trigilycerides || '',
+        triglycerides: medicalData.triglycerides || '',
         patientProgressEvaluation: medicalData.patientProgressEvaluation || '',
         plan: medicalData.plan || '',
         recommendation: medicalData.recommendation || '',        medicalResultMedicines: medicalData.medicalResultMedicines && Array.isArray(medicalData.medicalResultMedicines) 
           ? medicalData.medicalResultMedicines.map(med => {
               // Ensure proper medicine structure for API
               const apiMedicine = {
-                medicineId: med.medicineId || med.id,
-                name: med.name || med.medicineName, // Use name or medicineName
+                medicineId: med.medicineId,
+                name: med.name ,
                 dosage: med.dosage || '',
-                status: med.status || 'Mới'
+                amount: med.amount || 0,
+                note: med.note || ''
               };
               console.log('🔄 API: Mapping medicine for update:', med, '→', apiMedicine);
               return apiMedicine;
@@ -1840,16 +1795,11 @@ export const medicalResultAPI = {  // Tạo medical result cho appointment
       // Send data as JSON blob under "data" key (matching @RequestPart("data"))
       const dataBlob = new Blob([JSON.stringify(dataObj)], { type: 'application/json' });
       formData.append('data', dataBlob);
-      
-      console.log('=== FormData Data Object ===');
-      console.log('Data object being sent:', JSON.stringify(dataObj, null, 2));        // Add ARV file if present - BACKEND EXPECTS "arvRegimenResultURL"
-      if (medicalData.arvFile) {
-        console.log('📎 ARV file data received:', medicalData.arvFile);
-        
+     // Add ARV file if present
+      if (medicalData.arvFile) {        
         // Handle different ARV file formats
         if (medicalData.arvFile instanceof File) {
           // Standard File object
-          console.log('✅ Adding standard File object:', medicalData.arvFile.name);
           formData.append('arvRegimenResultURL', medicalData.arvFile);
         } else if (medicalData.arvFile.data && medicalData.arvFile.name) {
           // Custom file object from ARV Selection Tool (with base64 data)
@@ -1891,10 +1841,6 @@ export const medicalResultAPI = {  // Tạo medical result cho appointment
       
       // Send as FormData (browser automatically sets multipart/form-data with boundary)
       const response = await api.patch(`/medical-result/update-MedicalResult/${medicalResultId}`, formData);
-      
-      console.log('=== DEBUG API Response Success ===');
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
       
       return {
         success: true,
@@ -1961,15 +1907,8 @@ export const medicineAPI = {
 
   // Tạo thuốc mới
   createMedicine: async (medicineData) => {
-    try {
-      console.log('=== DEBUG createMedicine API ===');
-      console.log('Medicine Data:', medicineData);
-      
+    try { 
       const response = await api.post('/medicine/create', medicineData);
-      
-      console.log('=== DEBUG createMedicine Success ===');
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
       
       return {
         success: true,

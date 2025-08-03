@@ -3,11 +3,12 @@ import { Modal, Button, Card, Form, Row, Col, Badge } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUserMd, faHeartbeat, faVial, faFilePdf, faEye, faTimes, faSlidersH,
-  faPills, faClipboardList, faDownload
+  faPills, faClipboardList, faDownload, faFileMedical
 } from '@fortawesome/free-solid-svg-icons';
 import ARVSelectionTool from './ARVSelectionTool';
-import { generateVietnameseHTMLtoPDF } from '../../utils/vietnamese-html-to-pdf';
-
+import { calc } from 'antd/es/theme/internal';
+import generateCalendar from 'antd/es/calendar/generateCalendar';
+import { generatePrescriptionPDF } from '../../utils/vietnamese-pdf-supabase';
 // CSS styles cho required field
 const requiredFieldStyle = {
   color: 'red',
@@ -31,6 +32,7 @@ const MedicalReportModal = ({
   const [showARVTool, setShowARVTool] = useState(false);
   const [showDeleteARVConfirm, setShowDeleteARVConfirm] = useState(false);
   const [arvToDelete, setARVToDelete] = useState(null); // 'file' for new file, 'url' for existing URL
+  const [creatingPrescription, setCreatingPrescription] = useState(false);
 
   const handleARVSelect = (pdfFile) => {
     onChange('arvResultFile', pdfFile);
@@ -117,12 +119,9 @@ const MedicalReportModal = ({
       
       // Kiểm tra xem có URL file ARV không
       if (!report.arvRegimenResultURL) {
-        alert('❌ Không tìm thấy file báo cáo ARV để tải xuống.\n\nVui lòng tạo báo cáo ARV trước.');
+        alert(' Không tìm thấy file báo cáo ARV để tải xuống.\n\nVui lòng tạo báo cáo ARV trước.');
         return;
       }
-
-      console.log('📁 ARV file URL:', report.arvRegimenResultURL);
-      
       // Tạo tên file để download
       const fileName = `Bao-cao-ARV-${appointment?.alternativeName || 'BenhNhan'}-${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.pdf`;
       
@@ -146,19 +145,18 @@ const MedicalReportModal = ({
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
         
-        console.log('✅ File PDF ARV đã được tải xuống thành công!');
+        console.log('File PDF ARV đã được tải xuống thành công!');
         
       } catch (fetchError) {
-        console.error('❌ Lỗi tải file từ server:', fetchError);
+        console.error('Lỗi tải file từ server:', fetchError);
         
         // Fallback: mở file trong tab mới
-        console.log('🔄 Fallback: Mở file trong tab mới...');
         window.open(report.arvRegimenResultURL, '_blank');
       }
       
     } catch (error) {
-      console.error('❌ Lỗi tải file PDF ARV:', error);
-      alert('❌ Có lỗi xảy ra khi tải file PDF ARV. Vui lòng thử lại.');
+      console.error('Lỗi tải file PDF ARV:', error);
+      alert('Có lỗi xảy ra khi tải file PDF ARV. Vui lòng thử lại.');
     }
   };
 
@@ -168,6 +166,95 @@ const MedicalReportModal = ({
     const newMedicines = [...report.medicalResultMedicines];
     newMedicines.splice(index, 1);
     onChange('medicalResultMedicines', newMedicines);
+  };
+
+  // Hàm tạo đơn thuốc dưới dạng PDF
+  const handleCreatePrescription = async () => {
+    if (!report.medicalResultMedicines || report.medicalResultMedicines.length === 0) {
+      alert('Vui lòng thêm ít nhất một loại thuốc vào đơn thuốc.');
+      return;
+    }
+    
+    setCreatingPrescription(true);
+    try {
+      const prescriptionData = {
+        patientName: appointment.alternativeName || 'N/A',
+        patientAge: calculateAge(appointment.birthdate),
+        patientGender: appointment.patientGender || 'N/A',
+        appointmentDate: appointment?.date || 'N/A',
+        appointmentTime: `${appointment?.slotStartTime || '00:00'} - ${appointment?.slotEndTime || '00:00'}`,
+        doctorName: appointment.doctorName || 'N/A',
+        medicalResultId: report.medicalResultId || 'N/A',
+        medicines: report.medicalResultMedicines.map(med => ({
+          name: med.name,
+          dosage: med.dosage,
+          amount: med.amount,
+          note: med.note
+        }))};
+
+        const result = await generatePrescriptionPDF(prescriptionData);
+        if (result.success) {
+          alert('Đơn thuốc đã được tạo thành công!');
+          const reader = new FileReader();
+          reader.readAsDataURL(result.blob);
+          reader.onloadend = function() {
+            const base64data = reader.result.split(',')[1]; // Lấy phần base64
+            onChange('prescriptionFile', { 
+              type: 'application/pdf',
+              size: result.blob.size,
+              data: base64data,
+              file: result.file,
+              lastModified: Date.now(),
+              isPrescription: true,
+              prescriptionMetadata: {
+                ...prescriptionData,
+                timestamp: Date.now()
+              }
+            });
+
+        console.log('✅ Đơn thuốc đã được tạo và lưu thành công');
+      };
+        } else {
+          console.error('Đã xảy ra lỗi khi tạo đơn thuốc');
+        }
+    } catch (error) {
+      console.error('Lỗi khi tạo đơn thuốc:', error);
+      alert('Có lỗi xảy ra khi tạo đơn thuốc. Vui lòng thử lại.');
+    } finally {
+      setCreatingPrescription(false);
+    }
+  };
+
+  // Hàm tính tuổi từ ngày sinh
+    const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Hàm xem đơn thuốc pdf
+    const handleViewPrescription = async () => {
+    if (!report.prescriptionFile) return;
+    
+    try {
+      if (report.prescriptionFile.file) {
+        // Nếu có file local
+        const url = URL.createObjectURL(report.prescriptionFile.file);
+        window.open(url, '_blank');
+      } else if (report.prescriptionFileURL) {
+        // Nếu có URL từ Supabase
+        window.open(report.prescriptionFileURL, '_blank');
+      }
+    } catch (error) {
+      console.error('Lỗi xem đơn thuốc:', error);
+      alert('Có lỗi xảy ra khi xem đơn thuốc.');
+    }
   };
 
   return (
@@ -649,20 +736,63 @@ const MedicalReportModal = ({
               Thuốc điều trị
             </Card.Header>
             <Card.Body>
+
+          {/* ✅ Hiển thị đơn thuốc đã tạo (giống ARV) */}
+              {report.prescriptionFile && (
+                <div className="mb-3">
+                  <div className="d-flex align-items-center justify-content-between p-3 border rounded bg-light">
+                    <div className="d-flex align-items-center">
+                      <FontAwesomeIcon icon={faFilePdf} className="me-2 text-success" size="lg" />
+                      <div>
+                        <div className="fw-bold text-success">Đơn thuốc đã tạo</div>
+                        <small className="text-muted">{report.prescriptionFile.name}</small>
+                      </div>
+                    </div>
+                    <div>
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={handleViewPrescription}
+                      >
+                        <FontAwesomeIcon icon={faEye} className="me-1" />
+                        Xem đơn thuốc
+                      </Button>
+                      <Button 
+                        variant="outline-success" 
+                        size="sm"
+                        onClick={() => {
+                          const url = URL.createObjectURL(report.prescriptionFile.file);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = report.prescriptionFile.name;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faDownload} className="me-1" />
+                        Tải về
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {report.medicalResultMedicines && report.medicalResultMedicines.length > 0 ? (
                 <div>
                   {report.medicalResultMedicines.map((med, index) => (
                     <Row key={index} className="mb-2 p-2 border rounded">
-                      <Col md={4}>
-                        <strong>{med.medicineName || 'Chưa có tên'}</strong>
+                      <Col md={3}>
+                        <strong>{med.name || 'Chưa có tên'}</strong>
                       </Col>
                       <Col md={3}>
                         <span className="text-muted">Liều: {med.dosage || 'Chưa có'}</span>
                       </Col>
-                      <Col md={3}>
-                        <Badge bg={med.status === 'Mới' ? 'primary' : med.status === 'Tiếp tục' ? 'success' : 'warning'}>
-                          {med.status || 'Mới'}
-                        </Badge>
+                      <Col md={2}>
+                        <span className="text-info">Số lượng: {med.amount || 0}</span>
+                      </Col>
+                      <Col>
+                        <small className="text-muted">{med.note || 'Không có ghi chú'}</small>
                       </Col>
                       {!readOnly && (
                         <Col md={2} className="d-flex justify-content-end">
@@ -685,15 +815,59 @@ const MedicalReportModal = ({
               )}
 
               {!readOnly && (
+                <div className="mt-3">
                 <Button 
                   variant="outline-primary" 
                   size="sm" 
                   onClick={onShowMedicineSelector}
-                  className="mt-2"
+                  className="me-2"
                 >
                   <FontAwesomeIcon icon={faPills} className="me-1" />
                   Quản lý thuốc
                 </Button>
+
+                <Button 
+                  variant="outline-success" 
+                  size="sm" 
+                  onClick={handleCreatePrescription}
+                  disabled={!report.medicalResultMedicines || report.medicalResultMedicines.length === 0 || creatingPrescription}
+                  className="me-2"
+                >
+                  <FontAwesomeIcon icon={faFileMedical} className="me-1" />
+                  {creatingPrescription ? 'Đang tạo...' : 'Tạo đơn thuốc'}
+                </Button>
+
+                {/* <Button 
+                  variant="outline-secondary" 
+                  size="sm" 
+                  onClick={handleViewPrescription}
+                  disabled={!report.prescriptionFile}
+                >
+                  <FontAwesomeIcon icon={faEye} className="me-1" />
+                  Xem đơn thuốc
+                </Button>
+
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm"
+                  disabled={!report.prescriptionFile}
+                  onClick={() => {
+                    if (report.prescriptionFile && report.prescriptionFile.file) {
+                      const url = URL.createObjectURL(report.prescriptionFile.file);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = report.prescriptionFile.name || 'don_thuoc.pdf';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    } else {
+                      alert('Không có đơn thuốc để tải xuống.');
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faDownload} className="me-1" />
+                  Tải đơn thuốc
+                </Button> */}
+                </div>
               )}
             </Card.Body>
           </Card>

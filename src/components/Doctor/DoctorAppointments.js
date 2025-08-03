@@ -18,7 +18,7 @@ import DoctorSidebar from './DoctorSidebar';
 import ARVSelectionTool from './ARVSelectionTool';
 import MedicineSelector from './MedicineSelector';
 import MedicalReportModal from './MedicalReportModal';
-import AppointmentDetailModal from '../common/AppointmentDetailModal';
+import AppointmentDetailModal from './AppointmentDetailModal';
 import { useServiceData } from '../../hooks/useServiceData';
 // import VideoCall from '../VideoCall/videoCall'; // No longer needed
 import { appointmentAPI, userAPI, medicalResultAPI } from '../../services/api';
@@ -492,9 +492,13 @@ const DoctorAppointments = () => {
     setMedicalReport(prevReport => {
       const newMedicines = [...(prevReport.medicalResultMedicines || [])];
       if (newMedicines[index]) {
+        let processedValue = value;
+        if(field === 'amount'){
+          processedValue = value ? parseInt(value) : 0; // Chuyển đổi sang số nguyên
+        }
         newMedicines[index] = {
           ...newMedicines[index],
-          [field]: value
+          [field]: processedValue
         };
       }
       return {
@@ -506,10 +510,18 @@ const DoctorAppointments = () => {
 
   // Hàm thêm thuốc mới từ MedicineSelector
   const handleAddMedicine = (newMedicine) => {
+      const formattedMedicine = {
+        medicineId: newMedicine.medicineId || '',
+        name: newMedicine.name || '',
+        dosage: newMedicine.dosage || '',
+        amount: newMedicine.amount || 0,
+        note: newMedicine.note || ''
+      }
     setMedicalReport(prevReport => {
+
       return {
         ...prevReport,
-        medicalResultMedicines: [...(prevReport.medicalResultMedicines || []), newMedicine]
+        medicalResultMedicines: [...(prevReport.medicalResultMedicines || []), formattedMedicine]
       };
     });
   };
@@ -632,538 +644,87 @@ const DoctorAppointments = () => {
   };
 
   // Hàm thực hiện lưu báo cáo y tế sau khi xác nhận
-  const performSaveReport = async () => {
-    try {
-      // ============ TOKEN AND ROLE DEBUGGING ============
-      console.log('=== COMPREHENSIVE TOKEN DEBUGGING ===');
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('❌ Lỗi: Không tìm thấy token. Vui lòng đăng nhập lại.');
-        return;
-      }
-      
-      console.log('📋 Token found in localStorage:', token ? 'YES' : 'NO');
-      console.log('📋 Token length:', token?.length || 0);
-      console.log('📋 Token first 50 chars:', token?.substring(0, 50) + '...');
-      
-      let tokenPayload = null;
-      let tokenDoctorId = null;
-      let tokenRoles = null;
-      let tokenAuthorities = null;
-      
-      try {
-        tokenPayload = jwtDecode(token);
-        console.log('🔍 Full JWT Token Payload:', JSON.stringify(tokenPayload, null, 2));
-        
-        // Extract doctor ID
-        tokenDoctorId = tokenPayload?.sub || tokenPayload?.userId || tokenPayload?.id;
-        console.log('👤 Doctor ID from token:', tokenDoctorId);
-        
-        // Extract roles/authorities in various possible formats
-        tokenRoles = tokenPayload?.roles || tokenPayload?.role || [];
-        tokenAuthorities = tokenPayload?.authorities || tokenPayload?.auth || [];
-        
-        console.log('🔑 Roles from token:', tokenRoles);
-        console.log('🔑 Authorities from token:', tokenAuthorities);
-        
-        // Check for DOCTOR role in different formats
-        const hasDocRoleInRoles = Array.isArray(tokenRoles) ? 
-          tokenRoles.some(role => typeof role === 'string' ? role.includes('DOCTOR') : role?.authority?.includes('DOCTOR')) :
-          (typeof tokenRoles === 'string' && tokenRoles.includes('DOCTOR'));
-          
-        const hasDocRoleInAuth = Array.isArray(tokenAuthorities) ?
-          tokenAuthorities.some(auth => typeof auth === 'string' ? auth.includes('DOCTOR') : auth?.authority?.includes('DOCTOR')) :
-          (typeof tokenAuthorities === 'string' && tokenAuthorities.includes('DOCTOR'));
-        
-        // Check other possible fields
-        const hasDocInScopes = tokenPayload?.scope?.includes('DOCTOR') || tokenPayload?.scopes?.includes('DOCTOR');
-        const hasDocInUserType = tokenPayload?.userType === 'DOCTOR' || tokenPayload?.user_type === 'DOCTOR';
-        
-        console.log('🎯 DOCTOR Role Detection:');
-        console.log('- In roles array/string:', hasDocRoleInRoles);
-        console.log('- In authorities array/string:', hasDocRoleInAuth);
-        console.log('- In scope/scopes:', hasDocInScopes);
-        console.log('- In userType/user_type:', hasDocInUserType);
-        
-        const hasDoctorRole = hasDocRoleInRoles || hasDocRoleInAuth || hasDocInScopes || hasDocInUserType;
-        console.log('✅ Final DOCTOR role check:', hasDoctorRole);
-        
-        if (!hasDoctorRole) {
-          console.error('❌ CRITICAL: Token does not contain DOCTOR role!');
-          alert('❌ Lỗi phân quyền: Token không chứa quyền DOCTOR.\n\n' +
-                'Chi tiết:\n' +
-                `- User ID: ${tokenDoctorId}\n` +
-                `- Roles: ${JSON.stringify(tokenRoles)}\n` +
-                `- Authorities: ${JSON.stringify(tokenAuthorities)}\n\n` +
-                'Vui lòng đăng nhập lại hoặc liên hệ admin để kiểm tra phân quyền.');
+const performSaveReport = async () => {
+  try {
+    // Validate medications
+    if (medicalReport.medicalResultMedicines && medicalReport.medicalResultMedicines.length > 0) {
+      for (let i = 0; i < medicalReport.medicalResultMedicines.length; i++) {
+        const med = medicalReport.medicalResultMedicines[i];
+        if (!med.medicineId || !med.name || !med.dosage) {
+          alert(`Thuốc thứ ${i + 1}: Vui lòng chọn thuốc từ danh sách và điền đầy đủ liều lượng`);
           return;
         }
-        
-        // Check token expiration
-        const currentTime = Math.floor(Date.now() / 1000);
-        const tokenExp = tokenPayload?.exp;
-        if (tokenExp && tokenExp < currentTime) {
-          console.error('❌ CRITICAL: Token has expired!');
-          console.log('Token exp:', new Date(tokenExp * 1000));
-          console.log('Current time:', new Date(currentTime * 1000));
-          alert('❌ Token đã hết hạn. Vui lòng đăng nhập lại.');
+        if (med.medicineId.includes('new_med_') || med.medicineId.includes('fallback_med_')) {
+          alert(`Thuốc thứ ${i + 1}: Vui lòng chọn thuốc từ danh sách`);
           return;
         }
-        
-        console.log('✅ Token is valid and contains DOCTOR role');
-        
-      } catch (tokenError) {
-        console.error('❌ CRITICAL: Error decoding JWT token:', tokenError);
-        alert('❌ Lỗi: Token không hợp lệ. Vui lòng đăng nhập lại.\n\nChi tiết lỗi: ' + tokenError.message);
-        return;
-      }
-      
-      if (!tokenDoctorId) {
-        alert('❌ Lỗi: Không thể xác định ID bác sĩ từ token. Vui lòng đăng nhập lại.');
-        return;
-      }
-      
-      console.log('=== END TOKEN DEBUGGING ===');
-      // ============ END TOKEN DEBUGGING ============
-
-      // Validate required fields - chỉ validate các trường thực sự cần thiết
-      // Theo cấu trúc database, chỉ doctor_id, id, user_id là not null
-      // Các trường khác đều có thể null, nên không cần validate bắt buộc
-      const requiredFields = {
-        // Loại bỏ tất cả validation bắt buộc vì database cho phép null
-        // Chỉ cần đảm bảo có ít nhất một số thông tin cơ bản
-      };
-
-      // Không validate bắt buộc nữa, cho phép lưu với dữ liệu rỗng
-      // const missingFields = Object.entries(requiredFields)
-      //   .filter(([_, value]) => !value || value.toString().trim() === '')
-      //   .map(([key, _]) => key);
-
-      // if (missingFields.length > 0) {
-      //   alert(`Vui lòng điền đầy đủ các trường bắt buộc:\n${missingFields.join(', ')}`);
-      //   return;
-      // }
-
-      // Validate medications
-      if (medicalReport.medicalResultMedicines && medicalReport.medicalResultMedicines.length > 0) {
-        for (let i = 0; i < medicalReport.medicalResultMedicines.length; i++) {
-          const med = medicalReport.medicalResultMedicines[i];
-          if (!med.medicineId || !med.medicineName || !med.dosage || !med.status) {
-            alert(`Thuốc thứ ${i + 1}: Vui lòng chọn thuốc từ danh sách và điền đầy đủ liều lượng, trạng thái`);
-            return;
-          }
-          // Ensure medicineId is from backend (not a fallback ID)
-          if (med.medicineId.includes('new_med_') || med.medicineId.includes('fallback_med_')) {
-            alert(`Thuốc thứ ${i + 1}: Vui lòng chọn thuốc từ danh sách có sẵn, không sử dụng ID tạm thời`);
-            return;
-          }
-        }
-      }
-
-      console.log('Medical Result ID:', medicalReport.medicalResultId);
-      console.log('Doctor trying to update:', tokenDoctorId);
-        // Kiểm tra ownership trước khi update        // Kiểm tra ownership trước khi update
-      console.log('=== DEBUG: Checking medical result ownership ===');
-      let appointmentDoctorId = selectedAppointment?.doctorId;
-      
-      try {
-        const appointmentResult = await appointmentAPI.getAppointmentById(selectedAppointment.id);
-        console.log('Current appointment data:', appointmentResult.data);
-        console.log('Appointment medicalResultId:', appointmentResult.data?.medicalResultId);
-        console.log('Appointment doctorId from API:', appointmentResult.data?.doctorId);
-        
-        // Update appointment doctor ID if we got it from API
-        if (appointmentResult.data?.doctorId) {
-          appointmentDoctorId = appointmentResult.data.doctorId;
-          console.log('Updated appointment doctor ID from API:', appointmentDoctorId);
-        }
-      } catch (ownershipError) {
-        console.warn('Could not check appointment for ownership:', ownershipError);
-      }
-      
-      console.log('=== OWNERSHIP ANALYSIS ===');
-      console.log('Token doctor ID:', tokenDoctorId);
-      console.log('Appointment doctor ID:', appointmentDoctorId);
-      console.log('Doctor IDs match:', tokenDoctorId === appointmentDoctorId);
-      
-      // Check if doctor ownership matches
-      if (appointmentDoctorId && tokenDoctorId !== appointmentDoctorId) {
-        console.warn('⚠️ Doctor ownership mismatch detected!');
-        const confirmProceed = window.confirm(
-          `⚠️ Cảnh báo: Bạn đang cố gắng cập nhật báo cáo của bác sĩ khác.\n\n` +
-          `Bác sĩ của appointment: ${appointmentDoctorId}\n` +
-          `Bác sĩ hiện tại: ${tokenDoctorId}\n\n` +
-          `Bạn có muốn tiếp tục không? (Có thể sẽ gặp lỗi 403)`
-        );
-        
-        if (!confirmProceed) {
-          console.log('User cancelled due to ownership mismatch');
-          setShowSaveReportConfirmModal(false);
+        if (med.amount && (isNaN(med.amount) || med.amount <= 0)) {
+          alert(`Thuốc thứ ${i + 1}: Vui lòng nhập số lượng hợp lệ`);
           return;
         }
-      }      const updateData = {
-        doctorId: getDoctorIdFromToken(), // Always use token doctor ID for ownership
-        weight: medicalReport.weight ? parseFloat(medicalReport.weight) : null,
-        height: medicalReport.height ? parseFloat(medicalReport.height) : null,
-        bmi: medicalReport.bmi ? parseFloat(medicalReport.bmi) : null,
-        temperature: medicalReport.temperature ? parseFloat(medicalReport.temperature) : null,
-        bloodPressure: medicalReport.bloodPressure || null,
-        heartRate: medicalReport.heartRate ? parseInt(medicalReport.heartRate) : null,
-        cd4Count: medicalReport.cd4Count ? parseInt(medicalReport.cd4Count) : null,
-        viralLoad: medicalReport.viralLoad || null,
-        hemoglobin: medicalReport.hemoglobin ? parseFloat(medicalReport.hemoglobin) : null,
-        whiteBloodCell: medicalReport.whiteBloodCell ? parseFloat(medicalReport.whiteBloodCell) : null,
-        platelets: medicalReport.platelets ? parseInt(medicalReport.platelets) : null,
-        glucose: medicalReport.glucose ? parseInt(medicalReport.glucose) : null,
-        creatinine: medicalReport.creatinine ? parseFloat(medicalReport.creatinine) : null,
-        alt: medicalReport.alt ? parseInt(medicalReport.alt) : null,
-        ast: medicalReport.ast ? parseInt(medicalReport.ast) : null,
-        totalCholesterol: medicalReport.totalCholesterol ? parseInt(medicalReport.totalCholesterol) : null,
-        ldl: medicalReport.ldl ? parseInt(medicalReport.ldl) : null,
-        hdl: medicalReport.hdl ? parseInt(medicalReport.hdl) : null,        triglycerides: medicalReport.trigilycerides ? parseInt(medicalReport.trigilycerides) : null,
-        patientProgressEvaluation: medicalReport.patientProgressEvaluation || null,
-        plan: medicalReport.plan || null,
-        recommendation: medicalReport.recommendation || null,        medicalResultMedicines: Array.isArray(medicalReport.medicalResultMedicines) && medicalReport.medicalResultMedicines.length > 0 ?
-          medicalReport.medicalResultMedicines
-            .filter(med => med && med.medicineName && med.dosage && med.medicineId)
-            .map((med) => ({
-              medicineId: parseInt(med.medicineId), // Ensure medicineId is integer
-              medicineName: med.medicineName || '',
-              dosage: med.dosage || '',
-              status: med.status || 'Mới'
-            })) : null, // Send null instead of empty array
-        // ARV file handling - include the file object for upload
-        arvFile: medicalReport.arvFile || null, // File object from ARV Selection Tool
-        arvRegimenResultURL: medicalReport.arvRegimenResultURL || "",
-        arvMetadata: medicalReport.arvMetadata || null // Include ARV metadata for later use
-      };console.log('=== DEBUG: Trying to update existing report ===');
-      console.log('Medical Result ID:', medicalReport.medicalResultId);      console.log('Doctor from token:', tokenDoctorId);
-      console.log('Doctor in updateData:', updateData.doctorId);
-      console.log('Appointment doctor ID:', selectedAppointment?.doctorId);
-      console.log('Update Payload:', JSON.stringify(updateData, null, 2));      // Additional debug - check medicines format
-      if (updateData.medicalResultMedicines && updateData.medicalResultMedicines.length > 0) {
-        console.log('Medicines being sent:');
-        updateData.medicalResultMedicines.forEach((med, index) => {
-          console.log(`Medicine ${index + 1}:`, {
-            medicineId: med.medicineId,
-            type: typeof med.medicineId,
-            medicineName: med.medicineName,
-            dosage: med.dosage,
-            status: med.status
-          });
-        });      } else {
-        console.log('No medicines to send (null or empty)');
       }
-        // Debug ARV file
-      if (updateData.arvFile) {
-        console.log('📎 ARV File being sent:', {
-          name: updateData.arvFile.name,
-          type: updateData.arvFile.type,
-          size: updateData.arvFile.size,
-          hasData: !!updateData.arvFile.data
-        });
-        
-        // Validate ARV file before sending
-        if (updateData.arvFile.type && !updateData.arvFile.type.includes('pdf')) {
-          console.warn('⚠️ ARV file is not a PDF:', updateData.arvFile.type);
-          const confirmNonPdf = window.confirm(
-            '⚠️ Cảnh báo: File ARV không phải định dạng PDF.\n\n' +
-            `Loại file: ${updateData.arvFile.type}\n` +
-            'Hệ thống có thể không chấp nhận file này.\n\n' +
-            'Bạn có muốn tiếp tục không?'
-          );
-          if (!confirmNonPdf) {
-            console.log('User cancelled due to non-PDF ARV file');
-            return;
-          }
-        }
-        
-        // Check file size (max 10MB)
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (updateData.arvFile.size > maxSize) {
-          alert('❌ Lỗi: File ARV quá lớn. Kích thước tối đa: 10MB\n\n' +
-                `Kích thước hiện tại: ${(updateData.arvFile.size / 1024 / 1024).toFixed(2)}MB`);
-          return;
-        }
-        
-      } else {
-        console.log('📎 No ARV file to send');
-      }
-      
-      const initialResult = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, updateData);
-      
-      console.log('=== DEBUG: API Response ===', initialResult);      if (initialResult.success) {
-        console.log('=== SUCCESS: Medical report updated successfully ===');
-        
-        // Enhanced success message with ARV feedback
-        let successMessage = '✅ Cập nhật báo cáo y tế thành công!\n\n📋 Tất cả thông tin đã được lưu đầy đủ.';
-        
-        if (updateData.arvFile) {
-          successMessage += '\n\n📎 File ARV đã được tải lên và lưu trữ thành công.';
-          console.log('📎 ARV file uploaded successfully with medical report update');
-        }
-        
-        if (updateData.medicalResultMedicines && updateData.medicalResultMedicines.length > 0) {
-          successMessage += `\n\n💊 Đã lưu ${updateData.medicalResultMedicines.length} loại thuốc.`;
-        }
-        
-        // Đã có modal xác nhận, không cần alert nữa
-        // alert(successMessage);
-        
-        if (selectedAppointment) {
-          localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
-        }
-        await loadDoctorAppointments();
-        handleCloseReportModal();
-        setShowSaveReportConfirmModal(false);
-        return;
-      }// Kiểm tra lỗi 403 với nhiều cách khác nhau
-      const is403Error = initialResult.is403 === true ||
-                        initialResult.error?.includes?.('403') ||
-                        initialResult.message?.includes?.('403') ||
-                        (initialResult.error && typeof initialResult.error === 'object' && 
-                         (initialResult.error.status === 403 || initialResult.error.response?.status === 403)) ||
-                        (initialResult.success === false && initialResult.message?.includes('403'));
-        console.log('=== DEBUG: Checking 403 error ===');
-      console.log('Full API result:', initialResult);
-      console.log('Error object:', initialResult.error);
-      console.log('Message:', initialResult.message);
-      console.log('Success flag:', initialResult.success);
-      console.log('Is 403 Error:', is403Error);      if (is403Error) {
-        console.warn('=== 403 FORBIDDEN: Detailed analysis ===');
-        console.log('Possible reasons:');        console.log('1) Doctor ownership mismatch:');
-        console.log('   - Token doctor ID:', tokenDoctorId);
-        console.log('   - Appointment doctor ID:', selectedAppointment?.doctorId);
-        console.log('   - Update data doctor ID:', updateData.doctorId);
-        console.log('2) Medicine ID format issues:');
-        if (updateData.medicalResultMedicines) {
-          updateData.medicalResultMedicines.forEach((med, i) => {
-            console.log(`   - Medicine ${i+1}: ID=${med.medicineId} (${typeof med.medicineId})`);
-          });
-        }
-        console.log('3) ARV file issue:', medicalReport.arvRegimenResultURL ? 'File present' : 'No file');
-        console.log('Full error response:', initialResult);
-        
-        // Step 1: Try without medicines first (most common fix)
-        const retryWithoutMedicines = window.confirm(
-          'Lỗi 403: Không có quyền cập nhật báo cáo y tế.\n\n' +
-          'Nguyên nhân có thể là:\n' +
-          '• Báo cáo chưa được gán đúng bác sĩ\n' +
-          '• Dữ liệu thuốc không hợp lệ\n' +
-          '• Quyền truy cập bị hạn chế\n\n' +
-          'Thử lưu báo cáo cơ bản trước (không bao gồm thuốc)?'
-        );
-
-        if (retryWithoutMedicines) {
-          try {
-            console.log('=== STEP 1: Attempting update without medicines ===');
-            const simpleUpdateData = {
-              ...updateData,
-              medicalResultMedicines: null, // Remove medicines
-              arvRegimenResultURL: "" // Remove ARV file
-            };
-            
-            console.log('Simple update payload:', JSON.stringify(simpleUpdateData, null, 2));
-            const retryResult = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, simpleUpdateData);
-              if (retryResult.success) {
-              console.log('=== SUCCESS: Simple update worked ===');
-              
-              // Check if we had ARV file that was excluded
-              const hadARVFile = updateData.arvFile;
-              let baseSuccessMessage = '✅ Đã lưu báo cáo y tế cơ bản thành công!\n\n' + 
-                    'Lưu ý: Chưa bao gồm thông tin thuốc và file ARV.\n' + 
-                    'Bạn có thể thêm thuốc sau bằng cách chỉnh sửa báo cáo.';
-              
-              if (hadARVFile) {
-                const retryARV = window.confirm(
-                  baseSuccessMessage + 
-                  '\n\n📎 Bạn có file ARV đã tạo từ công cụ ARV.\n' +
-                  'Bạn có muốn thử tải lên file ARV riêng biệt không?'
-                );
-                
-                if (retryARV) {
-                  try {
-                    console.log('=== STEP 1B: Attempting ARV file upload separately ===');
-                    const arvOnlyData = {
-                      doctorId: getDoctorIdFromToken(),
-                      arvFile: updateData.arvFile,
-                      arvRegimenResultURL: updateData.arvRegimenResultURL
-                    };
-                    
-                    const arvResult = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, arvOnlyData);
-                    
-                    if (arvResult.success) {
-                      console.log('=== SUCCESS: ARV file uploaded separately ===');
-                      // Đã có modal xác nhận, không cần alert
-                      // alert('✅ Đã lưu báo cáo y tế và file ARV thành công!\n\n' +
-                      //       '📋 Báo cáo cơ bản: ✅\n' +
-                      //       '📎 File ARV: ✅\n' +
-                      //       '💊 Thuốc: Cần thêm riêng sau này');
-                    } else {
-                      console.log('=== FAILED: ARV upload failed ===', arvResult);
-                      // Đã có modal xác nhận, chỉ log lỗi
-                      console.error('❌ Không thể tải file ARV:', arvResult.message || 'Lỗi không xác định');
-                      // alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
-                      //       '❌ Không thể tải file ARV: ' + (arvResult.message || 'Lỗi không xác định') + '\n\n' +
-                      //       'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
-                    }
-                  } catch (arvError) {
-                    console.error('=== ARV UPLOAD ERROR ===', arvError);
-                    // Đã có modal xác nhận, chỉ log lỗi
-                    console.error('❌ Lỗi khi tải file ARV:', arvError.message);
-                    // alert('✅ Báo cáo cơ bản đã lưu thành công!\n\n' +
-                    //       '❌ Lỗi khi tải file ARV: ' + arvError.message + '\n\n' +
-                    //       'Bạn có thể thử tải file ARV lại bằng cách chỉnh sửa báo cáo.');
-                  }
-                } else {
-                  // Đã có modal xác nhận, không cần alert
-                  // alert(baseSuccessMessage);
-                }
-              } else {
-                alert(baseSuccessMessage);
-              }
-              
-              if (selectedAppointment) {
-                localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
-              }
-              await loadDoctorAppointments();
-              handleCloseReportModal();
-              return;
-            } else {
-              console.log('=== STEP 1 FAILED: Still getting error ===', retryResult);
-            }
-          } catch (retryError) {
-            console.error('=== STEP 1 ERROR ===', retryError);
-          }
-        }
-        
-        // Step 2: Create new medical result if simple update also failed
-        const confirmNewRecord = window.confirm(
-          '❌ Vẫn không thể cập nhật báo cáo hiện tại.\n\n' +
-          'Có thể báo cáo này đã bị khóa hoặc thuộc về bác sĩ khác.\n\n' +
-          '🔄 Tạo báo cáo y tế mới cho lịch hẹn này?\n' +
-          '(Dữ liệu hiện tại sẽ được chuyển sang báo cáo mới)'
-        );        if (confirmNewRecord) {          try {
-            console.log('=== STEP 2: Creating new medical result for appointment ===', selectedAppointment.id);
-            
-            // Try to create medical result with detailed logging
-            let createResult = await medicalResultAPI.createMedicalResult(selectedAppointment.id);
-            
-            // If 404, try alternative endpoints
-            if (!createResult.success && createResult.error && 
-                (createResult.error.status === 404 || createResult.message?.includes('404'))) {
-              
-              console.log('=== STEP 2A: Primary endpoint failed with 404, trying alternatives ===');
-              
-              // Import api directly for alternative endpoints
-              const { api } = await import('../../services/api');
-              
-              // Try alternative endpoint formats
-              const alternativeEndpoints = [
-                `/medical-result/create/${selectedAppointment.id}`,
-                `/medical-result/createMedicalResult/${selectedAppointment.id}`,
-                `/medicalresult/create/${selectedAppointment.id}`,
-                `/api/medical-result/create-MedicalResult/${selectedAppointment.id}`
-              ];
-                for (const altEndpoint of alternativeEndpoints) {
-                try {
-                  console.log(`Trying alternative endpoint: ${altEndpoint}`);
-                  const response = await api.post(altEndpoint, { doctorId: getDoctorIdFromToken() });
-                  if (response.data) {
-                    console.log(`✅ Alternative endpoint worked: ${altEndpoint}`);
-                    createResult = {
-                      success: true,
-                      data: response.data.data || response.data,
-                      message: 'Tạo báo cáo y tế thành công với endpoint thay thế'
-                    };
-                    break;
-                  }
-                } catch (altError) {
-                  console.log(`❌ Alternative endpoint failed: ${altEndpoint}`, altError.response?.status);
-                }
-              }
-            }
-
-            if (createResult.success && createResult.data?.id) {
-              const newMedicalResultId = createResult.data.id;
-              console.log('=== STEP 2: New medical result created with ID ===', newMedicalResultId);              // Try to update with simplified data first (no medicines, no ARV)
-              const cleanUpdateData = {
-                doctorId: getDoctorIdFromToken(), // Ensure we use the token doctor ID
-                weight: updateData.weight,
-                height: updateData.height,
-                bmi: updateData.bmi,
-                temperature: updateData.temperature,
-                bloodPressure: updateData.bloodPressure,
-                heartRate: updateData.heartRate,
-                cd4Count: updateData.cd4Count,
-                viralLoad: updateData.viralLoad,
-                hemoglobin: updateData.hemoglobin,
-                whiteBloodCell: updateData.whiteBloodCell,
-                platelets: updateData.platelets,
-                glucose: updateData.glucose,
-                creatinine: updateData.creatinine,
-                alt: updateData.alt,
-                ast: updateData.ast,
-                totalCholesterol: updateData.totalCholesterol,
-                ldl: updateData.ldl,
-                hdl: updateData.hdl,
-                triglycerides: updateData.triglycerides,
-                patientProgressEvaluation: updateData.patientProgressEvaluation,
-                plan: updateData.plan,
-                recommendation: updateData.recommendation,
-                medicalResultMedicines: null, // Start without medicines
-                arvRegimenResultURL: "" // Start without ARV file
-              };
-
-              console.log('=== STEP 2: Updating new medical result with clean data ===');
-              console.log('Clean payload:', JSON.stringify(cleanUpdateData, null, 2));
-              
-              const finalResult = await medicalResultAPI.updateMedicalResult(newMedicalResultId, cleanUpdateData);
-
-              if (finalResult.success) {
-                console.log('=== SUCCESS: New medical result created and updated successfully ===');
-                const hasSkippedData = (updateData.medicalResultMedicines && updateData.medicalResultMedicines.length > 0) || 
-                                     (medicalReport.arvRegimenResultURL && medicalReport.arvRegimenResultURL !== "");
-                
-                let successMessage = '✅ Đã tạo và lưu báo cáo y tế mới thành công!';
-                if (hasSkippedData) {
-                  successMessage += '\n\n⚠️ Lưu ý: Chưa bao gồm thông tin thuốc và file ARV do vấn đề quyền truy cập.\nBạn có thể thêm sau bằng cách chỉnh sửa báo cáo.';
-                }
-                
-                // Đã có modal xác nhận, không cần alert
-                // alert(successMessage);
-                if (selectedAppointment) {
-                  localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
-                }
-                await loadDoctorAppointments();
-                handleCloseReportModal();
-              } else {
-                console.error('=== STEP 2 FAILED: Could not update the new medical result ===', finalResult);
-                alert('❌ Tạo báo cáo mới thành công nhưng không thể cập nhật dữ liệu.\n\nLỗi: ' + (finalResult.message || 'Không rõ nguyên nhân.'));
-              }
-            } else {
-              console.error('=== STEP 2 FAILED: Could not create a new medical result ===', createResult);
-              alert('❌ Không thể tạo báo cáo mới.\n\nLỗi: ' + (createResult.message || 'Không rõ nguyên nhân.'));
-            }
-          } catch (workaroundError) {
-            console.error('=== STEP 2 EXCEPTION: Caught error in fallback ===', workaroundError);
-            alert('❌ Đã xảy ra lỗi không mong muốn trong khi tạo báo cáo mới.');
-          }
-        }
-      } else {
-        // Xử lý các lỗi khác không phải 403
-        console.error('=== FAILED: API returned a non-403 error ===', initialResult);
-        alert('Lỗi khi cập nhật báo cáo y tế: ' + (initialResult.message || 'Không rõ nguyên nhân.'));
-      }
-    } catch (error) {
-      console.error('=== EXCEPTION: Caught error in performSaveReport ===', error);
-      alert('Đã xảy ra lỗi không mong muốn khi lưu báo cáo y tế: ' + error.message);
-    } finally {
-      // Đóng modal xác nhận
-      setShowSaveReportConfirmModal(false);
     }
-  };  // Hàm tạo medical result cho appointment
+
+    const updateData = {
+      doctorId: getDoctorIdFromToken(),
+      weight: medicalReport.weight ? parseFloat(medicalReport.weight) : null,
+      height: medicalReport.height ? parseFloat(medicalReport.height) : null,
+      bmi: medicalReport.bmi ? parseFloat(medicalReport.bmi) : null,
+      temperature: medicalReport.temperature ? parseFloat(medicalReport.temperature) : null,
+      bloodPressure: medicalReport.bloodPressure || null,
+      heartRate: medicalReport.heartRate ? parseInt(medicalReport.heartRate) : null,
+      cd4Count: medicalReport.cd4Count ? parseInt(medicalReport.cd4Count) : null,
+      viralLoad: medicalReport.viralLoad || null,
+      hemoglobin: medicalReport.hemoglobin ? parseFloat(medicalReport.hemoglobin) : null,
+      whiteBloodCell: medicalReport.whiteBloodCell ? parseFloat(medicalReport.whiteBloodCell) : null,
+      platelets: medicalReport.platelets ? parseInt(medicalReport.platelets) : null,
+      glucose: medicalReport.glucose ? parseInt(medicalReport.glucose) : null,
+      creatinine: medicalReport.creatinine ? parseFloat(medicalReport.creatinine) : null,
+      alt: medicalReport.alt ? parseInt(medicalReport.alt) : null,
+      ast: medicalReport.ast ? parseInt(medicalReport.ast) : null,
+      totalCholesterol: medicalReport.totalCholesterol ? parseInt(medicalReport.totalCholesterol) : null,
+      ldl: medicalReport.ldl ? parseInt(medicalReport.ldl) : null,
+      hdl: medicalReport.hdl ? parseInt(medicalReport.hdl) : null,
+      triglycerides: medicalReport.trigilycerides ? parseInt(medicalReport.trigilycerides) : null,
+      patientProgressEvaluation: medicalReport.patientProgressEvaluation || null,
+      plan: medicalReport.plan || null,
+      recommendation: medicalReport.recommendation || null,
+      medicalResultMedicines: Array.isArray(medicalReport.medicalResultMedicines) && medicalReport.medicalResultMedicines.length > 0 ?
+        medicalReport.medicalResultMedicines
+          .filter(med => med && med.name && med.dosage && med.medicineId)
+          .map((med) => ({
+            medicineId: med.medicineId,
+            name: med.name || '',
+            dosage: med.dosage || '',
+            amount: med.amount ? parseInt(med.amount) : 0,
+            note: med.note || '',
+          })) : null,
+      arvFile: medicalReport.arvFile || null,
+      arvRegimenResultURL: medicalReport.arvRegimenResultURL || "",
+      arvMetadata: medicalReport.arvMetadata || null
+    };
+
+    const result = await medicalResultAPI.updateMedicalResult(medicalReport.medicalResultId, updateData);
+    
+    if (result.success) {
+      if (selectedAppointment) {
+        localStorage.removeItem(`appointment_${selectedAppointment.id}_progress`);
+      }
+      await loadDoctorAppointments();
+      handleCloseReportModal();
+      setShowSaveReportConfirmModal(false);
+    } else {
+      // Backend sẽ trả về lỗi cụ thể (403, 400, etc.)
+      alert('❌ ' + (result.message || 'Không thể cập nhật báo cáo y tế'));
+    }
+  } catch (error) {
+    alert('❌ Đã xảy ra lỗi: ' + error.message);
+  } finally {
+    setShowSaveReportConfirmModal(false);
+  }
+};
+
+
   const handleCreateMedicalResult = async (appointmentId) => {
     const appointment = appointments.find(apt => apt.id === appointmentId);
     setPendingActionAppointment(appointment);
@@ -1301,10 +862,10 @@ const DoctorAppointments = () => {
               medicalResultMedicines: (existingMedicalResult.data.medicalResultMedicines || []).map(medicine => {
                 const mappedMedicine = {
                   medicineId: medicine.medicineId || medicine.id || '',
-                  medicineName: medicine.name || medicine.medicineName || '', // Map API 'name' to 'medicineName' for component
-                  name: medicine.name || medicine.medicineName || '', // Keep both for backward compatibility
+                  name: medicine.name || '',
                   dosage: medicine.dosage || '',
-                  status: medicine.status || 'Mới'
+                  amount: medicine.amount || 0,
+                  note: medicine.note || '',
                 };
                 console.log('🔄 Mapping medicine:', medicine, '→', mappedMedicine);
                 return mappedMedicine;

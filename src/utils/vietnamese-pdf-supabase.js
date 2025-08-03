@@ -1,8 +1,9 @@
 // Vietnamese PDF Generator for Supabase Storage - HTML2CANVAS METHOD
 // Sử dụng HTML2Canvas để capture HTML thành ảnh, rồi chèn vào PDF
 
+import create from '@ant-design/icons/lib/components/IconFont';
 import jsPDF from 'jspdf';
-
+import html2canvas from 'html2canvas';
 export const generateVietnamesePDFForSupabase = async (data) => {
   try {
     console.log('📤 Tạo PDF từ HTML Canvas cho Supabase...');
@@ -317,3 +318,169 @@ export const generateVietnamesePDFForSupabase = async (data) => {
     };
   }
 }; 
+
+export const generatePrescriptionPDF = async (prescriptionData) => {
+  try {
+    console.log('📄 Tạo PDF đơn thuốc...');
+
+    const htmlContent = createPrescriptionHTML(prescriptionData);
+
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    tempDiv.style.top = '0px';
+    tempDiv.style.width = '794px'; // A4 width in pixels at 96 DPI
+    tempDiv.innerHTML = htmlContent;
+    tempDiv.style.backgroundColor = 'white';
+
+    document.body.appendChild(tempDiv);
+
+    const canvas = await html2canvas(tempDiv, {
+    scale: 2,              // ← Độ phân giải (1=96dpi, 2=192dpi)
+    useCORS: true,         // ← Cho phép load external resources
+    allowTaint: true,      // ← Cho phép cross-origin images
+    backgroundColor: '#ffffff',  // ← Màu nền
+    width: 794,            // ← Cố định width
+    height: 1123           // ← A4 height (297mm = 1123px)
+    });
+
+    //Tạo PDF từ canvas
+    const pdf = new jsPDF('p', 'mm', 'a4');  // Portrait, mm unit, A4 size
+    const imgWidth = 210;                    // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;  // Tính tỷ lệ
+
+    const imgData = canvas.toDataURL('image/png');  // Convert canvas → PNG base64
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);  // Thêm ảnh vào PDF
+
+    document.body.removeChild(tempDiv);  // Xóa tempDiv
+    //generate file 
+    const pdfBlob = pdf.output('blob');
+    const fileName = `DonThuoc_${Date.now()}.pdf`;
+
+    const base64Data = pdf.output('datauristring').split(',')[1];
+
+    return {
+      success: true,
+      blob: pdfBlob,
+      fileName: fileName,
+      file: new File([pdfBlob], fileName, { type: 'application/pdf' }),
+      base64: base64Data,
+      method: 'html2canvas-to-pdf'
+    };
+  } catch (error) {
+    console.error('❌ Lỗi tạo PDF đơn thuốc:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+const createPrescriptionHTML = (data) => {
+  return `
+    <div style="width: 794px; min-height: 1123px; padding: 40px; font-family: 'Times New Roman', serif; background: white; box-sizing: border-box;">
+      
+      <!-- Header -->
+      <div style="margin-bottom: 30px;">
+        <div style="font-size: 14px; margin-bottom: 10px;">
+          <strong>Số hồ sơ:</strong> ${data.medicalResultId || 'HS' + Date.now()}
+        </div>
+        <div style="font-size: 14px; margin-bottom: 10px;">
+          <strong>Ngày khám:</strong> ${data.appointmentDate || data.prescriptionDate}
+        </div>
+        <div style="font-size: 14px; margin-bottom: 30px;">
+          <strong>Giờ khám:</strong> ${data.appointmentTime || '08:00 - 09:00'}
+        </div>
+
+        <!-- Tiêu đề ĐƠN THUỐC ở giữa -->
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">ĐƠN THUỐC</div>
+        </div>
+
+        <!-- Họ tên và Phái/Tuổi -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
+          <div>
+            <strong>Họ tên:</strong> ${data.patientName || 'N/A'}
+          </div>
+          <div>
+            <strong>Giới tính:</strong> ${data.patientGender === 'Male' || data.patientGender === 'Nam' ? 'Nam' : 'Nữ'} 
+            <strong>Tuổi:</strong> ${data.patientAge || 'N/A'}
+          </div>
+        </div>
+
+        <!-- Đường kẻ phân cách -->
+        <hr style="border: none; border-top: 1px solid #000; margin: 20px 0;">
+      </div>
+
+      <!-- ✅ Danh sách thuốc với format mới -->
+      <div style="margin-bottom: 40px;">
+        ${data.medicines.map((med, index) => `
+          <div style="margin-bottom: 25px;">
+            <!-- Tên thuốc và số lượng trên cùng một dòng -->
+            <div style="display: flex; justify-content: space-between;font-size: 14px align-items: center; margin-bottom: 8px;">
+              <div style="font-size: 14px; font-weight: bold;">
+                ${index + 1}. ${med.name}
+              </div>
+              <div style="text-align: right; font-size: 14px; font-weight: bold;">
+                ${med.amount || 'N/A'} ${getUnitFromMedicine(med.name)}
+              </div>
+            </div>
+            
+            <!-- Dosage -->
+            <div style="margin-left: 20px; font-size: 12px; font-style: italic; margin-bottom: 5px;">
+              ${med.dosage || 'N/A'}
+            </div>
+            
+            <!-- Notes -->
+            ${med.note ? `<div style="margin-left: 20px; font-size: 11px;">${med.note}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Cộng khoảng -->
+      <div style="margin-bottom: 60px;">
+        <div style="text-align: left; font-size: 14px; margin-bottom: 20px;">
+          <strong>Cộng khoảng: ${data.medicines.length}</strong>
+        </div>
+        <div style="text-align: right; font-size: 14px; margin-bottom: 10px; margin-right: 20%;">
+          ${data.prescriptionDate || new Date().toLocaleDateString('vi-VN')}
+        </div>
+        <div style="text-align: right; font-size: 14px; margin-bottom: 60px; margin-right: 18%;">
+          <strong>Bác sĩ điều trị</strong>
+        </div>
+        
+        <!-- Tên bác sĩ -->
+        <div style="text-align: right; font-size: 14px;margin-right: 18%;">
+          <strong>${data.doctorName || 'N/A'}</strong>
+        </div>
+      </div>
+
+      <!-- Lời dặn thêm -->
+      <div style="margin-bottom: 30px;">
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">
+          <strong>Lời dặn:</strong>
+        </div>
+        
+        <!-- Khoảng trống -->
+        <div style="height: 80px; border-bottom: 1px dotted #ccc; margin-bottom: 10px;"></div>
+        <div style="height: 80px; border-bottom: 1px dotted #ccc; margin-bottom: 10px;"></div>
+        <div style="height: 80px; border-bottom: 1px dotted #ccc; margin-bottom: 20px;"></div>
+      </div>
+
+      <!-- Đường kẻ cuối -->
+      <div style="border-bottom: 1px solid #000; margin-top: 40px;"></div>
+    </div>
+  `;
+};
+  // Function giúp xác định đơn vị thuốc
+    const getUnitFromMedicine = (medicineName) => {
+      if (!medicineName) return 'Viên';
+      
+      const name = medicineName.toLowerCase();
+      if (name.includes('gel') || name.includes('cream')) return 'Gói';
+      if (name.includes('syrup') || name.includes('chai')) return 'Chai';
+      if (name.includes('ống')) return 'Ống';
+      
+      return 'Viên'; // Default
+
+      };
