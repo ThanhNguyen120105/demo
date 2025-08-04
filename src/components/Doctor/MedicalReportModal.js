@@ -163,9 +163,16 @@ const MedicalReportModal = ({
   // Hàm xóa một thuốc khỏi danh sách
   const handleRemoveMedicine = (index) => {
     if (!report.medicalResultMedicines || !Array.isArray(report.medicalResultMedicines)) return;
-    const newMedicines = [...report.medicalResultMedicines];
-    newMedicines.splice(index, 1);
-    onChange('medicalResultMedicines', newMedicines);
+    
+    const medicine = report.medicalResultMedicines[index];
+    const medicineName = medicine?.name || 'thuốc này';
+    
+    // Confirm before deleting
+    if (window.confirm(`Bạn có chắc chắn muốn xóa ${medicineName} khỏi đơn thuốc không?`)) {
+      const newMedicines = [...report.medicalResultMedicines];
+      newMedicines.splice(index, 1);
+      onChange('medicalResultMedicines', newMedicines);
+    }
   };
 
   // Hàm tạo đơn thuốc dưới dạng PDF
@@ -780,28 +787,84 @@ const MedicalReportModal = ({
 
               {report.medicalResultMedicines && report.medicalResultMedicines.length > 0 ? (
                 <div>
+                  {/* Header for medicine list */}
+                  <Row className="mb-2 p-2 bg-light border rounded">
+                    <Col md={3}>
+                      <strong>Tên thuốc</strong>
+                    </Col>
+                    <Col md={2}>
+                      <strong>Liều lượng</strong>
+                    </Col>
+                    <Col md={2}>
+                      <strong>Số lượng</strong>
+                    </Col>
+                    <Col md={4}>
+                      <strong>Ghi chú</strong>
+                    </Col>
+                    {!readOnly && (
+                      <Col md={1} className="text-center">
+                        <strong>Xóa</strong>
+                      </Col>
+                    )}
+                  </Row>
+                  
+                  {/* Medicine list */}
                   {report.medicalResultMedicines.map((med, index) => (
-                    <Row key={index} className="mb-2 p-2 border rounded">
+                    <Row 
+                      key={index} 
+                      className="mb-2 p-2 border rounded medicine-row" 
+                      style={{
+                        transition: 'all 0.2s ease',
+                        cursor: 'default'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
                       <Col md={3}>
                         <strong>{med.name || 'Chưa có tên'}</strong>
                       </Col>
-                      <Col md={3}>
+                      <Col md={2}>
                         <span className="text-muted">Liều: {med.dosage || 'Chưa có'}</span>
                       </Col>
                       <Col md={2}>
                         <span className="text-info">Số lượng: {med.amount || 0}</span>
                       </Col>
-                      <Col>
+                      <Col md={4}>
                         <small className="text-muted">{med.note || 'Không có ghi chú'}</small>
                       </Col>
                       {!readOnly && (
-                        <Col md={2} className="d-flex justify-content-end">
+                        <Col md={1} className="d-flex justify-content-center align-items-center">
                           <Button 
                             variant="outline-danger" 
                             size="sm" 
                             onClick={() => handleRemoveMedicine(index)}
+                            title={`Xóa thuốc "${med.name || 'thuốc này'}" khỏi đơn thuốc`}
+                            style={{
+                              padding: '4px 8px',
+                              minWidth: '30px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#dc3545';
+                              e.currentTarget.style.color = 'white';
+                              e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.color = '#dc3545';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
                           >
-                            <FontAwesomeIcon icon={faTimes} />
+                            <FontAwesomeIcon icon={faTimes} style={{ fontSize: '12px' }} />
                           </Button>
                         </Col>
                       )}

@@ -187,11 +187,74 @@ const MedicineSelector = ({
 
         {/* Thuốc hiện tại */}
         <div className="mb-4">
-          <h6 className="mb-3">Thuốc đã chọn:</h6>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">
+              Thuốc đã chọn: 
+              <span className="badge bg-primary ms-2">
+                {medicines.length} thuốc
+              </span>
+            </h6>
+            {!readOnly && medicines.length > 0 && (
+              <Button 
+                variant="outline-danger" 
+                size="sm"
+                onClick={() => {
+                  if (window.confirm(`Bạn có chắc chắn muốn xóa tất cả ${medicines.length} thuốc đã chọn không?`)) {
+                    // Xóa tất cả thuốc bằng cách gọi onRemoveMedicine cho từng thuốc từ cuối lên đầu
+                    for (let i = medicines.length - 1; i >= 0; i--) {
+                      onRemoveMedicine(i);
+                    }
+                  }
+                }}
+                title="Xóa tất cả thuốc đã chọn"
+              >
+                <FontAwesomeIcon icon={faTimes} className="me-1" />
+                Xóa tất cả
+              </Button>
+            )}
+          </div>
           {medicines && medicines.length > 0 ? (
-            medicines.map((med, index) => (
-              <Row key={index} className="mb-2 align-items-center p-2 border rounded">
-                <Col md={3}>
+            <div>
+              {/* Header cho bảng thuốc */}
+              <Row className="mb-2 p-2 bg-light border rounded">
+                <Col md={2}>
+                  <strong className="small">Tên thuốc</strong>
+                </Col>
+                <Col md={2}>
+                  <strong className="small">Liều lượng</strong>
+                </Col>
+                <Col md={2}>
+                  <strong className="small">Số lượng</strong>
+                </Col>
+                <Col md={5}>
+                  <strong className="small">Ghi chú</strong>
+                </Col>
+                {!readOnly && (
+                  <Col md={1} className="text-center">
+                    <strong className="small">Xóa</strong>
+                  </Col>
+                )}
+              </Row>
+              
+              {/* Danh sách thuốc */}
+              {medicines.map((med, index) => (
+              <Row 
+                key={index} 
+                className="mb-2 align-items-center p-2 border rounded medicine-row"
+                style={{
+                  transition: 'all 0.2s ease',
+                  cursor: 'default'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <Col md={2}>
                   <Form.Group>
                     <Form.Label className="small">Tên thuốc *</Form.Label>
                     <Form.Control 
@@ -203,7 +266,7 @@ const MedicineSelector = ({
                     />
                   </Form.Group>
                 </Col>
-                <Col md={3}>
+                <Col md={2}>
                   <Form.Group>
                     <Form.Label className="small">Liều lượng *</Form.Label>
                     <Form.Control 
@@ -216,7 +279,7 @@ const MedicineSelector = ({
                     />
                   </Form.Group>
                 </Col>
-                <Col md={3}>
+                <Col md={2}>
                   <Form.Group>
                     <Form.Label className="small">Số lượng</Form.Label>
                     <Form.Control
@@ -229,12 +292,12 @@ const MedicineSelector = ({
                     />
                   </Form.Group>
                 </Col>
-                <Col md={3}>
+                <Col md={5}>
                   <Form.Group>
                     <Form.Label className="small">Ghi chú</Form.Label>
                     <Form.Control
                       as="textarea"
-                      row={2}
+                      rows={2}
                       value={med.note || ''}
                       onChange={(e) => onMedicineChange(index, 'note', e.target.value)}
                       readOnly={readOnly}
@@ -243,22 +306,49 @@ const MedicineSelector = ({
                     />
                   </Form.Group>
                 </Col>
-                {/* {!readOnly && (
-                  <Col md={2} className="d-flex align-items-end">
+                {!readOnly && (
+                  <Col md={1} className="d-flex align-items-end justify-content-center">
                     <Button 
                       variant="outline-danger" 
                       size="sm" 
-                      onClick={() => onRemoveMedicine(index)}
+                      onClick={() => {
+                        if (window.confirm(`Bạn có chắc chắn muốn xóa thuốc "${med.name || 'này'}" khỏi danh sách không?`)) {
+                          onRemoveMedicine(index);
+                        }
+                      }}
+                      title={`Xóa thuốc "${med.name || 'này'}" khỏi danh sách`}
+                      style={{
+                        padding: '4px 8px',
+                        minWidth: '30px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                        marginBottom: '1.5rem'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc3545';
+                        e.currentTarget.style.color = 'white';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = '#dc3545';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
                     >
-                      <FontAwesomeIcon icon={faTimes} />
+                      <FontAwesomeIcon icon={faTimes} style={{ fontSize: '12px' }} />
                     </Button>
                   </Col>
-                )} */}
+                )}
               </Row>
-            ))
+            ))}
+            </div>
           ) : (
-            <div className="text-muted text-center py-3 border rounded">
-              Chưa có thuốc nào được chọn
+            <div className="text-muted text-center py-4 border rounded bg-light">
+              <FontAwesomeIcon icon={faPills} size="2x" className="mb-2 text-secondary" />
+              <div className="mb-1">Chưa có thuốc nào được chọn</div>
+              <small>Tìm kiếm và chọn thuốc từ danh sách bên dưới</small>
             </div>
           )}
         </div>
