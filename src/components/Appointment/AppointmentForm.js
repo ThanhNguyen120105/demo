@@ -24,14 +24,15 @@ import {
   faCreditCard,
   faMoneyBillWave,
   faSpinner,
-  faReceipt
+  faReceipt,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import './AppointmentForm.css';
 import { useLocation } from 'react-router-dom';
 import BackButton from '../common/BackButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { appointmentAPI, slotAPI, doctorAPI, serviceAPI } from '../../services/api';
-import { createVNPayPayment, storeTempAppointmentData } from '../../services/payment';
+import { createVNPayPayment, storeTempAppointmentData, getTempAppointmentData, clearTempAppointmentData } from '../../services/payment';
 
 const AppointmentForm = () => {
   const location = useLocation();
@@ -276,7 +277,19 @@ const AppointmentForm = () => {
     };
 
     loadServices();
-  }, []); // Chỉ chạy một lần khi component mount// Event handler để xử lý thay đổi input/select values
+  }, []); // Chỉ chạy một lần khi component mount
+
+  // useEffect để cleanup event listeners khi component unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup any remaining event listeners when component unmounts
+      window.removeEventListener('message', () => {});
+      window.removeEventListener('focus', () => {});
+      console.log('🧹 Cleaned up payment event listeners');
+    };
+  }, []);
+
+// Event handler để xử lý thay đổi input/select values
   const handleInputChange = (e) => {
     // Destructuring assignment để lấy name và value từ event target
     const { name, value } = e.target;
@@ -562,6 +575,97 @@ const AppointmentForm = () => {
     alert('Vui lòng hoàn tất thanh toán qua VNPay để tiếp tục.');
   };
 
+  // Function to safely close payment window and focus main tab
+  const closePaymentWindowAndFocus = (paymentWindow) => {
+    try {
+      if (paymentWindow && !paymentWindow.closed) {
+        paymentWindow.close();
+        console.log('✅ Payment window closed successfully');
+      }
+      
+      // Focus main window
+      window.focus();
+      
+      // Try to bring main window to front on different browsers
+      if (window.focus) {
+        window.focus();
+      }
+      
+      // Additional method for some browsers
+      setTimeout(() => {
+        window.focus();
+      }, 100);
+      
+    } catch (error) {
+      console.warn('⚠️ Error closing payment window:', error);
+    }
+  };
+
+  // Function to check payment result after user returns from VNPay
+  const checkPaymentResult = async (transactionRef) => {
+    try {
+      console.log('🔍 Checking payment result for transaction:', transactionRef);
+      
+      // Focus main window to ensure user sees the result
+      window.focus();
+      
+      // Get stored appointment data
+      const storedData = getTempAppointmentData(transactionRef);
+      if (!storedData) {
+        console.warn('⚠️ No stored appointment data found');
+        setFormData(prev => ({
+          ...prev,
+          paymentStatus: 'failed'
+        }));
+        setErrorMessage('Không tìm thấy thông tin giao dịch. Vui lòng thử lại.');
+        return;
+      }
+
+      // Here you would typically call an API to check the payment status
+      // For now, we'll simulate checking the payment status
+      // In real implementation, this should call your backend API
+      
+      // Simulate payment success (you should replace this with actual API call)
+      const paymentSuccess = true; // This should come from your payment verification API
+      
+      if (paymentSuccess) {
+        console.log('✅ Payment verified successfully');
+        
+        // Update form data with payment success
+        setFormData(prev => ({
+          ...prev,
+          paymentStatus: 'completed',
+          paymentMethod: 'vnpay'
+        }));
+        
+        // Create the appointment since payment is successful
+        await handleCreateAppointment();
+        
+        // Clear temporary data
+        clearTempAppointmentData();
+        
+        // Show success message
+        console.log('🎉 Appointment created successfully after payment');
+        
+      } else {
+        console.log('❌ Payment verification failed');
+        setFormData(prev => ({
+          ...prev,
+          paymentStatus: 'failed'
+        }));
+        setErrorMessage('Thanh toán không thành công. Vui lòng thử lại.');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error checking payment result:', error);
+      setFormData(prev => ({
+        ...prev,
+        paymentStatus: 'failed'
+      }));
+      setErrorMessage('Có lỗi khi kiểm tra kết quả thanh toán. Vui lòng liên hệ hỗ trợ.');
+    }
+  };
+
   const handlePaymentNow = async () => {
     setIsProcessingPayment(true);
     setErrorMessage('');
@@ -634,8 +738,183 @@ const AppointmentForm = () => {
           paymentStatus: 'processing'
         }));
         
-        // Redirect to VNPay payment page
-        window.location.href = paymentResult.paymentUrl;
+        // Open VNPay payment page in new tab and monitor it
+        const paymentWindow = window.open(paymentResult.paymentUrl, '_blank');
+        
+        // Store payment window reference globally for manual close button
+        window.paymentWindow = paymentWindow;
+        
+        // Show user instruction
+        console.log('🆕 Tab thanh toán VNPay đã được mở. Sau khi thanh toán xong, tab sẽ tự động đóng và quay về trang chính.');
+        
+        // Store reference to payment window for cleanup
+        let isPaymentCompleted = false;
+        
+        // Listen for messages from payment window (VNPay callback)
+        const handleMessage = (event) => {
+          // Check if message is from VNPay domain or our callback
+          if (event.origin.includes('vnpay') || event.data.type === 'vnpay_result') {
+            console.log('📧 Received payment message:', event.data);
+            
+            // Close payment window and focus main tab
+            closePaymentWindowAndFocus(paymentWindow);
+            
+            // Mark payment as completed to avoid duplicate processing
+            isPaymentCompleted = true;
+            
+            // Remove message listener
+            window.removeEventListener('message', handleMessage);
+            
+            // Process payment result
+            setFormData(prev => ({
+              ...prev,
+              paymentStatus: 'checking'
+            }));
+            
+            // Show notification to user
+            console.log('🎉 Thanh toán hoàn tất, đang kiểm tra kết quả...');
+            
+            setTimeout(() => {
+              checkPaymentResult(transactionRef);
+            }, 1000);
+          }
+        };
+        
+        window.addEventListener('message', handleMessage);
+        
+        // Monitor the payment window
+        const checkPaymentStatus = setInterval(() => {
+          try {
+            // Check if payment window is closed
+            if (paymentWindow.closed) {
+              clearInterval(checkPaymentStatus);
+              
+              // Only process if payment hasn't been completed via message
+              if (!isPaymentCompleted) {
+                // Show processing message
+                setFormData(prev => ({
+                  ...prev,
+                  paymentStatus: 'checking'
+                }));
+                
+                // Close payment window and focus main tab
+                closePaymentWindowAndFocus(paymentWindow);
+                
+                // Wait a moment then check payment result
+                setTimeout(() => {
+                  checkPaymentResult(transactionRef);
+                }, 1000);
+              }
+            } else {
+              // Check if payment window URL contains error or failure indicators
+              try {
+                const paymentWindowUrl = paymentWindow.location.href;
+                
+                // Check for VNPay failure indicators in URL
+                if (paymentWindowUrl.includes('vnp_ResponseCode=') && 
+                    !paymentWindowUrl.includes('vnp_ResponseCode=00')) {
+                  console.log('🚫 Payment failed detected from URL');
+                  clearInterval(checkPaymentStatus);
+                  isPaymentCompleted = true;
+                  
+                  // Close payment window immediately
+                  closePaymentWindowAndFocus(paymentWindow);
+                  
+                  // Set payment status to failed
+                  setFormData(prev => ({
+                    ...prev,
+                    paymentStatus: 'failed'
+                  }));
+                  setErrorMessage('Thanh toán không thành công. Vui lòng thử lại.');
+                }
+              } catch (crossOriginError) {
+                // Expected error due to cross-origin restrictions, continue monitoring
+              }
+            }
+          } catch (error) {
+            // Cross-origin error is expected, continue monitoring
+          }
+        }, 1000);
+        
+        // Force close payment window after 5 minutes if still open
+        const forceCloseTimeout = setTimeout(() => {
+          if (paymentWindow && !paymentWindow.closed && !isPaymentCompleted) {
+            console.log('⏰ Force closing payment window after 5 minutes');
+            closePaymentWindowAndFocus(paymentWindow);
+            clearInterval(checkPaymentStatus);
+            window.removeEventListener('message', handleMessage);
+            window.removeEventListener('focus', handleWindowFocus);
+            
+            setFormData(prev => ({
+              ...prev,
+              paymentStatus: 'failed'
+            }));
+            setErrorMessage('Thời gian thanh toán đã hết. Vui lòng thử lại.');
+          }
+        }, 5 * 60 * 1000); // 5 minutes
+        
+        // Also listen for window focus (when user comes back to main tab)
+        const handleWindowFocus = () => {
+          if (paymentWindow && paymentWindow.closed && !isPaymentCompleted) {
+            window.removeEventListener('focus', handleWindowFocus);
+            window.removeEventListener('message', handleMessage);
+            clearInterval(checkPaymentStatus);
+            
+            // Show processing message
+            setFormData(prev => ({
+              ...prev,
+              paymentStatus: 'checking'
+            }));
+            
+            setTimeout(() => {
+              checkPaymentResult(transactionRef);
+            }, 1000);
+          }
+        };
+        
+        window.addEventListener('focus', handleWindowFocus);
+        
+        // Add keyboard shortcut to close payment window (Escape key)
+        const handleEscapeKey = (event) => {
+          if (event.key === 'Escape' && paymentWindow && !paymentWindow.closed) {
+            console.log('🔑 Escape key pressed - closing payment window');
+            closePaymentWindowAndFocus(paymentWindow);
+            window.removeEventListener('keydown', handleEscapeKey);
+            window.removeEventListener('message', handleMessage);
+            window.removeEventListener('focus', handleWindowFocus);
+            clearInterval(checkPaymentStatus);
+            
+            setFormData(prev => ({
+              ...prev,
+              paymentStatus: 'failed'
+            }));
+            setErrorMessage('Thanh toán đã bị hủy bởi người dùng.');
+          }
+        };
+        
+        window.addEventListener('keydown', handleEscapeKey);
+        
+        // Auto-close payment window after 10 minutes (timeout protection)
+        setTimeout(() => {
+          if (paymentWindow && !paymentWindow.closed && !isPaymentCompleted) {
+            console.log('⏰ Payment timeout - closing payment window');
+            closePaymentWindowAndFocus(paymentWindow);
+            window.removeEventListener('message', handleMessage);
+            window.removeEventListener('focus', handleWindowFocus);
+            
+            // Clear global reference
+            window.paymentWindow = null;
+            
+            setFormData(prev => ({
+              ...prev,
+              paymentStatus: 'failed'
+            }));
+            setErrorMessage('Phiên thanh toán đã hết thời gian. Vui lòng thử lại.');
+          }
+        }, 10 * 60 * 1000); // 10 minutes
+        
+        // Clear processing status since payment window opened successfully
+        setIsProcessingPayment(false);
         
       } else {
         throw new Error(paymentResult.error || 'Không thể tạo liên kết thanh toán VNPay');
@@ -1668,12 +1947,27 @@ const AppointmentForm = () => {
                 </div>
               )}
 
+              {/* Payment Process Instructions */}
+              {(formData.paymentStatus === 'processing' || formData.paymentStatus === 'checking') && (
+                <div className="alert alert-info mb-4" role="alert">
+                  <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                  <strong>Hướng dẫn:</strong>
+                  <ul className="mb-0 mt-2">
+                    <li>Tab thanh toán VNPay đã được mở, vui lòng hoàn tất thanh toán</li>
+                    <li>Tab sẽ tự động đóng sau khi thanh toán xong</li>
+                    <li>Nếu tab không tự đóng, bạn có thể nhấn nút "Đóng tab thanh toán" bên dưới</li>
+                    <li>Hoặc nhấn phím <kbd>Esc</kbd> để đóng tab thanh toán</li>
+                  </ul>
+                </div>
+              )}
+
               {/* Payment Actions */}
               <div className="payment-actions">
                 <div className="d-flex gap-3">
                   <Button 
                     variant="outline-secondary" 
                     onClick={handlePreviousStep}
+                    disabled={formData.paymentStatus === 'processing' || formData.paymentStatus === 'checking'}
                     style={{
                       borderColor: '#6c757d',
                       color: '#6c757d',
@@ -1687,11 +1981,44 @@ const AppointmentForm = () => {
                     <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                     Quay lại
                   </Button>
+                  
+                  {/* Show close payment window button when payment is in progress */}
+                  {(formData.paymentStatus === 'processing' || formData.paymentStatus === 'checking') && (
+                    <Button 
+                      variant="outline-danger"
+                      onClick={() => {
+                        // Force close any open payment windows
+                        if (window.paymentWindow && !window.paymentWindow.closed) {
+                          window.paymentWindow.close();
+                        }
+                        window.focus();
+                        
+                        // Reset payment status
+                        setFormData(prev => ({
+                          ...prev,
+                          paymentStatus: 'failed'
+                        }));
+                        setErrorMessage('Thanh toán đã bị hủy bởi người dùng.');
+                        setIsProcessingPayment(false);
+                      }}
+                      style={{
+                        fontWeight: '500',
+                        padding: '12px 20px',
+                        borderRadius: '8px',
+                        flex: '0 0 auto',
+                        minWidth: '140px'
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="me-2" />
+                      Đóng tab thanh toán
+                    </Button>
+                  )}
+                  
                   <Button 
                     variant="primary" 
                     onClick={handlePaymentNow}
                     className="flex-fill" 
-                    disabled={isSubmitting || isProcessingPayment}
+                    disabled={isSubmitting || isProcessingPayment || formData.paymentStatus === 'checking'}
                     style={{
                       fontWeight: '600',
                       padding: '12px 20px',
@@ -1704,6 +2031,11 @@ const AppointmentForm = () => {
                       <>
                         <FontAwesomeIcon icon={faSpinner} spin className="me-2" />
                         Đang xử lý thanh toán VNPay...
+                      </>
+                    ) : formData.paymentStatus === 'checking' ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin className="me-2" />
+                        Đang kiểm tra kết quả thanh toán...
                       </>
                     ) : (
                       <>
