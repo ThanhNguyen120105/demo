@@ -580,7 +580,7 @@ const AppointmentHistory = () => {
                               </Button>
                             ) : (
                               <span className="text-muted" style={{ fontSize: '0.75rem' }}>
-                                {appointment.isOnline !== true ? 'Khám trực tiếp' : 'Không khả dụng'}
+                                {appointment.isOnline !== true ? 'Khám trực tiếp' : 'Khám trực tuyến'}
                               </span>
                             )}
                           </td>
