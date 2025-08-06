@@ -67,7 +67,7 @@ export const createVNPayPayment = async (appointmentData) => {
     // Sửa returnUrl để khớp với backend - không thêm tham số ref
     const baseReturnUrl = `${window.location.origin}/payment-callback`;
     const returnUrl = baseReturnUrl; // Không thêm tham số ref vì backend sẽ tự thêm status
-    
+
     // Prepare appointment data for API - đảm bảo có đầy đủ required fields
     const paymentData = {
       ...appointmentData,
@@ -112,32 +112,32 @@ export const createVNPayPayment = async (appointmentData) => {
       console.warn('⚠️ Backend VNPay not available, using mock URL for testing');
       
       // Tạo mock VNPay URL với đầy đủ parameters
-      const mockParams = new URLSearchParams({
-        vnp_Amount: (appointmentData.paymentAmount * 100).toString(), // VNPay cần amount * 100
-        vnp_Command: 'pay',
-        vnp_CreateDate: new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14),
-        vnp_CurrCode: 'VND',
-        vnp_IpAddr: '127.0.0.1',
-        vnp_Locale: 'vn',
-        vnp_Merchant: 'DEMO_MERCHANT', 
-        vnp_OrderInfo: encodeURIComponent('Thanh toan lich hen HIV'),
-        vnp_OrderType: 'other',
-        vnp_ReturnUrl: encodeURIComponent(paymentData.returnUrl), // Sử dụng simple returnUrl
-        vnp_TmnCode: 'DEMO_TMN',
-        vnp_TxnRef: appointmentData.transactionRef,
-        vnp_Version: '2.1.0',
-        vnp_SecureHash: 'mock_hash_for_testing'
-      });
+      // const mockParams = new URLSearchParams({
+      //   vnp_Amount: (appointmentData.paymentAmount * 100).toString(), // VNPay cần amount * 100
+      //   vnp_Command: 'pay',
+      //   vnp_CreateDate: new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14),
+      //   vnp_CurrCode: 'VND',
+      //   vnp_IpAddr: '127.0.0.1',
+      //   vnp_Locale: 'vn',
+      //   vnp_Merchant: 'DEMO_MERCHANT', 
+      //   vnp_OrderInfo: encodeURIComponent('Thanh toan lich hen HIV'),
+      //   vnp_OrderType: 'other',
+      //   vnp_ReturnUrl: encodeURIComponent(paymentData.returnUrl), // Sử dụng simple returnUrl
+      //   vnp_TmnCode: 'DEMO_TMN',
+      //   vnp_TxnRef: appointmentData.transactionRef,
+      //   vnp_Version: '2.1.0',
+      //   vnp_SecureHash: 'mock_hash_for_testing'
+      // });
       
-      const mockVNPayURL = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?${mockParams.toString()}`;
+      // const mockVNPayURL = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?${mockParams.toString()}`;
       
-      console.log('🧪 Generated mock VNPay URL:', mockVNPayURL);
+      // console.log('🧪 Generated mock VNPay URL:', mockVNPayURL);
       
-      return {
-        success: true,
-        paymentUrl: mockVNPayURL,
-        message: 'Mock payment URL generated for testing (backend not available)'
-      };
+      // return {
+      //   success: true,
+      //   paymentUrl: mockVNPayURL,
+      //   message: 'Mock payment URL generated for testing (backend not available)'
+      // };
     }
     
     return {
