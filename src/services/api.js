@@ -1972,6 +1972,36 @@ export const blogAPI = {
         data: null
       };
     }
+  },
+
+  deletePost: async (postId) => {
+    try {
+      console.log('=== DEBUG deletePost API ===');
+      console.log('Post ID:', postId);
+      
+      const response = await api.delete(`/posts/staff/${postId}`);
+      
+      console.log('=== DEBUG deletePost Success ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message || 'Xóa bài viết thành công'
+      };
+    } catch (error) {
+      console.error('=== DEBUG deletePost Error ===');
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể xóa bài viết',
+        error: error.response?.data
+      };
+    }
   }
 };
 

@@ -54,13 +54,26 @@ const BlogManagement = () => {
   const handleDeletePost = async (postId) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
       try {
-        // TODO: Implement delete API call
-        console.log('Delete post:', postId);
-        // For now, just remove from local state
-        setPosts(prev => prev.filter(p => p.id !== postId));
+        setLoading(true);
+        
+        // Call delete API
+        const response = await blogAPI.deletePost(postId);
+        
+        if (response.success) {
+          // Remove from local state on successful deletion
+          setPosts(prev => prev.filter(p => p.id !== postId));
+          
+          // Show success message (optional)
+          alert('Xóa bài viết thành công!');
+        } else {
+          throw new Error(response.message || 'Không thể xóa bài viết');
+        }
       } catch (error) {
         console.error('Error deleting post:', error);
-        alert('Có lỗi xảy ra khi xóa bài viết');
+        setError(error.message || 'Có lỗi xảy ra khi xóa bài viết');
+        alert('Có lỗi xảy ra khi xóa bài viết: ' + (error.message || 'Lỗi không xác định'));
+      } finally {
+        setLoading(false);
       }
     }
   };
